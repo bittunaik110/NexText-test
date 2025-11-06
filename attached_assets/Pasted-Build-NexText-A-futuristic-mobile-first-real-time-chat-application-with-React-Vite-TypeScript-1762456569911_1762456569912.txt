@@ -1,0 +1,187 @@
+Build "NexText" - A futuristic mobile-first real-time chat application with React (Vite), TypeScript, Express, Firebase (Realtime Database, Firestore, Auth, Storage), and Tailwind CSS.
+
+App Name: NexText
+Theme: Modern, sleek, futuristic with premium glass-morphism design
+
+Firebase Config:
+- Project: chatting-application-8180c
+- Database: https://chatting-application-8180c-default-rtdb.firebaseio.com
+- Storage: chatting-application-8180c.firebasestorage.app
+- App ID: 1:656275023417:web:b8c7b4866bb3e9e0208fe8
+
+CRITICAL PRIORITIES:
+📱 Mobile-first futuristic UI (max-width 480px, native app feel)
+🔄 Real-time messaging (Firebase onValue, no refresh needed)
+🎨 Modern premium design with glass-morphism and gradients
+🔢 PIN-based connection system (NO email search)
+🌙 Dark mode by default with theme toggle
+
+FUTURISTIC UI DESIGN SYSTEM:
+
+Color Palette (Modern & Unique):
+Primary: Deep Purple (#8B5CF6) - Violet gradient
+Secondary: Cyan Blue (#06B6D4) - Electric blue
+Accent: Pink/Magenta (#EC4899) - Hot pink
+Background Dark: #0F172A (Slate 900)
+Background Light: #1E293B (Slate 800)
+Surface: #334155 (Slate 700) with glass effect
+Text Primary: #F8FAFC (Almost white)
+Text Secondary: #94A3B8 (Slate 400)
+Success: #10B981 (Emerald)
+Error: #EF4444 (Red)
+Warning: #F59E0B (Amber)
+
+Gradient Combinations:
+- Primary Gradient: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)
+- Secondary Gradient: linear-gradient(135deg, #06B6D4 0%, #3B82F6 100%)
+- Message Sent: linear-gradient(135deg, #8B5CF6 0%, #6366F1 100%)
+- Message Received: #334155 with glass-morphism
+
+Glass-Morphism Effect:
+- background: rgba(51, 65, 85, 0.6)
+- backdrop-filter: blur(20px)
+- border: 1px solid rgba(255, 255, 255, 0.1)
+- box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3)
+
+Typography:
+- Font: 'Inter', 'Poppins', or 'DM Sans' (modern sans-serif)
+- Heading: 600-700 weight, tight spacing
+- Body: 400-500 weight
+- Use letter-spacing for headings
+
+UI Components Style:
+
+1. Buttons:
+   - Filled: Gradient background with hover glow effect
+   - Outlined: Border with gradient on hover
+   - Border-radius: 12px (soft rounded)
+   - Padding: 12px 24px
+   - Hover: Scale(1.02) + glow shadow
+   - Active: Scale(0.98)
+
+2. Input Fields:
+   - Glass-morphism background
+   - Border: 1px solid rgba(255, 255, 255, 0.1)
+   - Focus: Border gradient glow
+   - Border-radius: 12px
+   - Padding: 14px 18px
+
+3. Message Bubbles:
+   - Sent: Purple gradient, rounded-3xl (24px), float right
+   - Received: Glass slate background, rounded-3xl, float left
+   - Max-width: 75%
+   - Padding: 12px 16px
+   - Shadow: subtle glow
+
+4. Cards:
+   - Glass-morphism effect
+   - Hover: lift up (translateY(-4px)) + shadow increase
+   - Border-radius: 16px
+   - Transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1)
+
+5. Icons:
+   - Use Lucide React icons
+   - Size: 20-24px
+   - Color: Gradient on hover
+   - Animated on interaction
+
+Animations & Micro-interactions:
+- Message send: Slide up + fade in
+- Message receive: Slide down + fade in
+- Button click: Ripple effect
+- Page transitions: Fade + slide
+- Loading: Gradient shimmer effect
+- Typing indicator: Bouncing dots with gradient
+- Online status: Pulsing green dot
+
+Layout Structure:
+
+Mobile View:
+┌─────────────────────┐
+│ Header (Glass)      │ ← Gradient accent, fixed top
+├─────────────────────┤
+│                     │
+│   Chat List         │ ← Glass cards, hover effects
+│   or               │
+│   Chat Window       │ ← Full screen toggle
+│                     │
+├─────────────────────┤
+│ Bottom Nav/Input    │ ← Fixed bottom, glass effect
+└─────────────────────┘
+
+Desktop View:
+┌──────────┬─────────────────┐
+│ Sidebar  │  Chat Window    │
+│ (30%)    │  (70%)          │
+│          │                 │
+│ Glass    │  Glass surface  │
+│ Cards    │  Messages       │
+│          │                 │
+│          ├─────────────────┤
+│          │ Input (Glass)   │
+└──────────┴─────────────────┘
+
+Key Features:
+✅ Real-time messaging (Firebase onValue)
+✅ PIN-based connections (6-digit auto-generated)
+✅ Online/offline status (pulsing dot)
+✅ Typing indicators (animated gradient dots)
+✅ Read receipts (✓ → ✓✓ with gradient color change)
+✅ Last seen (relative time)
+✅ Message timestamps (subtle, bottom-right)
+✅ Unread count badges (gradient background)
+✅ Image/file upload (drag & drop with preview)
+✅ User profile with avatar (gradient ring)
+✅ Emoji picker (modern, searchable)
+✅ Message deletion (swipe gesture on mobile)
+✅ Theme toggle (dark/light with smooth transition)
+✅ Sound effects (message send/receive - optional)
+
+Special UI Elements:
+
+1. Chat List Item:
+   - Avatar with gradient ring for online users
+   - Name (bold, white)
+   - Last message preview (truncated, gray)
+   - Timestamp (top-right, small, gray)
+   - Unread badge (gradient, bouncy animation)
+   - Hover: Glass effect intensifies
+
+2. Message Input:
+   - Glass background
+   - Emoji button (left)
+   - Attach button (left)
+   - Text area (auto-expand, max 4 lines)
+   - Send button (right, gradient, circular)
+   - Typing indicator position (above input)
+
+3. Profile Screen:
+   - Large avatar (gradient ring, center)
+   - PIN display (glass card, copy button)
+   - Edit profile (glass cards for each field)
+   - Logout button (outline, red accent)
+
+4. Connection Modal:
+   - Glass card modal (center)
+   - 6-digit PIN input (large, separated boxes)
+   - Gradient connect button
+   - Smooth slide-up animation
+
+Database Structure:
+Firestore:
+/users/{userId}: email, displayName, photoURL, bio, pin (6-digit), theme, createdAt
+/chats/{chatId}: participants[], lastMessage, lastMessageTime, unreadCount{}
+
+Realtime Database:
+/messages/{chatId}/{messageId}: senderId, text, imageUrl, timestamp, readBy[], status
+/presence/{userId}: isOnline, lastSeen
+/typing/{chatId}/{userId}: isTyping, timestamp
+
+Tech Stack:
+Frontend: React 18 + Vite + TypeScript + Tailwind CSS + Framer Motion (animations)
+Backend: Node.js + Express + TypeScript + Firebase Admin SDK
+Icons: Lucide React
+Animations: Framer Motion for smooth transitions
+Date: date-fns
+
+Real-time Implementation:
