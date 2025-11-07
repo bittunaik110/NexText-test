@@ -1,4 +1,3 @@
-
 import admin from 'firebase-admin';
 
 const serviceAccount = {
@@ -17,10 +16,14 @@ const serviceAccount = {
 
 if (!admin.apps.length) {
   admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount as admin.ServiceAccount)
+    credential: admin.credential.cert(serviceAccount as admin.ServiceAccount),
+    databaseURL: process.env.FIREBASE_DATABASE_URL || `https://${process.env.FIREBASE_PROJECT_ID}-default-rtdb.firebaseio.com`,
+    storageBucket: process.env.FIREBASE_STORAGE_BUCKET || `${process.env.FIREBASE_PROJECT_ID}.firebasestorage.app`,
   });
 }
 
 export const firebaseAdmin = admin;
 export const auth = admin.auth();
 export const db = admin.firestore();
+export const realtimeDb = admin.database();
+export const storage = admin.storage();
