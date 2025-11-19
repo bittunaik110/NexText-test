@@ -71,7 +71,11 @@ export function setupSocketIO(httpServer: HTTPServer) {
           id: messageId,
           senderId: userId,
           timestamp: Date.now(),
-          status: "sent"
+          status: "sent",
+          replyTo: messageData.replyTo || null,
+          reactions: {},
+          edited: false,
+          deleted: false
         };
 
         await messageRef.set(message);
@@ -83,6 +87,53 @@ export function setupSocketIO(httpServer: HTTPServer) {
       } catch (error) {
         console.error("Error sending message:", error);
         socket.emit("message-error", { error: "Failed to send message" });
+      }
+    });
+
+    socket.on("edit-message", async ({ chatId, messageId, newText }) => {
+      try {
+        const messageRef = realtimeDb.ref(`messages/${chatId}/${messageId}`);
+        const snapshot = await messageRef.get();
+        const message = snapshot.val();
+
+        if (message && message.senderId === userId) {
+          await messageRef.update({
+            text: newText,
+            edited: true,
+            editedAt: Date.now()
+          });
+          io.to(chatId).emit("message-edited", { messageId, newText, editedAt: Date.now() });
+        }
+      } catch (error) {
+        console.error("Error editing message:", error);
+      }
+    });
+
+    socket.on("delete-message", async ({ chatId, messageId }) => {
+      try {
+        const messageRef = realtimeDb.ref(`messages/${chatId}/${messageId}`);
+        const snapshot = await messageRef.get();
+        const message = snapshot.val();
+
+        if (message && message.senderId === userId) {
+          await messageRef.update({
+            deleted: true,
+            deletedAt: Date.now()
+          });
+          io.to(chatId).emit("message-deleted", { messageId });
+        }
+      } catch (error) {
+        console.error("Error deleting message:", error);
+      }
+    });
+
+    socket.on("react-to-message", async ({ chatId, messageId, emoji }) => {
+      try {
+        const messageRef = realtimeDb.ref(`messages/${chatId}/${messageId}/reactions/${userId}`);
+        await messageRef.set(emoji);
+        io.to(chatId).emit("message-reaction", { messageId, userId, emoji });
+      } catch (error) {
+        console.error("Error adding reaction:", error);
       }
     });
 
