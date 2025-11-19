@@ -4,7 +4,7 @@ import UserAvatar from "./UserAvatar";
 import MessageBubble from "./MessageBubble";
 import MessageInput from "./MessageInput";
 import TypingIndicator from "./TypingIndicator";
-import { ArrowLeft, MoreVertical } from "lucide-react";
+import { ArrowLeft, MoreVertical, Phone, Video } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Message {
@@ -63,9 +63,27 @@ export default function ChatWindow({ contact, messages, onBack, onSendMessage, i
             </p>
           </div>
 
-          <Button size="icon" variant="ghost" data-testid="button-options">
-            <MoreVertical className="h-5 w-5" />
-          </Button>
+          <div className="flex gap-1">
+            <Button 
+              size="icon" 
+              variant="ghost"
+              onClick={() => console.log('Voice call initiated')}
+              data-testid="button-voice-call"
+            >
+              <Phone className="h-5 w-5 text-primary" />
+            </Button>
+            <Button 
+              size="icon" 
+              variant="ghost"
+              onClick={() => console.log('Video call initiated')}
+              data-testid="button-video-call"
+            >
+              <Video className="h-5 w-5 text-primary" />
+            </Button>
+            <Button size="icon" variant="ghost" data-testid="button-options">
+              <MoreVertical className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
       </div>
 

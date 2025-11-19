@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -18,6 +17,12 @@ interface EmojiPickerProps {
 export default function EmojiPicker({ onSelect }: EmojiPickerProps) {
   const [open, setOpen] = useState(false);
 
+  // Handler for emoji selection
+  const onEmojiSelect = (emoji: string) => {
+    onSelect(emoji);
+    setOpen(false);
+  };
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -36,10 +41,7 @@ export default function EmojiPicker({ onSelect }: EmojiPickerProps) {
                 {emojis.map((emoji) => (
                   <button
                     key={emoji}
-                    onClick={() => {
-                      onSelect(emoji);
-                      setOpen(false);
-                    }}
+                    onClick={() => onEmojiSelect(emoji)}
                     className="p-2 hover:bg-muted rounded text-2xl transition-colors"
                   >
                     {emoji}

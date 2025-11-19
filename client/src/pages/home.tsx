@@ -179,50 +179,52 @@ export default function Home() {
         />
       </div>
 
-      {/* Mobile Bottom Navigation */}
-      <div className="md:hidden sticky bottom-0 border-t border-border bg-card/60 backdrop-blur-xl">
-        <div className="flex items-center justify-around p-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="flex-1 flex flex-col items-center gap-1 h-auto py-2"
-            onClick={() => {
-              setSelectedChat(undefined);
-              setView("chats");
-            }}
-          >
-            <MessageCircle className="h-5 w-5" />
-            <span className="text-xs">Chats</span>
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="flex-1 flex flex-col items-center gap-1 h-auto py-2"
-            onClick={() => setLocation("/status")}
-          >
-            <Users className="h-5 w-5" />
-            <span className="text-xs">Status</span>
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="flex-1 flex flex-col items-center gap-1 h-auto py-2"
-            onClick={() => setLocation("/calls")}
-          >
-            <Phone className="h-5 w-5" />
-            <span className="text-xs">Calls</span>
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="flex-1 flex flex-col items-center gap-1 h-auto py-2"
-            onClick={() => setLocation("/settings")}
-          >
-            <Settings className="h-5 w-5" />
-            <span className="text-xs">Settings</span>
-          </Button>
+      {/* Mobile Bottom Navigation - Only show when no chat is selected */}
+      {!selectedChat && (
+        <div className="md:hidden sticky bottom-0 border-t border-border bg-card/60 backdrop-blur-xl">
+          <div className="flex items-center justify-around p-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="flex-1 flex flex-col items-center gap-1 h-auto py-2"
+              onClick={() => {
+                setSelectedChat(undefined);
+                setView("chats");
+              }}
+            >
+              <MessageCircle className="h-5 w-5" />
+              <span className="text-xs">Chats</span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="flex-1 flex flex-col items-center gap-1 h-auto py-2"
+              onClick={() => setLocation("/status")}
+            >
+              <Users className="h-5 w-5" />
+              <span className="text-xs">Status</span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="flex-1 flex flex-col items-center gap-1 h-auto py-2"
+              onClick={() => setLocation("/calls")}
+            >
+              <Phone className="h-5 w-5" />
+              <span className="text-xs">Calls</span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="flex-1 flex flex-col items-center gap-1 h-auto py-2"
+              onClick={() => setLocation("/settings")}
+            >
+              <Settings className="h-5 w-5" />
+              <span className="text-xs">Settings</span>
+            </Button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
