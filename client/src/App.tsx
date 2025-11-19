@@ -7,6 +7,9 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import Auth from "@/pages/auth";
+import StatusPage from "@/pages/status";
+import CallsPage from "@/pages/calls";
+import SettingsPage from "@/pages/settings";
 
 function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
   const { user, loading } = useAuth();
@@ -30,6 +33,9 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={() => <ProtectedRoute component={Home} />} />
+      <Route path="/status" component={() => <ProtectedRoute component={StatusPage} />} />
+      <Route path="/calls" component={() => <ProtectedRoute component={CallsPage} />} />
+      <Route path="/settings" component={() => <ProtectedRoute component={SettingsPage} />} />
       <Route path="/auth" component={Auth} />
       <Route component={NotFound} />
     </Switch>
