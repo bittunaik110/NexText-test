@@ -9,7 +9,7 @@ import EmojiPicker from "./EmojiPicker";
 import GifPicker from "./GifPicker";
 
 interface MessageInputProps {
-  onSend: (message: string, file?: File, gifUrl?: string) => void;
+  onSend: (message: string, mediaUrl?: string, gifUrl?: string) => void;
   onTyping?: () => void;
   className?: string;
 }
