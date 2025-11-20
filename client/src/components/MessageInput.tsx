@@ -2,30 +2,48 @@
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Paperclip, Smile, X, Image as ImageIcon, Grid3x3 } from "lucide-react";
+import { Send, Paperclip, Smile, X, Image as ImageIcon } from "lucide-react";
+import { SiGiphy } from "react-icons/si";
 import { cn } from "@/lib/utils";
 import EmojiPicker from "./EmojiPicker";
-import QuickActions from "./QuickActions";
+import GifPicker from "./GifPicker";
 
 interface MessageInputProps {
-  onSend: (message: string, file?: File) => void;
+  onSend: (message: string, file?: File, gifUrl?: string) => void;
   onTyping?: () => void;
   className?: string;
 }
 
 export default function MessageInput({ onSend, onTyping, className }: MessageInputProps) {
   const [message, setMessage] = useState("");
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [showQuickActions, setShowQuickActions] = useState(false);
+  const [showGifPicker, setShowGifPicker] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedGif, setSelectedGif] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleSend = () => {
-    if (message.trim() || selectedFile) {
-      onSend(message.trim(), selectedFile || undefined);
+  const handleSend = async () => {
+    if (!message.trim() && !selectedFile && !selectedGif) return;
+
+    let fileUrl: string | undefined;
+    let gifUrl: string | undefined;
+
+    try {
+      if (selectedFile) {
+        const { uploadFile } = await import("@/lib/uploadFile");
+        fileUrl = await uploadFile(selectedFile);
+      }
+
+      if (selectedGif) {
+        gifUrl = selectedGif;
+      }
+
+      onSend(message.trim(), fileUrl, gifUrl);
       setMessage("");
       setSelectedFile(null);
-      setShowEmojiPicker(false);
+      setSelectedGif(null);
+      setShowGifPicker(false);
+    } catch (error) {
+      console.error("Failed to send message:", error);
     }
   };
 
@@ -45,16 +63,18 @@ export default function MessageInput({ onSend, onTyping, className }: MessageInp
 
   const handleEmojiSelect = (emoji: string) => {
     setMessage(prev => prev + emoji);
-    setShowEmojiPicker(false);
   };
 
   return (
-    <div className={cn("", className)}>
-      {showQuickActions && (
-        <QuickActions onActionSelect={(action) => {
-          console.log("Quick action selected:", action);
-          setShowQuickActions(false);
-        }} />
+    <div className={cn("relative", className)}>
+      {showGifPicker && (
+        <GifPicker
+          onGifSelect={(gifUrl) => {
+            setSelectedGif(gifUrl);
+            setShowGifPicker(false);
+          }}
+          onClose={() => setShowGifPicker(false)}
+        />
       )}
       
       <div className="rounded-xl bg-card/60 backdrop-blur-xl border border-white/10 p-3">
@@ -73,17 +93,21 @@ export default function MessageInput({ onSend, onTyping, className }: MessageInp
           </div>
         )}
 
+        {selectedGif && (
+          <div className="mb-2 relative">
+            <img src={selectedGif} alt="Selected GIF" className="rounded-lg max-h-32 w-auto" />
+            <Button
+              size="icon"
+              variant="ghost"
+              className="absolute top-1 right-1 h-6 w-6 bg-background/80"
+              onClick={() => setSelectedGif(null)}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+
         <div className="flex items-end gap-2">
-          <Button 
-            size="icon" 
-            variant="ghost" 
-            className="shrink-0"
-            onClick={() => setShowQuickActions(!showQuickActions)}
-            data-testid="button-quick-actions"
-          >
-            <Grid3x3 className="h-5 w-5" />
-          </Button>
-          
           <input
             type="file"
             ref={fileInputRef}
@@ -101,6 +125,16 @@ export default function MessageInput({ onSend, onTyping, className }: MessageInp
             <Paperclip className="h-5 w-5" />
           </Button>
 
+          <Button 
+            size="icon" 
+            variant="ghost" 
+            className="shrink-0"
+            onClick={() => setShowGifPicker(!showGifPicker)}
+            data-testid="button-gif"
+          >
+            <SiGiphy className="h-5 w-5" />
+          </Button>
+
           <Textarea
             value={message}
             onChange={(e) => {
@@ -114,27 +148,12 @@ export default function MessageInput({ onSend, onTyping, className }: MessageInp
             data-testid="input-message"
           />
 
-          <div className="relative">
-            <Button 
-              size="icon" 
-              variant="ghost" 
-              className="shrink-0"
-              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-              data-testid="button-emoji"
-            >
-              <Smile className="h-5 w-5" />
-            </Button>
-            {showEmojiPicker && (
-              <div className="absolute bottom-12 right-0 z-50">
-                <EmojiPicker onEmojiSelect={handleEmojiSelect} onClose={() => setShowEmojiPicker(false)} />
-              </div>
-            )}
-          </div>
+          <EmojiPicker onSelect={handleEmojiSelect} />
 
           <Button
             size="icon"
             onClick={handleSend}
-            disabled={!message.trim() && !selectedFile}
+            disabled={!message.trim() && !selectedFile && !selectedGif}
             className="shrink-0 rounded-full bg-gradient-to-r from-primary to-accent hover:opacity-90"
             data-testid="button-send"
           >

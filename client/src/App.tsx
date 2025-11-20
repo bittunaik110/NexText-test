@@ -10,6 +10,8 @@ import Auth from "@/pages/auth";
 import StatusPage from "@/pages/status";
 import CallsPage from "@/pages/calls";
 import SettingsPage from "@/pages/settings";
+import ProfilePage from "@/pages/profile";
+import ContactsPage from "@/pages/contacts";
 
 function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
   const { user, loading } = useAuth();
@@ -36,6 +38,8 @@ function Router() {
       <Route path="/status" component={() => <ProtectedRoute component={StatusPage} />} />
       <Route path="/calls" component={() => <ProtectedRoute component={CallsPage} />} />
       <Route path="/settings" component={() => <ProtectedRoute component={SettingsPage} />} />
+      <Route path="/profile" component={() => <ProtectedRoute component={ProfilePage} />} />
+      <Route path="/contacts" component={() => <ProtectedRoute component={ContactsPage} />} />
       <Route path="/auth" component={Auth} />
       <Route component={NotFound} />
     </Switch>

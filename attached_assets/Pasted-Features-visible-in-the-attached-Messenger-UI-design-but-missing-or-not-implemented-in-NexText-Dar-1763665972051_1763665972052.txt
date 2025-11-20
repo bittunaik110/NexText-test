@@ -1,0 +1,90 @@
+Features visible in the attached Messenger UI design but missing or not implemented in NexText:
+
+Dark Theme Support
+
+Your app shows only a light theme, while the UI design includes both light and dark modes.
+
+Chat Media Previews
+
+Messenger UI displays media (photos, videos, etc.) in chat (message bubbles).
+
+Missing: Sending/previewing media in chat (images, audio, files).
+
+Reactions and Emoji
+
+Messenger shows reactions (like, love, etc.) on messages.
+
+Missing: Add emoji/reactions to messages.
+
+Voice/Video Calling
+
+Call screens (audio/video call UI) and in-call actions (mute, video toggle, end call).
+
+Missing: Voice and video calling feature.
+
+Message Status Indicators
+
+Messenger displays sent, delivered, read ticks or labels.
+
+Missing: Read receipts, delivery status, failed status.
+
+Stories/Status
+
+Some screens show profile stories/status visible to contacts.
+
+Missing: Ability to upload/view ephemeral status/stories.
+
+Group Chats
+
+Messenger supports group chat creation and group member management.
+
+Missing: Group chat, add/remove members, group info.
+
+Profile and Settings
+
+Messenger UI shows profile, account, settings screens.
+
+Missing: Profile management, change avatar, update status, edit account info, privacy settings.
+
+Search & Filters
+
+Messenger supports advanced search – by contact/message/attachments.
+
+Missing: Search messages, filter by date/media.
+
+Notification & Invite
+
+Screens for invitations, notifications, requests.
+
+Missing: Manage friend requests/invites, notification screen.
+
+Chat Customization
+
+Messenger allows changing chat themes, colors, emojis per chat.
+
+Missing: Per-chat customization (theme, emoji, nickname).
+
+Attachment Options
+
+Messenger can send files, stickers, GIFs.
+
+Missing: File attachment, stickers/GIF support.
+
+Archived/Deleted Chats
+
+Messenger offers archiving/deleting/hiding chats.
+
+Missing: Archive, delete, restore chat.
+
+Group Features:
+
+Messenger shows group participants, group photo, edit group name/avatar.
+
+Missing: Group settings UI.
+
+Contact/Directory
+
+Messenger allows contact search, add/remove/block.
+
+Missing: Manage contacts, block/unblock users.
+

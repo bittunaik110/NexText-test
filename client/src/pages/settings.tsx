@@ -39,6 +39,7 @@ export default function SettingsPage() {
       icon: User,
       items: [
         { label: "Profile", onClick: () => setLocation("/profile") },
+        { label: "Contacts", onClick: () => setLocation("/contacts") },
         { label: "Privacy", onClick: () => console.log("Privacy") },
         { label: "Security", onClick: () => console.log("Security") },
       ],
@@ -129,15 +130,15 @@ export default function SettingsPage() {
                 <div
                   key={index}
                   className="flex items-center justify-between px-4 py-3 border-b border-border/50 hover:bg-muted/30 cursor-pointer transition-colors"
-                  onClick={!item.toggle ? item.onClick : undefined}
+                  onClick={'onClick' in item && !('toggle' in item) ? item.onClick : undefined}
                 >
                   <span className="font-medium">{item.label}</span>
-                  {item.toggle ? (
+                  {'toggle' in item && item.toggle ? (
                     <Switch
-                      checked={item.value}
+                      checked={item.value as boolean}
                       onCheckedChange={item.onChange}
                     />
-                  ) : item.value ? (
+                  ) : 'value' in item && typeof item.value === 'string' ? (
                     <span className="text-muted-foreground">{item.value}</span>
                   ) : null}
                 </div>
