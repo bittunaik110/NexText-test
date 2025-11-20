@@ -1,0 +1,83 @@
+Here’s a breakdown of **missing functionalities** when comparing your current NexText page with the attached Figma Messenger UI screens:
+
+**Visible functionalities on NexText:**
+- Chat list (users, preview messages, timestamps)
+- Selecting a chat to view messages
+- Simple message display
+- Basic searching by chat/user
+- Option to connect with someone using a PIN
+
+***
+
+**Features visible in the attached Messenger UI design but missing or not implemented in NexText:**
+
+1. **Dark Theme Support**
+    - Your app shows only a light theme, while the UI design includes both light and dark modes.
+
+2. **Chat Media Previews**
+    - Messenger UI displays media (photos, videos, etc.) in chat (message bubbles).
+    - Missing: Sending/previewing media in chat (images, audio, files).
+
+3. **Reactions and Emoji**
+    - Messenger shows reactions (like, love, etc.) on messages.
+    - Missing: Add emoji/reactions to messages.
+
+4. **Voice/Video Calling**
+    - Call screens (audio/video call UI) and in-call actions (mute, video toggle, end call).
+    - Missing: Voice and video calling feature.
+
+5. **Message Status Indicators**
+    - Messenger displays sent, delivered, read ticks or labels.
+    - Missing: Read receipts, delivery status, failed status.
+
+6. **Stories/Status**
+    - Some screens show profile stories/status visible to contacts.
+    - Missing: Ability to upload/view ephemeral status/stories.
+
+7. **Group Chats**
+    - Messenger supports group chat creation and group member management.
+    - Missing: Group chat, add/remove members, group info.
+
+8. **Profile and Settings**
+    - Messenger UI shows profile, account, settings screens.
+    - Missing: Profile management, change avatar, update status, edit account info, privacy settings.
+
+9. **Search & Filters**
+    - Messenger supports advanced search – by contact/message/attachments.
+    - Missing: Search messages, filter by date/media.
+
+10. **Notification & Invite**
+    - Screens for invitations, notifications, requests.
+    - Missing: Manage friend requests/invites, notification screen.
+
+11. **Chat Customization**
+    - Messenger allows changing chat themes, colors, emojis per chat.
+    - Missing: Per-chat customization (theme, emoji, nickname).
+
+12. **Attachment Options**
+    - Messenger can send files, stickers, GIFs.
+    - Missing: File attachment, stickers/GIF support.
+
+13. **Archived/Deleted Chats**
+    - Messenger offers archiving/deleting/hiding chats.
+    - Missing: Archive, delete, restore chat.
+
+14. **Group Features:**
+    - Messenger shows group participants, group photo, edit group name/avatar.
+    - Missing: Group settings UI.
+
+15. **Contact/Directory**
+    - Messenger allows contact search, add/remove/block.
+    - Missing: Manage contacts, block/unblock users.
+
+***
+
+**Recommended Steps:**
+
+- **Test each UI feature from the Figma file:** See what interaction is possible and what’s missing from NexText.
+- **List current app features:** (Done above)
+- **Implement missing:** Prioritize those critical for chat apps (media, reactions, calling, read status, groups, settings, notifications).
+
+Let me know what you want to start with or need sample code/database schema!
+
+[1](https://7bf44ea9-e572-4c4b-9130-16bb7d724e31-00-1mmitahwoyhbw.spock.replit.dev/)
