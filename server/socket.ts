@@ -67,18 +67,26 @@ export function setupSocketIO(httpServer: HTTPServer) {
         const messageId = messageRef.key;
 
         const message = {
-          ...messageData,
+          text: messageData.text || "",
+          mediaUrl: messageData.mediaUrl || "",
+          gifUrl: messageData.gifUrl || "",
           id: messageId,
-          senderId: userId,
+          userId: userId,
           timestamp: Date.now(),
           status: "sent",
-          replyTo: messageData.replyTo || null,
+          replyTo: messageData.replyTo || "",
           reactions: {},
           edited: false,
           deleted: false
         };
 
         await messageRef.set(message);
+
+        const chatRef = realtimeDb.ref(`chats/${chatId}`);
+        await chatRef.update({
+          lastMessage: message.text || (message.gifUrl ? "GIF" : message.mediaUrl ? "Media" : ""),
+          lastMessageTime: new Date().toISOString()
+        });
 
         io.to(chatId).emit("new-message", message);
 

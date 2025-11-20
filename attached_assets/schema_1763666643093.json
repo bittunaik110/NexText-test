@@ -1,0 +1,307 @@
+{
+  "chats": {
+    "chat_001": {
+      "participants": ["user_001", "user_002"],
+      "createdAt": "2025-11-21T00:00:00Z",
+      "lastMessage": "Hey, how are you?",
+      "lastMessageTime": "2025-11-21T00:04:00Z",
+      "unreadCount": {
+        "user_001": 0,
+        "user_002": 2
+      },
+      "deleted": false
+    },
+    "chat_002": {
+      "participants": ["user_003", "user_004"],
+      "createdAt": "2025-11-19T08:35:00Z",
+      "lastMessage": "Lunch after work?",
+      "lastMessageTime": "2025-11-20T12:35:00Z",
+      "unreadCount": {
+        "user_003": 2,
+        "user_004": 0
+      },
+      "deleted": false
+    },
+    "chat_003": {
+      "participants": ["user_001", "user_004"],
+      "createdAt": "2025-11-18T16:05:00Z",
+      "lastMessage": "See you soon!",
+      "lastMessageTime": "2025-11-18T16:06:00Z",
+      "unreadCount": {
+        "user_001": 0,
+        "user_004": 1
+      },
+      "deleted": false
+    }
+  },
+  "groups": {
+    "group_001": {
+      "name": "Cricket Fans",
+      "description": "All about cricket!",
+      "avatar": "https://example.com/cricket.png",
+      "createdBy": "user_003",
+      "createdAt": "2025-11-20T11:00:00Z",
+      "members": {
+        "user_001": {"role": "member", "joinedAt": "2025-11-20T11:01:00Z"},
+        "user_002": {"role": "admin", "joinedAt": "2025-11-20T11:00:30Z"},
+        "user_003": {"role": "admin", "joinedAt": "2025-11-20T11:00:00Z"}
+      },
+      "settings": {
+        "onlyAdminsCanSend": false,
+        "allowMediaSharing": true,
+        "allowMemberInvites": true
+      },
+      "lastMessage": "Match today at 5pm!",
+      "lastMessageTime": "2025-11-21T08:45:00Z",
+      "history": [
+        {"type": "added", "userId": "user_001", "timestamp": "2025-11-20T11:01:00Z"},
+        {"type": "removed", "userId": "user_002", "timestamp": "2025-11-20T13:22:00Z"}
+      ]
+    },
+    "group_002": {
+      "name": "Work Team",
+      "description": "Office project discussions",
+      "avatar": "https://example.com/work.png",
+      "createdBy": "user_004",
+      "createdAt": "2025-11-15T09:12:00Z",
+      "members": {
+        "user_001": {"role": "admin", "joinedAt": "2025-11-15T09:12:00Z"},
+        "user_004": {"role": "admin", "joinedAt": "2025-11-15T09:12:00Z"},
+        "user_005": {"role": "member", "joinedAt": "2025-11-18T11:18:00Z"},
+        "user_002": {"role": "member", "joinedAt": "2025-11-19T08:44:00Z"}
+      },
+      "settings": {
+        "onlyAdminsCanSend": true,
+        "allowMediaSharing": false,
+        "allowMemberInvites": true
+      },
+      "lastMessage": "Deadline this Friday.",
+      "lastMessageTime": "2025-11-21T12:00:01Z",
+      "history": [
+        {"type": "promoted", "userId": "user_002", "timestamp": "2025-11-19T08:49:00Z"}
+      ]
+    }
+  },
+  "messages": {
+    "chat_001": {
+      "msg_001": {
+        "id": "msg_001",
+        "text": "Hey, how are you?",
+        "timestamp": 1763657045000,
+        "userId": "user_001",
+        "deleted": false,
+        "mediaUrl": "",
+        "replyTo": "",
+        "reactions": {"user_002": "👍"},
+        "edited": false
+      },
+      "msg_002": {
+        "id": "msg_002",
+        "text": "I'm good! You?",
+        "timestamp": 1763657060000,
+        "userId": "user_002",
+        "deleted": false,
+        "mediaUrl": "",
+        "replyTo": "msg_001",
+        "reactions": {},
+        "edited": false
+      },
+      "msg_003": {
+        "id": "msg_003",
+        "text": "What about the meeting?",
+        "timestamp": 1763657080000,
+        "userId": "user_001",
+        "deleted": false,
+        "mediaUrl": "",
+        "replyTo": "",
+        "reactions": {},
+        "edited": false
+      }
+    },
+    "chat_002": {
+      "msg_004": {
+        "id": "msg_004",
+        "text": "Lunch after work?",
+        "timestamp": 1763573700000,
+        "userId": "user_003",
+        "deleted": false,
+        "mediaUrl": "",
+        "replyTo": "",
+        "reactions": {},
+        "edited": false
+      },
+      "msg_005": {
+        "id": "msg_005",
+        "text": "Sure!",
+        "timestamp": 1763573740000,
+        "userId": "user_004",
+        "deleted": false,
+        "mediaUrl": "",
+        "replyTo": "msg_004",
+        "reactions": {"user_003": "👍"},
+        "edited": false
+      }
+    },
+    "chat_003": {
+      "msg_006": {
+        "id": "msg_006",
+        "text": "See you soon!",
+        "timestamp": 1763453160000,
+        "userId": "user_001",
+        "deleted": false,
+        "mediaUrl": "",
+        "replyTo": "",
+        "reactions": {},
+        "edited": false
+      }
+    }
+  },
+  "users": {
+    "user_001": {
+      "email": "alice@example.com",
+      "displayName": "Alice",
+      "bio": "React developer",
+      "photoURL": "https://example.com/alice.jpg",
+      "pin": "alice123",
+      "createdAt": "2025-11-18T10:45:00Z",
+      "fcmTokens": [
+        {"token": "token-alice-1", "platform": "android", "registeredAt": "2025-11-18T10:46:00Z"}
+      ],
+      "notificationPreferences": {
+        "enablePush": true,
+        "enableInApp": true,
+        "enableEmail": false,
+        "muteUntil": "",
+        "mutedChats": []
+      }
+    },
+    "user_002": {
+      "email": "bob@example.com",
+      "displayName": "Bob",
+      "bio": "Flutter developer",
+      "photoURL": "https://example.com/bob.jpg",
+      "pin": "bob456",
+      "createdAt": "2025-11-18T10:50:00Z",
+      "fcmTokens": [
+        {"token": "token-bob-1", "platform": "ios", "registeredAt": "2025-11-18T10:51:00Z"}
+      ],
+      "notificationPreferences": {
+        "enablePush": true,
+        "enableInApp": true,
+        "enableEmail": true,
+        "muteUntil": "2025-11-21T15:00:00Z",
+        "mutedChats": ["chat_001"]
+      }
+    },
+    "user_003": {
+      "email": "carol@example.com",
+      "displayName": "Carol",
+      "bio": "Manager",
+      "photoURL": "https://example.com/carol.jpg",
+      "pin": "carol789",
+      "createdAt": "2025-11-18T11:00:00Z",
+      "fcmTokens": [
+        {"token": "token-carol-1", "platform": "web", "registeredAt": "2025-11-18T11:01:00Z"}
+      ],
+      "notificationPreferences": {
+        "enablePush": false,
+        "enableInApp": true,
+        "enableEmail": false,
+        "muteUntil": "",
+        "mutedChats": ["chat_002"]
+      }
+    },
+    "user_004": {
+      "email": "dave@example.com",
+      "displayName": "Dave",
+      "bio": "Designer",
+      "photoURL": "https://example.com/dave.jpg",
+      "pin": "dave987",
+      "createdAt": "2025-11-18T11:20:00Z",
+      "fcmTokens": [
+        {"token": "token-dave-1", "platform": "android", "registeredAt": "2025-11-18T11:21:00Z"}
+      ],
+      "notificationPreferences": {
+        "enablePush": true,
+        "enableInApp": false,
+        "enableEmail": true,
+        "muteUntil": "",
+        "mutedChats": []
+      }
+    },
+    "user_005": {
+      "email": "ellen@example.com",
+      "displayName": "Ellen",
+      "bio": "Intern",
+      "photoURL": "https://example.com/ellen.jpg",
+      "pin": "ellen246",
+      "createdAt": "2025-11-19T00:00:00Z",
+      "fcmTokens": [
+        {"token": "token-ellen-1", "platform": "web", "registeredAt": "2025-11-19T00:01:00Z"}
+      ],
+      "notificationPreferences": {
+        "enablePush": true,
+        "enableInApp": true,
+        "enableEmail": false,
+        "muteUntil": "",
+        "mutedChats": []
+      }
+    }
+  },
+  "notifications": {
+    "user_001": {
+      "notif_01": {
+        "type": "message",
+        "title": "New message from Bob",
+        "body": "I'm good! You?",
+        "createdAt": "2025-11-21T00:04:00Z",
+        "read": false,
+        "data": { "chatId": "chat_001" }
+      },
+      "notif_02": {
+        "type": "groupInvite",
+        "title": "Carol invited you to Cricket Fans",
+        "body": "Join the group for cricket updates",
+        "createdAt": "2025-11-20T12:00:00Z",
+        "read": true,
+        "data": { "groupId": "group_001" }
+      }
+    },
+    "user_002": {
+      "notif_03": {
+        "type": "message",
+        "title": "Alice sent a message",
+        "body": "See you soon!",
+        "createdAt": "2025-11-18T16:06:00Z",
+        "read": false,
+        "data": { "chatId": "chat_003" }
+      }
+    }
+  },
+  "uploads": {
+    "upload_001": {
+      "userId": "user_003",
+      "type": "image",
+      "filename": "profile_pic.png",
+      "url": "https://example.com/uploads/profile_pic.png",
+      "contentType": "image/png",
+      "uploadedAt": "2025-11-20T12:35:00Z"
+    },
+    "upload_002": {
+      "userId": "user_001",
+      "type": "video",
+      "filename": "cricket_highlights.mp4",
+      "url": "https://example.com/uploads/cricket_highlights.mp4",
+      "contentType": "video/mp4",
+      "uploadedAt": "2025-11-21T09:11:00Z"
+    },
+    "upload_003": {
+      "userId": "user_004",
+      "type": "file",
+      "filename": "project_notes.pdf",
+      "url": "https://example.com/uploads/project_notes.pdf",
+      "contentType": "application/pdf",
+      "uploadedAt": "2025-11-19T10:22:00Z"
+    }
+  }
+}

@@ -7,98 +7,41 @@ import ConnectModal from "@/components/ConnectModal";
 import ThemeToggle from "@/components/ThemeToggle";
 import { MessageCircle, Phone, Users, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useChats } from "@/hooks/useChats";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Home() {
   const [view, setView] = useState<"chats" | "profile">("chats");
   const [selectedChat, setSelectedChat] = useState<string | undefined>();
   const [connectModalOpen, setConnectModalOpen] = useState(false);
   const [, setLocation] = useLocation();
-
-  const now = new Date();
-  const mockChats = [
-    {
-      id: "1",
-      name: "Sarah Chen",
-      lastMessage: "See you tomorrow!",
-      timestamp: new Date(now.getTime() - 300000),
-      unreadCount: 3,
-      online: true,
-    },
-    {
-      id: "2",
-      name: "Mike Wilson",
-      lastMessage: "Thanks for your help 👍",
-      timestamp: new Date(now.getTime() - 3600000),
-      online: true,
-    },
-    {
-      id: "3",
-      name: "Emily Rodriguez",
-      lastMessage: "Let's catch up soon",
-      timestamp: new Date(now.getTime() - 86400000),
-    },
-    {
-      id: "4",
-      name: "David Lee",
-      lastMessage: "The meeting is at 3 PM",
-      timestamp: new Date(now.getTime() - 172800000),
-      unreadCount: 1,
-    },
-  ];
-
-  type Message = {
-    id: string;
-    text: string;
-    sent: boolean;
-    timestamp: Date;
-    status?: "sent" | "delivered" | "read";
-  };
-
-  const mockMessages: Message[] = [
-    {
-      id: "1",
-      text: "Hey! How are you?",
-      sent: false,
-      timestamp: new Date(now.getTime() - 600000),
-    },
-    {
-      id: "2",
-      text: "I'm doing great! Just testing NexText",
-      sent: true,
-      timestamp: new Date(now.getTime() - 300000),
-      status: "read",
-    },
-    {
-      id: "3",
-      text: "Awesome! The design looks amazing with the glass-morphism effect",
-      sent: false,
-      timestamp: new Date(now.getTime() - 120000),
-    },
-    {
-      id: "4",
-      text: "Thanks! I love the purple gradient accents 🎨",
-      sent: true,
-      timestamp: new Date(now.getTime() - 60000),
-      status: "delivered",
-    },
-  ];
+  const { chats, loading } = useChats();
+  const { user } = useAuth();
 
   const mockUser = {
-    name: "Alex Johnson",
-    email: "alex@example.com",
+    name: user?.displayName || "User",
+    email: user?.email || "",
     pin: "XYZ789",
     bio: "Love connecting with people through NexText! 🚀",
   };
 
-  const selectedChatData = mockChats.find((c) => c.id === selectedChat);
+  const selectedChatData = chats.find((c) => c.id === selectedChat);
 
   const handleConnect = (pin: string) => {
     console.log("Connecting with PIN:", pin);
   };
 
-  const handleSendMessage = (text: string) => {
-    console.log("Sending message:", text);
-  };
+  const displayChats = chats.map(chat => {
+    const otherParticipant = chat.participants.find(p => p !== user?.uid) || chat.participants[0];
+    return {
+      id: chat.id,
+      name: chat.participantNames?.[otherParticipant] || "Unknown",
+      lastMessage: chat.lastMessage,
+      timestamp: new Date(chat.lastMessageTime),
+      unreadCount: chat.unreadCount[user?.uid || ""] || 0,
+      online: false,
+    };
+  });
 
   if (view === "profile") {
     return (
@@ -126,13 +69,19 @@ export default function Home() {
     <div className="flex h-screen flex-col">
       <div className="flex flex-1 overflow-hidden">
         <div className={`${selectedChat ? "hidden md:block" : "block"} w-full md:w-96 shrink-0`}>
-          <ChatList
-            chats={mockChats}
-            activeChat={selectedChat}
-            onSelectChat={setSelectedChat}
-            onConnect={() => setConnectModalOpen(true)}
-            onProfile={() => setView("profile")}
-          />
+          {loading ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            </div>
+          ) : (
+            <ChatList
+              chats={displayChats}
+              activeChat={selectedChat}
+              onSelectChat={setSelectedChat}
+              onConnect={() => setConnectModalOpen(true)}
+              onProfile={() => setView("profile")}
+            />
+          )}
         </div>
 
         {selectedChat && selectedChatData ? (
@@ -142,13 +91,12 @@ export default function Home() {
                 <ThemeToggle />
               </div>
               <ChatWindow
+                chatId={selectedChat}
                 contact={{
-                  name: selectedChatData.name,
-                  online: selectedChatData.online,
+                  name: displayChats.find(c => c.id === selectedChat)?.name || "Unknown",
+                  online: false,
                 }}
-                messages={mockMessages}
                 onBack={() => setSelectedChat(undefined)}
-                onSendMessage={handleSendMessage}
                 isTyping={false}
               />
             </div>

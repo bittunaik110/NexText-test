@@ -6,29 +6,24 @@ import MessageInput from "./MessageInput";
 import TypingIndicator from "./TypingIndicator";
 import { ArrowLeft, MoreVertical, Phone, Video } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-interface Message {
-  id: string;
-  text: string;
-  sent: boolean;
-  timestamp: Date;
-  status?: "sent" | "delivered" | "read";
-}
+import { useMessages } from "@/hooks/useMessages";
+import { useSocketMessages } from "@/hooks/useSocketMessages";
 
 interface ChatWindowProps {
+  chatId: string;
   contact: {
     name: string;
     avatar?: string;
     online?: boolean;
   };
-  messages: Message[];
   onBack?: () => void;
-  onSendMessage: (text: string) => void;
   isTyping?: boolean;
 }
 
-export default function ChatWindow({ contact, messages, onBack, onSendMessage, isTyping }: ChatWindowProps) {
+export default function ChatWindow({ chatId, contact, onBack, isTyping }: ChatWindowProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { messages, loading, userId } = useMessages(chatId);
+  const { sendMessage, reactToMessage, startTyping, stopTyping } = useSocketMessages(chatId);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -88,9 +83,26 @@ export default function ChatWindow({ contact, messages, onBack, onSendMessage, i
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-2">
-        {messages.map((message) => (
-          <MessageBubble key={message.id} {...message} />
-        ))}
+        {loading ? (
+          <div className="flex items-center justify-center h-full">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        ) : (
+          messages.map((message) => (
+            <MessageBubble 
+              key={message.id}
+              text={message.text}
+              sent={message.userId === userId}
+              timestamp={new Date(message.timestamp)}
+              status={message.status}
+              imageUrl={message.mediaUrl && message.mediaUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? message.mediaUrl : undefined}
+              videoUrl={message.mediaUrl && message.mediaUrl.match(/\.(mp4|webm|mov)$/i) ? message.mediaUrl : undefined}
+              fileUrl={message.mediaUrl && !message.mediaUrl.match(/\.(jpg|jpeg|png|gif|webp|mp4|webm|mov)$/i) ? message.mediaUrl : undefined}
+              reactions={message.reactions}
+              onReact={(emoji) => reactToMessage(message.id, emoji)}
+            />
+          ))
+        )}
         {isTyping && (
           <div className="flex justify-start">
             <TypingIndicator />
@@ -101,8 +113,8 @@ export default function ChatWindow({ contact, messages, onBack, onSendMessage, i
 
       <div className="sticky bottom-0 p-4 bg-background border-t border-border">
         <MessageInput 
-          onSend={onSendMessage}
-          onTyping={() => console.log('User typing')}
+          onSend={sendMessage}
+          onTyping={startTyping}
         />
       </div>
     </div>
