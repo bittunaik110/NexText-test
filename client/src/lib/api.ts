@@ -59,6 +59,11 @@ export const chatsApi = {
 
   get: (chatId: string) => apiRequest(`/chats/${chatId}`),
 
+  delete: (chatId: string) =>
+    apiRequest(`/chats/${chatId}`, {
+      method: "DELETE",
+    }),
+
   markAsRead: (chatId: string) =>
     apiRequest(`/chats/${chatId}/read`, {
       method: "PUT",

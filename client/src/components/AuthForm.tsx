@@ -7,9 +7,10 @@ import { MessageCircle } from "lucide-react";
 
 interface AuthFormProps {
   onSubmit: (email: string, password: string, isSignUp: boolean) => void;
+  isLoading?: boolean;
 }
 
-export default function AuthForm({ onSubmit }: AuthFormProps) {
+export default function AuthForm({ onSubmit, isLoading = false }: AuthFormProps) {
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -67,8 +68,16 @@ export default function AuthForm({ onSubmit }: AuthFormProps) {
             type="submit"
             className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90"
             data-testid="button-submit"
+            disabled={isLoading}
           >
-            {isSignUp ? "Sign Up" : "Sign In"}
+            {isLoading ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                {isSignUp ? "Creating Account..." : "Signing In..."}
+              </>
+            ) : (
+              isSignUp ? "Sign Up" : "Sign In"
+            )}
           </Button>
         </form>
 

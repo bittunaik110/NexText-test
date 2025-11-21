@@ -1,29 +1,75 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import UserAvatar from "@/components/UserAvatar";
-import { ArrowLeft, Camera, Save } from "lucide-react";
+import { ArrowLeft, Camera, Save, Trash2 } from "lucide-react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { uploadFile } from "@/lib/uploadFile";
+import { usersApi } from "@/lib/api";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function ProfilePage() {
   const [, setLocation] = useLocation();
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   
   const [profile, setProfile] = useState({
-    displayName: user?.displayName || "",
-    bio: "Love connecting with people! 🚀",
-    avatarUrl: user?.photoURL || "",
+    displayName: "",
+    bio: "",
+    avatarUrl: "",
     phoneNumber: "",
+    pin: "",
   });
 
+  // READ: Fetch user profile from backend
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await usersApi.getProfile();
+        if (response.user) {
+          setProfile({
+            displayName: response.user.displayName || "",
+            bio: response.user.bio || "",
+            avatarUrl: response.user.photoURL || "",
+            phoneNumber: response.user.phoneNumber || "",
+            pin: response.user.pin || "",
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load profile. Using default values.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, [toast]);
+
+  // UPDATE: Upload and update avatar
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -41,11 +87,15 @@ export default function ProfilePage() {
     try {
       const url = await uploadFile(file);
       setProfile({ ...profile, avatarUrl: url });
+      
+      await usersApi.updateProfile({ photoURL: url });
+      
       toast({
         title: "Avatar updated",
         description: "Your profile picture has been updated",
       });
     } catch (error) {
+      console.error("Upload error:", error);
       toast({
         title: "Upload failed",
         description: "Failed to upload avatar. Please try again.",
@@ -56,13 +106,59 @@ export default function ProfilePage() {
     }
   };
 
+  // UPDATE: Save profile changes to backend
   const handleSave = async () => {
-    toast({
-      title: "Profile updated",
-      description: "Your profile has been updated successfully",
-    });
-    setIsEditing(false);
+    setIsSaving(true);
+    try {
+      await usersApi.updateProfile({
+        displayName: profile.displayName,
+        bio: profile.bio,
+        photoURL: profile.avatarUrl,
+      });
+
+      toast({
+        title: "Profile updated",
+        description: "Your profile has been updated successfully",
+      });
+      setIsEditing(false);
+    } catch (error) {
+      console.error("Save error:", error);
+      toast({
+        title: "Update failed",
+        description: "Failed to update profile. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
+
+  // DELETE: Remove profile picture
+  const handleDeleteAvatar = async () => {
+    try {
+      await usersApi.updateProfile({ photoURL: "" });
+      setProfile({ ...profile, avatarUrl: "" });
+      toast({
+        title: "Avatar removed",
+        description: "Your profile picture has been removed",
+      });
+    } catch (error) {
+      console.error("Delete error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to remove avatar",
+        variant: "destructive",
+      });
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-screen bg-background">
@@ -80,9 +176,9 @@ export default function ProfilePage() {
             <h1 className="text-xl font-semibold">Profile</h1>
           </div>
           {isEditing && (
-            <Button onClick={handleSave} data-testid="button-save">
+            <Button onClick={handleSave} disabled={isSaving} data-testid="button-save">
               <Save className="h-4 w-4 mr-2" />
-              Save
+              {isSaving ? "Saving..." : "Save"}
             </Button>
           )}
         </div>
@@ -98,29 +194,42 @@ export default function ProfilePage() {
                 size="xl"
               />
               {isEditing && (
-                <label className="absolute bottom-0 right-0 cursor-pointer">
-                  <div className="h-10 w-10 rounded-full bg-gradient-to-r from-primary to-accent flex items-center justify-center shadow-lg">
-                    {isUploading ? (
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                    ) : (
-                      <Camera className="h-5 w-5 text-white" />
-                    )}
-                  </div>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleAvatarChange}
-                    disabled={isUploading}
-                    data-testid="input-avatar"
-                  />
-                </label>
+                <>
+                  <label className="absolute bottom-0 right-0 cursor-pointer">
+                    <div className="h-10 w-10 rounded-full bg-gradient-to-r from-primary to-accent flex items-center justify-center shadow-lg">
+                      {isUploading ? (
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                      ) : (
+                        <Camera className="h-5 w-5 text-white" />
+                      )}
+                    </div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleAvatarChange}
+                      disabled={isUploading}
+                      data-testid="input-avatar"
+                    />
+                  </label>
+                  {profile.avatarUrl && (
+                    <button
+                      onClick={() => setShowDeleteDialog(true)}
+                      className="absolute top-0 right-0 h-8 w-8 rounded-full bg-destructive flex items-center justify-center shadow-lg"
+                    >
+                      <Trash2 className="h-4 w-4 text-white" />
+                    </button>
+                  )}
+                </>
               )}
             </div>
 
             <div className="text-center">
               <h2 className="text-2xl font-bold">{profile.displayName || "User"}</h2>
               <p className="text-sm text-muted-foreground">{user?.email}</p>
+              {profile.pin && (
+                <p className="text-sm text-muted-foreground mt-1">PIN: {profile.pin}</p>
+              )}
             </div>
           </div>
         </Card>
@@ -188,12 +297,33 @@ export default function ProfilePage() {
               <span>{user?.email}</span>
             </div>
             <div className="flex justify-between">
+              <span className="text-muted-foreground">User ID</span>
+              <span className="font-mono text-xs">{user?.uid.substring(0, 12)}...</span>
+            </div>
+            <div className="flex justify-between">
               <span className="text-muted-foreground">Member Since</span>
               <span>{new Date(user?.metadata.creationTime || Date.now()).toLocaleDateString()}</span>
             </div>
           </div>
         </Card>
       </div>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove Profile Picture</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove your profile picture?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteAvatar} className="bg-destructive text-destructive-foreground">
+              Remove
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -139,4 +139,33 @@ router.put("/:chatId/read", authenticateUser, async (req: AuthenticatedRequest, 
   }
 });
 
+router.delete("/:chatId", authenticateUser, async (req: AuthenticatedRequest, res) => {
+  try {
+    const { chatId } = req.params;
+    const userId = req.user!.uid;
+
+    const chatDoc = await db.collection("chats").doc(chatId).get();
+
+    if (!chatDoc.exists) {
+      return res.status(404).json({ error: "Chat not found" });
+    }
+
+    const chatData = chatDoc.data();
+
+    if (!chatData?.participants.includes(userId)) {
+      return res.status(403).json({ error: "Unauthorized" });
+    }
+
+    // Mark chat as deleted instead of actually deleting
+    await db.collection("chats").doc(chatId).update({
+      deleted: true,
+    });
+
+    res.json({ success: true, message: "Chat deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting chat:", error);
+    res.status(500).json({ error: "Failed to delete chat" });
+  }
+});
+
 export default router;
