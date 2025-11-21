@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 interface UserAvatarProps {
   src?: string;
   name: string;
-  size?: "sm" | "md" | "lg" | "xl";
+  size?: "sm" | "md" | "lg" | "xl" | "default" | "large" | "xlarge";
   online?: boolean;
   className?: string;
 }
@@ -12,16 +12,22 @@ interface UserAvatarProps {
 export default function UserAvatar({ src, name, size = "md", online, className }: UserAvatarProps) {
   const sizeClasses = {
     sm: "h-8 w-8",
+    default: "h-10 w-10",
     md: "h-10 w-10",
+    large: "h-12 w-12",
     lg: "h-16 w-16",
     xl: "h-24 w-24",
+    xlarge: "h-32 w-32",
   };
 
   const dotSizeClasses = {
     sm: "h-2 w-2",
+    default: "h-2.5 w-2.5",
     md: "h-2.5 w-2.5",
+    large: "h-3 w-3",
     lg: "h-3 w-3",
     xl: "h-4 w-4",
+    xlarge: "h-5 w-5",
   };
 
   const initials = name
