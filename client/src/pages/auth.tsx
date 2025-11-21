@@ -26,7 +26,7 @@ export default function Auth() {
         // Create user profile in Firestore
         await usersApi.createProfile({
           displayName: email.split("@")[0],
-          bio: "New NexText user",
+          bio: "",
         });
 
         toast({

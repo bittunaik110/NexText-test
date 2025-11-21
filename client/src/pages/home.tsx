@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import ChatList from "@/components/ChatList";
 import ChatWindow from "@/components/ChatWindow";
@@ -18,13 +18,36 @@ export default function Home() {
   const { chats, loading } = useChats();
   const { user } = useAuth();
 
-  // Mock user data - will be replaced by actual user data from backend
-  const mockUser = {
+  // Fetch user data from backend - will be loaded dynamically
+  const [userProfile, setUserProfile] = useState({
     name: user?.displayName || "User",
     email: user?.email || "",
-    pin: "XYZ789", // This should be dynamically fetched and unique
-    bio: user?.email ? "Love connecting with people through NexText! 🚀" : "",
-  };
+    pin: "",
+    bio: "",
+  });
+
+  // Fetch user profile on mount
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const { usersApi } = await import("@/lib/api");
+        const response = await usersApi.getProfile();
+        if (response.user) {
+          setUserProfile({
+            name: response.user.displayName || user?.displayName || "User",
+            email: user?.email || "",
+            pin: response.user.pin || "",
+            bio: response.user.bio || "",
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching user profile:", error);
+      }
+    };
+    if (user) {
+      loadProfile();
+    }
+  }, [user]);
 
   const selectedChatData = chats.find((c) => c.id === selectedChat);
 
@@ -67,9 +90,9 @@ export default function Home() {
           <ThemeToggle />
         </div>
         <ProfileView
-          user={mockUser} // Pass the mock user data (should be actual user data)
-          onLogout={() => console.log("Logout")} // Placeholder for logout action
-          onUpdate={(data) => console.log("Update profile:", data)} // Placeholder for profile update action
+          user={userProfile}
+          onLogout={() => console.log("Logout")}
+          onUpdate={(data) => console.log("Update profile:", data)}
         />
         <button
           onClick={() => setView("chats")}

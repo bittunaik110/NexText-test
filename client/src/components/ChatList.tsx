@@ -170,7 +170,7 @@ export default function ChatList({
               <ChatListItem
                 key={chat.id}
                 {...chat}
-                isActive={activeChat === chat.id}
+                active={activeChat === chat.id}
                 onClick={() => onSelectChat(chat.id)}
               />
             ))

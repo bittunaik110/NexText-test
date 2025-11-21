@@ -1,0 +1,411 @@
+# **3 COMPREHENSIVE REPLIT AGENT PROMPTS FOR NEXTEXT**
+
+***
+
+## **PROMPT 1: FIX CRITICAL DATA DISPLAY BUGS & REMOVE HARDCODED VALUES**
+
+### **OBJECTIVE:**
+Fix the PIN field displaying wrong values, remove all hardcoded text from the UI, fix the chat list not showing connected chats, and ensure the "New Chat" button is properly positioned. Make the app fetch real data from the backend instead of using mock values.
+
+### **CRITICAL ISSUES TO FIX:**
+
+#### **1. PIN FIELD SHOWING WRONG VALUE**
+**Problem:** PIN displays "HY4Y3A" but database has "D161DU"
+
+**Investigation Steps:**
+1. Open `client/src/api/users.ts` and examine the `fetchUserProfile()` function
+2. Open `server/api/users.ts` and check the `/api/users/profile` GET endpoint
+3. Verify the endpoint returns the `pin` field in the response
+4. Check if Firestore has `pin` field in user document
+5. Add console.log statements to log the API response
+
+**Fix Implementation:**
+1. Ensure backend `/api/users/profile` endpoint includes `pin` field in response JSON
+2. Verify frontend profile component uses `userProfile.pin` from API state
+3. Check for any hardcoded PIN values in the component
+4. Remove any mock PIN data initialization
+5. Test: Create new user, verify PIN matches Firestore value
+
+**Files to Modify:**
+- `server/api/users.ts` (GET /api/users/profile)
+- `client/src/api/users.ts`
+- `client/src/pages/Profile.tsx`
+
+***
+
+#### **2. HARDCODED VALUES IN UI - REMOVE ALL**
+**Problem:** Display Name shows "a", Bio shows "New NexText user", Phone shows "+1 (555) 123-4567" (placeholder values)
+
+**Current Hardcoded Values Found:**
+```
+Display Name: "a" (should be "t1")
+Bio: "New NexText user" (should be actual user bio or empty)
+Phone Number: "+1 (555) 123-4567" (placeholder)
+```
+
+**Fix Implementation:**
+1. Search codebase for these exact strings:
+   - `"New NexText user"`
+   - `"+1 (555) 123-4567"`
+   - Any other placeholder text
+2. Replace with dynamic values:
+   ```jsx
+   Display Name: {userProfile?.displayName || ""}
+   Bio: {userProfile?.bio || "No bio set"}
+   Phone: {userProfile?.phoneNumber || "Not set"}
+   ```
+3. Remove all mock data from component initialization
+4. Ensure all fields fetch from `/api/users/profile` endpoint
+5. Add loading state while data fetches
+6. Test: Edit profile, refresh page, verify values persist
+
+**Files to Search & Modify:**
+- `client/src/pages/Profile.tsx`
+- `client/src/components/ProfileCard.tsx`
+- `client/src/components/UserStatus.tsx`
+- Any component displaying user data
+
+**Verification Checklist:**
+- [ ] Display Name shows actual name (not truncated)
+- [ ] Bio shows real user bio (not default text)
+- [ ] Phone Number shows correct value or "Not set"
+- [ ] All values match Firestore database
+- [ ] Values update when edited
+- [ ] No hardcoded strings visible in production
+
+***
+
+#### **3. CHAT LIST NOT SHOWING CONNECTED CHATS**
+**Problem:** "No chats yet" message shows even though chats exist in database; created chats don't appear
+
+**Root Cause Analysis:**
+1. Check if real-time listener is set up in `Chats.tsx`
+2. Verify Firebase Realtime Database rules allow reading chats
+3. Check if chat query filters correctly for current user
+4. Verify participants array includes current user ID
+
+**Fix Implementation:**
+1. In `client/src/pages/Chats.tsx`, verify the useEffect hook:
+   ```jsx
+   useEffect(() => {
+     const chatsRef = database.ref('chats');
+     const listener = chatsRef
+       .orderByChild('participantIds')
+       .equalTo(currentUserId)
+       .on('value', (snapshot) => {
+         const chats = [];
+         snapshot.forEach((chat) => {
+           if (chat.val().participants.includes(currentUserId)) {
+             chats.push({id: chat.key, ...chat.val()});
+           }
+         });
+         setChats(chats);
+       });
+     return () => chatsRef.off('value', listener);
+   }, [currentUserId]);
+   ```
+2. Add console.log to verify data is fetched:
+   ```jsx
+   console.log('Fetched chats:', chats);
+   ```
+3. Check Firebase Realtime Database rules allow user to read `/chats`
+4. Test with multiple user accounts to verify chats sync correctly
+5. Verify real-time updates when new chats are created
+
+**Expected Behavior:**
+- When user creates a chat, it appears in list within 1 second
+- Chat list shows all active chats where user is participant
+- Deletes and updates sync in real-time
+
+***
+
+#### **4. NEW CHAT BUTTON POSITIONING ISSUE**
+**Problem:** "New Chat" button appears inside ghost/empty state icon; should be in header for new users
+
+**Fix Implementation:**
+1. In `Chats.tsx`, restructure the layout:
+   ```jsx
+   return (
+     <div className="chats-container">
+       {/* Header with button */}
+       <div className="chats-header">
+         <h1>Chats</h1>
+         <button className="new-chat-btn">+ New Chat</button>
+       </div>
+       
+       {/* Search */}
+       <SearchBar />
+       
+       {/* Chat List or Empty State */}
+       {chats.length > 0 ? (
+         <ChatList chats={chats} />
+       ) : (
+         <EmptyState />
+       )}
+     </div>
+   );
+   ```
+2. Ensure "New Chat" button is ALWAYS visible in header
+3. Empty state message only shows in center when no chats
+4. Button styling remains consistent
+
+**Files to Modify:**
+- `client/src/pages/Chats.tsx`
+
+***
+
+### **TESTING AFTER FIXES:**
+
+**Signup & Login Test:**
+- [ ] Create new account with email "test@example.com"
+- [ ] Verify user profile created with unique PIN
+- [ ] Log out and log back in
+- [ ] Navigate to profile page
+
+**Profile Display Test:**
+- [ ] PIN shows correct value (6 alphanumeric characters)
+- [ ] Display Name shows full name (not truncated)
+- [ ] Bio shows user bio (not "New NexText user")
+- [ ] Phone shows actual number or "Not set"
+- [ ] Email matches account
+- [ ] All values match Firestore
+
+**Profile Edit Test:**
+- [ ] Edit display name to "Test User"
+- [ ] Edit bio to "This is my bio"
+- [ ] Save changes
+- [ ] Refresh page - changes persist
+- [ ] Upload profile picture
+- [ ] Delete profile picture
+
+**Chat List Test:**
+- [ ] Create 2-3 test accounts
+- [ ] Create chats between different accounts
+- [ ] Verify all chats appear in chat list
+- [ ] "No chats yet" message disappears once chat created
+- [ ] Send message in chat
+- [ ] Verify chat list updates in real-time
+- [ ] Delete a chat - verify it's removed from list
+
+***
+
+***
+
+## **PROMPT 2: REDESIGN FIREBASE SCHEMA WITH PROPER RELATIONSHIPS & FOREIGN KEYS**
+
+### **OBJECTIVE:**
+Migrate from current Firebase structure to a production-ready schema with proper foreign key relationships, efficient indexing, data normalization, and scalability for large-scale applications.
+
+### **CURRENT SCHEMA PROBLEMS:**
+1. No clear foreign key relationships
+2. Data duplication across collections
+3. Inefficient queries (N+1 problems)
+4. Missing soft-delete tracking
+5. No read receipts tracking
+6. Missing indexing for queries
+7. Unclear data ownership and permissions
+
+### **NEW OPTIMIZED SCHEMA DESIGN:**
+
+#### **COLLECTIONS STRUCTURE:**
+
+**Collection: `/users/{userId}`**
+```json
+{
+  "uid": "77p7TLVAUWY1...",           [PRIMARY KEY]
+  "email": "t1@gmail.com",            [UNIQUE, INDEXED]
+  "displayName": "t1",
+  "bio": "New NexText user",
+  "photoURL": "gs://bucket/photo.jpg",
+  "pin": "D161DU",                    [UNIQUE, INDEXED for PIN search]
+  "phoneNumber": "+1234567890",
+  "createdAt": 1700592818703,         [INDEXED for user list sorting]
+  "updatedAt": 1700592818703,
+  "lastSeenAt": 1700592818703,
+  "isOnline": true,
+  "status": "active",                 [ENUM: active|inactive|deleted]
+  "deletedAt": null,                  [soft delete timestamp]
+  "metadata": {
+    "loginCount": 5,
+    "lastLogin": 1700592818703,
+    "deviceInfo": "Mozilla/5.0...",
+    "preferredLanguage": "en"
+  }
+}
+```
+
+**Collection: `/chats/{chatId}`**
+```json
+{
+  "chatId": "chat-uuid-123",          [PRIMARY KEY]
+  "participantIds": ["uid1", "uid2"], [FOREIGN KEYS to /users]
+  "createdBy": "uid1",                [FOREIGN KEY to /users]
+  "createdAt": 1700592818703,
+  "updatedAt": 1700592818703,
+  "lastMessageTime": 1700592818703,
+  "lastMessageText": "Hey there!",    [denormalized for preview]
+  "lastMessageSender": "uid2",        [denormalized]
+  "name": null,                       [for group chats only]
+  "isGroup": false,
+  "status": "active",                 [ENUM: active|archived|deleted]
+  "deletedAt": null,
+  "deletedBy": {                      [track soft delete per user]
+    "uid1": 1700592818703,
+    "uid2": null
+  },
+  "unreadCounts": {                   [denormalized for performance]
+    "uid1": 3,
+    "uid2": 0
+  },
+  "metadata": {
+    "messageCount": 42,
+    "totalParticipants": 2
+  }
+}
+```
+
+**Subcollection: `/chats/{chatId}/messages/{messageId}`**
+```json
+{
+  "messageId": "msg-uuid-456",        [PRIMARY KEY]
+  "chatId": "chat-uuid-123",          [FOREIGN KEY - denormalized]
+  "senderId": "uid1",                 [FOREIGN KEY to /users]
+  "senderName": "Alice",              [denormalized for offline reads]
+  "text": "Hello, how are you?",
+  "type": "text",                     [ENUM: text|image|file|video]
+  "attachmentUrl": null,
+  "createdAt": 1700592818703,
+  "editedAt": null,
+  "isEdited": false,
+  "status": "delivered",              [ENUM: sent|delivered|read|failed]
+  "readBy": {                         [read receipts]
+    "uid2": 1700592818850
+  },
+  "isDeleted": false,
+  "deletedAt": null,
+  "reactions": {                      [emoji reactions]
+    "uid2": "👍"
+  }
+}
+```
+
+**Collection: `/user_chats/{userId}/{chatId}`** (Quick Lookup Index)
+```json
+{
+  "chatId": "chat-uuid-123",          [for querying user's chats]
+  "participantCount": 2,
+  "isPinned": false,
+  "isMuted": false,
+  "unreadCount": 3,
+  "lastReadMessageTime": 1700592800000,
+  "archiveStatus": false,
+  "joinedAt": 1700592818703,
+  "lastActivityTime": 1700592818703
+}
+```
+
+**Collection: `/contacts/{userId}/{contactId}`**
+```json
+{
+  "contactId": "uid2",                [FOREIGN KEY to /users]
+  "firstName": "John",
+  "lastName": "Doe",
+  "phoneNumber": "+1987654321",
+  "email": "john@example.com",
+  "addedAt": 1700592818703,
+  "isBlocked": false,
+  "isFavorite": true,
+  "notes": "Best friend",
+  "category": "friends"               [ENUM: friends|work|family|other]
+}
+```
+
+**Collection: `/user_status/{userId}`** (Real-time Online Status)
+```json
+{
+  "userId": "uid1",
+  "isOnline": true,
+  "lastSeenAt": 1700592818703,
+  "status": "active",                 [ENUM: active|away|offline]
+  "deviceType": "web",                [web|ios|android]
+  "currentChatId": "chat-uuid-123",   [if in a chat]
+  "lastActivity": "sending message"
+}
+```
+
+***
+
+#### **FIRESTORE INDEXES TO CREATE:**
+
+Go to Firebase Console → Firestore → Indexes and create:
+
+```
+1. Collection: /users
+   - Field: email (Ascending)
+   - Field: pin (Ascending)
+   - Field: createdAt (Descending)
+   - Field: status (Ascending) + createdAt (Descending)
+
+2. Collection: /chats
+   - Composite Index:
+     - participantIds (Contains)
+     - createdAt (Descending)
+   - Field: status (Ascending) + updatedAt (Descending)
+
+3. Subcollection: /chats/{chatId}/messages
+   - Field: createdAt (Descending)
+   - Field: senderId (Ascending) + createdAt (Descending)
+   - Field: status (Ascending) + createdAt (Descending)
+
+4. Collection: /user_chats
+   - Composite Index:
+     - isPinned (Descending)
+     - lastActivityTime (Descending)
+```
+
+***
+
+#### **FIREBASE SECURITY RULES:**
+
+```javascript
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isUser(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+    
+    function isChatParticipant(chatId) {
+      return isSignedIn() && 
+        get(/databases/$(database)/documents/chats/$(chatId)).data.participantIds.hasAny([request.auth.uid]);
+    }
+    
+    function isMessageSender(messageId, chatId) {
+      return isSignedIn() && 
+        get(/databases/$(database)/documents/chats/$(chatId)/messages/$(messageId)).data.senderId == request.auth.uid;
+    }
+    
+    // Users collection
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow create: if isUser(userId) && 
+        request.resource.data.keys().hasAll(['email', 'displayName', 'pin', 'createdAt']) &&
+        request.resource.data.uid == userId;
+      allow update: if isUser(userId) && 
+        resource.data.uid == userId;
+      allow delete: if false;
+    }
+    
+    // Chats collection
+    match /chats/{chatId} {
+      allow read: if isChatParticipant(chatId);
+      allow create: if isSignedIn() && 
+        request.resource.data.participantIds.size() > 0 &&
+        request.auth.uid in request.resource.data.participantIds;
+      allow update: if isChatParticipant(
