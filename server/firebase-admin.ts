@@ -48,6 +48,46 @@ if (!admin.apps.length) {
 
 export const firebaseAdmin = admin;
 export const auth = admin.auth();
-export const db = admin.firestore();
+
+// Initialize Firestore with settings to handle database creation
+const firestoreInstance = admin.firestore();
+firestoreInstance.settings({
+  ignoreUndefinedProperties: true,
+});
+
+export const db = firestoreInstance;
 export const realtimeDb = admin.database();
 export const storage = admin.storage();
+
+// Test Firestore connection and provide helpful error message
+export async function testFirestoreConnection() {
+  try {
+    // Try to access a test collection to verify Firestore is working
+    await db.collection('_test_connection').limit(1).get();
+    console.log("✅ Firestore connection verified");
+    return true;
+  } catch (error: any) {
+    if (error.code === 5 || error.message?.includes('NOT_FOUND')) {
+      console.error(`
+⚠️  FIRESTORE DATABASE NOT FOUND
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+The Firestore database has not been created in your Firebase project yet.
+
+To fix this issue:
+1. Go to Firebase Console: https://console.firebase.google.com/project/${process.env.FIREBASE_PROJECT_ID}/firestore
+2. Click "Create Database" 
+3. Choose "Start in production mode" or "Start in test mode"
+4. Select location: asia-southeast1 (to match your Realtime Database)
+5. Click "Enable"
+
+Once created, restart this application.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      `);
+      return false;
+    }
+    console.error("Error testing Firestore connection:", error);
+    return false;
+  }
+}

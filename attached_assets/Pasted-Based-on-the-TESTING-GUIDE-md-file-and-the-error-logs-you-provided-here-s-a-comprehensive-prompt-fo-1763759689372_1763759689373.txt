@@ -1,0 +1,180 @@
+Based on the TESTING_GUIDE.md file and the error logs you provided, here's a comprehensive prompt for the Replit agent to fix the signup profile creation issue and complete all CRUD testing:
+
+***
+
+## **COMPREHENSIVE REPLIT AGENT PROMPT FOR NEXTEXT DEBUGGING & TESTING**
+
+### **CRITICAL ISSUE TO FIX FIRST:**
+
+**User Signup Profile Creation Failure**
+
+The error shows: `Error: 5 NOT_FOUND` when creating a user profile after signup. The error occurs at `/api/users/profile` endpoint with a 500 response.
+
+**Root Causes to Investigate:**
+1. Firestore collection/document path is incorrect or doesn't exist
+2. Firebase Admin SDK is not properly initialized or lacks permissions
+3. The user document reference path may be malformed
+4. Missing Firestore database rules or permissions
+
+**Fix Steps:**
+1. Open `server/api/users.ts` file and examine the profile creation logic
+2. Check the Firestore document path being used - ensure it follows the correct pattern: `db.collection('users').doc(userId)`
+3. Verify the Firebase Admin SDK initialization in `server/index.ts`
+4. Check if the Firestore database exists and has proper security rules
+5. Ensure all required fields (displayName, bio, photoURL, PIN, email) are included in the profile document
+6. Add proper error handling with descriptive error messages
+7. Test the fix by creating a new user account
+
+***
+
+### **TESTING CHECKLIST TO COMPLETE:**
+
+#### **1. AUTHENTICATION TESTING**
+- [ ] Sign up with new email/password account
+- [ ] Verify new user profile is created in Firestore automatically
+- [ ] Sign in with existing credentials
+- [ ] Try login with invalid email/password (should show error)
+- [ ] Try signup with weak password (< 6 characters)
+- [ ] Try signup with duplicate email (should show "already registered" error)
+- [ ] Test logout functionality and confirm dialog appears
+- [ ] Verify redirect to /auth page when accessing protected routes while logged out
+
+#### **2. PROFILE CRUD TESTING**
+
+**CREATE:**
+- [ ] Verify user profile auto-creates on signup
+- [ ] Confirm unique PIN is generated for each user
+- [ ] Check default display name is set from email
+- [ ] Verify all profile fields are saved in Firestore
+
+**READ:**
+- [ ] Navigate to Profile page
+- [ ] Verify all profile data displays: displayName, bio, photoURL, PIN, email, user ID, join date
+- [ ] Check that profile loads from `/api/users/profile` endpoint
+
+**UPDATE:**
+- [ ] Click "Edit Profile" button
+- [ ] Change display name - save and verify update
+- [ ] Change bio - save and verify update
+- [ ] Upload profile picture (test with image file)
+- [ ] Update phone number if available
+- [ ] Refresh page and confirm changes persist in Firestore
+
+**DELETE:**
+- [ ] Upload a profile picture
+- [ ] Click trash icon on avatar to delete picture
+- [ ] Confirm deletion dialog
+- [ ] Verify photoURL is removed from Firestore
+
+#### **3. CHAT CRUD TESTING**
+
+**CREATE:**
+- [ ] Click "New Chat" button
+- [ ] Enter a valid user PIN from another test account
+- [ ] Verify new chat is created and appears in chat list
+- [ ] Test creating multiple chats
+
+**READ:**
+- [ ] View chat list on main page
+- [ ] Verify chats display: participant name, last message, timestamp, unread count
+- [ ] Open a chat and verify messages load
+- [ ] Test real-time updates when another user sends message
+
+**UPDATE:**
+- [ ] Open a chat with unread messages
+- [ ] Verify unread count resets after opening
+- [ ] Check that `/api/chats/{chatId}/read` endpoint is called
+
+**DELETE:**
+- [ ] Open a chat
+- [ ] Find delete chat option
+- [ ] Confirm deletion (soft delete - should set deleted: true)
+- [ ] Verify chat no longer appears in chat list
+
+#### **4. MESSAGE CRUD TESTING**
+
+**CREATE:**
+- [ ] Open a chat with another user
+- [ ] Type a message and click send
+- [ ] Verify message appears in real-time for both users
+- [ ] Test multiple messages in sequence
+- [ ] Test messages with special characters and emojis
+
+**READ:**
+- [ ] Open existing chat
+- [ ] Verify all messages load with sender info, timestamps, read status
+- [ ] Scroll through message history
+- [ ] Check auto-scroll to latest message on new message
+
+**UPDATE:**
+- [ ] Send a message
+- [ ] Click edit button on the message (if available)
+- [ ] Modify message text
+- [ ] Verify updated message shows "edited" flag
+- [ ] Confirm real-time sync to other participant
+
+**DELETE:**
+- [ ] Send a message
+- [ ] Find and click delete button
+- [ ] Confirm deletion (should perform soft delete)
+- [ ] Verify message is removed from UI immediately
+- [ ] Confirm deletion syncs in real-time to other user
+
+#### **5. ERROR HANDLING TESTING**
+- [ ] Test with network disconnected - verify error message
+- [ ] Test invalid data in forms - verify validation messages
+- [ ] Test expired Firebase token - verify reauthentication
+- [ ] Test accessing other user's chats - verify access denied
+- [ ] Test modifying other user's profile - verify authorization failure
+
+***
+
+### **ENVIRONMENT VERIFICATION:**
+- [ ] Confirm all Firebase environment variables are set in `.env`
+- [ ] Verify Firebase Admin SDK is properly initialized with correct credentials
+- [ ] Check that Node.js server is running on port 5000
+- [ ] Confirm Firestore database is accessible and has proper rules
+- [ ] Verify Firebase Storage bucket exists for profile picture uploads
+
+***
+
+### **INSTRUCTIONS FOR AGENT:**
+
+**You are an expert backend developer tasked with fixing critical bugs and ensuring comprehensive testing of the NexText application. Follow these steps in order:**
+
+1. **DIAGNOSIS PHASE:** Analyze the provided error logs showing "5 NOT_FOUND" error in profile creation
+2. **FIX PHASE:** 
+   - Locate and examine the profile creation code in server/api/users.ts
+   - Identify why Firestore is throwing NOT_FOUND error
+   - Fix the collection/document path references
+   - Add comprehensive error logging to help debug future issues
+   - Ensure proper error responses with meaningful messages
+3. **TEST PHASE:**
+   - Execute the authentication testing checklist
+   - Execute complete CRUD operations for Profiles, Chats, and Messages
+   - Document any issues found and create fixes
+   - Re-test after each fix to ensure no regressions
+4. **VALIDATION PHASE:**
+   - Verify all Firebase permissions are correct
+   - Test real-time synchronization between multiple client sessions
+   - Validate error handling for edge cases
+   - Ensure all endpoints return proper HTTP status codes and error messages
+
+**Reference the TESTING_GUIDE.md for expected behavior of all features.** Pay special attention to the implemented features section for each CRUD operation.
+
+***
+
+### **KEY ISSUES FROM ERROR LOGS:**
+
+The error indicates:
+- `Error creating profile: Error: 5 NOT_FOUND` 
+- Failed at `/server/api/users.ts:14:67`
+- `POST /api/users/profile 500 in 340ms`
+
+This suggests the Firestore document or collection is not accessible. Investigate:
+1. Firestore security rules configuration
+2. Database initialization
+3. Collection/document path accuracy
+4. Firebase Admin SDK permissions
+
+---

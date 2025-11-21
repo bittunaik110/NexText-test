@@ -35,9 +35,18 @@ router.post("/profile", authenticateUser, async (req: AuthenticatedRequest, res)
     await db.collection("users").doc(userId).set(userData);
 
     res.json({ success: true, user: { ...userData, id: userId } });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error creating profile:", error);
-    res.status(500).json({ error: "Failed to create profile" });
+    
+    // Provide more helpful error messages
+    if (error.code === 5 || error.message?.includes('NOT_FOUND')) {
+      return res.status(503).json({ 
+        error: "Database not available. Please create the Firestore database in Firebase Console first.",
+        details: "Go to Firebase Console → Firestore Database → Create Database"
+      });
+    }
+    
+    res.status(500).json({ error: "Failed to create profile", details: error.message });
   }
 });
 
