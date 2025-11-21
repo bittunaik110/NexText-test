@@ -7,6 +7,8 @@ import uploadRouter from "./api/upload";
 import groupsRouter from "./api/groups";
 import messagesRouter from "./api/messages";
 import notificationsRouter from "./api/notifications";
+import blockedRouter from "./api/blocked";
+import statusRouter from "./api/status";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   app.use("/api/users", usersRouter);
@@ -15,6 +17,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use("/api/groups", groupsRouter);
   app.use("/api/messages", messagesRouter);
   app.use("/api/notifications", notificationsRouter);
+  app.use("/api/blocked", blockedRouter);
+  app.use("/api/status", statusRouter);
 
   const httpServer = createServer(app);
 

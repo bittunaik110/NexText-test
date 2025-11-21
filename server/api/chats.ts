@@ -168,4 +168,176 @@ router.delete("/:chatId", authenticateUser, async (req: AuthenticatedRequest, re
   }
 });
 
+router.post("/:chatId/archive", authenticateUser, async (req: AuthenticatedRequest, res) => {
+  try {
+    const { chatId } = req.params;
+    const userId = req.user!.uid;
+    const { archived } = req.body;
+
+    const chatDoc = await db.collection("chats").doc(chatId).get();
+
+    if (!chatDoc.exists) {
+      return res.status(404).json({ error: "Chat not found" });
+    }
+
+    const chatData = chatDoc.data();
+
+    if (!chatData?.participants.includes(userId)) {
+      return res.status(403).json({ error: "Unauthorized" });
+    }
+
+    await db.collection("chats").doc(chatId).update({
+      [`archived.${userId}`]: archived !== false,
+    });
+
+    res.json({ success: true, archived: archived !== false });
+  } catch (error) {
+    console.error("Error archiving chat:", error);
+    res.status(500).json({ error: "Failed to archive chat" });
+  }
+});
+
+router.post("/:chatId/pin", authenticateUser, async (req: AuthenticatedRequest, res) => {
+  try {
+    const { chatId } = req.params;
+    const userId = req.user!.uid;
+    const { pinned } = req.body;
+
+    const chatDoc = await db.collection("chats").doc(chatId).get();
+
+    if (!chatDoc.exists) {
+      return res.status(404).json({ error: "Chat not found" });
+    }
+
+    const chatData = chatDoc.data();
+
+    if (!chatData?.participants.includes(userId)) {
+      return res.status(403).json({ error: "Unauthorized" });
+    }
+
+    await db.collection("chats").doc(chatId).update({
+      [`pinned.${userId}`]: pinned !== false,
+    });
+
+    res.json({ success: true, pinned: pinned !== false });
+  } catch (error) {
+    console.error("Error pinning chat:", error);
+    res.status(500).json({ error: "Failed to pin chat" });
+  }
+});
+
+router.post("/:chatId/mute", authenticateUser, async (req: AuthenticatedRequest, res) => {
+  try {
+    const { chatId } = req.params;
+    const userId = req.user!.uid;
+    const { muteUntil } = req.body;
+
+    const chatDoc = await db.collection("chats").doc(chatId).get();
+
+    if (!chatDoc.exists) {
+      return res.status(404).json({ error: "Chat not found" });
+    }
+
+    const chatData = chatDoc.data();
+
+    if (!chatData?.participants.includes(userId)) {
+      return res.status(403).json({ error: "Unauthorized" });
+    }
+
+    const muteTimestamp = muteUntil ? new Date(muteUntil).toISOString() : null;
+
+    await db.collection("chats").doc(chatId).update({
+      [`muted.${userId}`]: muteTimestamp,
+    });
+
+    res.json({ success: true, mutedUntil: muteTimestamp });
+  } catch (error) {
+    console.error("Error muting chat:", error);
+    res.status(500).json({ error: "Failed to mute chat" });
+  }
+});
+
+router.get("/:chatId/settings", authenticateUser, async (req: AuthenticatedRequest, res) => {
+  try {
+    const { chatId } = req.params;
+    const userId = req.user!.uid;
+
+    const chatDoc = await db.collection("chats").doc(chatId).get();
+
+    if (!chatDoc.exists) {
+      return res.status(404).json({ error: "Chat not found" });
+    }
+
+    const chatData = chatDoc.data();
+
+    if (!chatData?.participants.includes(userId)) {
+      return res.status(403).json({ error: "Unauthorized" });
+    }
+
+    const settings = {
+      archived: chatData?.archived?.[userId] || false,
+      pinned: chatData?.pinned?.[userId] || false,
+      muted: chatData?.muted?.[userId] || null,
+      notifications: chatData?.notificationSettings?.[userId] || {
+        enabled: true,
+        sound: true,
+        vibrate: true,
+      },
+      theme: chatData?.theme?.[userId] || {
+        backgroundColor: null,
+        emoji: null,
+      },
+    };
+
+    res.json({ success: true, settings });
+  } catch (error) {
+    console.error("Error fetching chat settings:", error);
+    res.status(500).json({ error: "Failed to fetch chat settings" });
+  }
+});
+
+router.put("/:chatId/settings", authenticateUser, async (req: AuthenticatedRequest, res) => {
+  try {
+    const { chatId } = req.params;
+    const userId = req.user!.uid;
+    const { notifications, theme } = req.body;
+
+    const chatDoc = await db.collection("chats").doc(chatId).get();
+
+    if (!chatDoc.exists) {
+      return res.status(404).json({ error: "Chat not found" });
+    }
+
+    const chatData = chatDoc.data();
+
+    if (!chatData?.participants.includes(userId)) {
+      return res.status(403).json({ error: "Unauthorized" });
+    }
+
+    const updates: any = {};
+
+    if (notifications) {
+      updates[`notificationSettings.${userId}`] = {
+        enabled: notifications.enabled !== false,
+        sound: notifications.sound !== false,
+        vibrate: notifications.vibrate !== false,
+      };
+    }
+
+    if (theme) {
+      updates[`theme.${userId}`] = {
+        backgroundColor: theme.backgroundColor || null,
+        emoji: theme.emoji || null,
+      };
+    }
+
+    await db.collection("chats").doc(chatId).update(updates);
+
+    res.json({ success: true, message: "Settings updated successfully" });
+  } catch (error) {
+    console.error("Error updating chat settings:", error);
+    res.status(500).json({ error: "Failed to update chat settings" });
+  }
+});
+
 export default router;
