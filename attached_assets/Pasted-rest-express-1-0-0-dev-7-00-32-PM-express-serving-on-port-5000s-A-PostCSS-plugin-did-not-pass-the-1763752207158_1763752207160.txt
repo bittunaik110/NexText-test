@@ -1,0 +1,53 @@
+rest-express@1.0.0 dev
+7:00:32 PM [express] serving on port 5000s
+
+A PostCSS plugin did not pass the `from` option to `postcss.parse`. This may cause imported assets to be incorrectly transformed. If you've recently added a PostCSS plugin that raised this warning, please contact the package author to fix the issue.
+Error creating profile: Error: 16 UNAUTHENTICATED: Request had invalid authentication credentials. Expected OAuth 2 access token, login cookie or other valid authentication credential. See https://developers.google.com/identity/sign-in/web/devconsole-project.
+    at callErrorFromStatus (/home/runner/workspace/node_modules/google-gax/node_modules/@grpc/grpc-js/src/call.ts:84:17)
+    at Object.onReceiveStatus (/home/runner/workspace/node_modules/google-gax/node_modules/@grpc/grpc-js/src/client.ts:612:51)
+    at Object.onReceiveStatus (/home/runner/workspace/node_modules/google-gax/node_modules/@grpc/grpc-js/src/client-interceptors.ts:424:48)
+    at <anonymous> (/home/runner/workspace/node_modules/google-gax/node_modules/@grpc/grpc-js/src/resolving-call.ts:170:24)
+    at process.processTicksAndRejections (node:internal/process/task_queues:77:11)
+for call at
+    at ServiceClientImpl.makeServerStreamRequest (/home/runner/workspace/node_modules/google-gax/node_modules/@grpc/grpc-js/src/client.ts:595:42)
+    at ServiceClientImpl.<anonymous> (/home/runner/workspace/node_modules/google-gax/node_modules/@grpc/grpc-js/src/make-client.ts:189:15)
+    at /home/runner/workspace/node_modules/@google-cloud/firestore/build/src/v1/firestore_client.js:242:33
+    at <anonymous> (/home/runner/workspace/node_modules/google-gax/src/streamingCalls/streamingApiCaller.ts:59:19)
+    at <anonymous> (/home/runner/workspace/node_modules/google-gax/src/normalCalls/timeout.ts:54:13)
+    at Object.request (/home/runner/workspace/node_modules/google-gax/src/streamingCalls/streaming.ts:331:28)
+    at makeRequest (/home/runner/workspace/node_modules/retry-request/index.js:159:28)
+    at retryRequest (/home/runner/workspace/node_modules/retry-request/index.js:119:5)
+    at StreamProxy.setStream (/home/runner/workspace/node_modules/google-gax/src/streamingCalls/streaming.ts:322:29)
+    at StreamingApiCaller.call (/home/runner/workspace/node_modules/google-gax/src/streamingCalls/streamingApiCaller.ts:89:12)
+    at <anonymous> (/home/runner/workspace/node_modules/google-gax/src/createApiCall.ts:157:26)
+Caused by: Error
+    at QueryUtil._getResponse (/home/runner/workspace/node_modules/@google-cloud/firestore/build/src/reference/query-util.js:44:23)
+    at Query._getResponse (/home/runner/workspace/node_modules/@google-cloud/firestore/build/src/reference/query.js:784:32)
+    at Query._get (/home/runner/workspace/node_modules/@google-cloud/firestore/build/src/reference/query.js:777:35)
+    at /home/runner/workspace/node_modules/@google-cloud/firestore/build/src/reference/query.js:745:43
+    at /home/runner/workspace/node_modules/@google-cloud/firestore/build/src/telemetry/enabled-trace-util.js:110:30
+    at NoopContextManager.with (/home/runner/workspace/node_modules/@opentelemetry/api/src/context/NoopContextManager.ts:31:15)
+    at ContextAPI.with (/home/runner/workspace/node_modules/@opentelemetry/api/src/api/context.ts:77:42)
+    at NoopTracer.startActiveSpan (/home/runner/workspace/node_modules/@opentelemetry/api/src/trace/NoopTracer.ts:98:27)
+    at ProxyTracer.startActiveSpan (/home/runner/workspace/node_modules/@opentelemetry/api/src/trace/ProxyTracer.ts:51:20)
+    at EnabledTraceUtil.startActiveSpan (/home/runner/workspace/node_modules/@google-cloud/firestore/build/src/telemetry/enabled-trace-util.js:102:28)
+    at Query.get (/home/runner/workspace/node_modules/@google-cloud/firestore/build/src/reference/query.js:744:43)
+    at checkPinExists (/home/runner/workspace/server/api/users.ts:14:77)
+    at generateUniquePIN (/home/runner/workspace/server/utils/pin-generator.ts:17:16)
+    at <anonymous> (/home/runner/workspace/server/api/users.ts:18:23)
+    at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)
+    at next (/home/runner/workspace/node_modules/express/lib/router/route.js:149:13)
+    at authenticateUser (/home/runner/workspace/server/middleware/auth.ts:31:5)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5) {
+  code: 16,
+  details: 'Request had invalid authentication credentials. Expected OAuth 2 access token, login cookie or other valid authentication credential. See https://developers.google.com/identity/sign-in/web/devconsole-project.',
+  metadata: Metadata {
+    internalRepr: Map(2) {
+      'www-authenticate' => [Array],
+      'x-debug-tracking-id' => [Array]
+    },
+    opaqueData: Map(0) {},
+    options: {}
+  }
+}
+7:09:40 PM [express] POST /api/users/profile 500 in 642ms :: {"error":"Failed to create profile"}
