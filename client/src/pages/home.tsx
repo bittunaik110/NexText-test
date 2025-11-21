@@ -26,7 +26,7 @@ export default function Home() {
     bio: "",
   });
 
-  // Fetch user profile on mount
+  // Fetch user profile on mount and when view changes back to profile
   useEffect(() => {
     const loadProfile = async () => {
       try {
@@ -40,14 +40,37 @@ export default function Home() {
             bio: response.user.bio || "",
           });
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error fetching user profile:", error);
+        
+        // Graceful handling for missing profile - try to create it
+        if (error.message?.includes("404") || error.message?.includes("not found")) {
+          try {
+            const { usersApi } = await import("@/lib/api");
+            await usersApi.createProfile({
+              displayName: user?.email?.split("@")[0] || "User",
+              bio: "",
+            });
+            // Retry loading after creation
+            const response = await usersApi.getProfile();
+            if (response.user) {
+              setUserProfile({
+                name: response.user.displayName || user?.displayName || "User",
+                email: user?.email || "",
+                pin: response.user.pin || "",
+                bio: response.user.bio || "",
+              });
+            }
+          } catch (createError) {
+            console.error("Error creating missing profile:", createError);
+          }
+        }
       }
     };
     if (user) {
       loadProfile();
     }
-  }, [user]);
+  }, [user, view]); // Refetch when view changes to ensure fresh data
 
   const selectedChatData = chats.find((c) => c.id === selectedChat);
 
