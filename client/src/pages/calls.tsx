@@ -2,8 +2,9 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import UserAvatar from "@/components/UserAvatar";
-import { ArrowLeft, Phone, Video, PhoneIncoming, PhoneOutgoing, PhoneMissed } from "lucide-react";
+import { ArrowLeft, Phone, Video, PhoneIncoming, PhoneOutgoing, PhoneMissed, PhoneOff } from "lucide-react";
 import { useLocation } from "wouter";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 interface Call {
   id: string;
@@ -19,6 +20,8 @@ interface Call {
 export default function CallsPage() {
   const [, setLocation] = useLocation();
   const now = new Date();
+  const [videoCallOpen, setVideoCallOpen] = useState(false);
+  const [voiceCallOpen, setVoiceCallOpen] = useState(false);
 
   const [calls] = useState<Call[]>([
     {
@@ -128,16 +131,64 @@ export default function CallsPage() {
         <Button
           size="icon"
           className="h-12 w-12 rounded-full bg-gradient-to-r from-primary to-accent shadow-lg"
+          onClick={() => setVideoCallOpen(true)}
         >
           <Video className="h-6 w-6" />
         </Button>
         <Button
           size="icon"
           className="h-12 w-12 rounded-full bg-gradient-to-r from-primary to-accent shadow-lg"
+          onClick={() => setVoiceCallOpen(true)}
         >
           <Phone className="h-6 w-6" />
         </Button>
       </div>
+
+      {/* Video Call Modal */}
+      <Dialog open={videoCallOpen} onOpenChange={setVideoCallOpen}>
+        <DialogContent className="max-w-2xl h-[600px] p-0 overflow-hidden">
+          <div className="flex flex-col items-center justify-center h-full bg-gradient-to-br from-primary/10 to-accent/10 relative">
+            {/* Video placeholder area */}
+            <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+              <div className="text-center">
+                <UserAvatar name="Contact" size="lg" className="mx-auto mb-4 w-24 h-24" />
+                <h2 className="text-2xl font-semibold mb-2">Video Call</h2>
+                <p className="text-muted-foreground mb-8">Calling...</p>
+              </div>
+            </div>
+            
+            {/* Controls */}
+            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-4">
+              <Button
+                size="icon"
+                className="h-14 w-14 rounded-full bg-red-500 hover:bg-red-600"
+                onClick={() => setVideoCallOpen(false)}
+              >
+                <PhoneOff className="h-6 w-6" />
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Voice Call Modal */}
+      <Dialog open={voiceCallOpen} onOpenChange={setVoiceCallOpen}>
+        <DialogContent className="max-w-md">
+          <div className="flex flex-col items-center justify-center py-8">
+            <UserAvatar name="Contact" size="lg" className="w-24 h-24 mb-6" />
+            <h2 className="text-2xl font-semibold mb-2">Voice Call</h2>
+            <p className="text-muted-foreground mb-8">Calling...</p>
+            
+            <Button
+              size="icon"
+              className="h-14 w-14 rounded-full bg-red-500 hover:bg-red-600"
+              onClick={() => setVoiceCallOpen(false)}
+            >
+              <PhoneOff className="h-6 w-6" />
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

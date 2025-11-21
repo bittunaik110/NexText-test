@@ -5,7 +5,7 @@ import ChatWindow from "@/components/ChatWindow";
 import ProfileView from "@/components/ProfileView";
 import ConnectModal from "@/components/ConnectModal";
 import ThemeToggle from "@/components/ThemeToggle";
-import { MessageCircle, Phone, Users, Settings } from "lucide-react";
+import { MessageCircle, Phone, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useChats } from "@/hooks/useChats";
 import { useAuth } from "@/contexts/AuthContext";
@@ -160,15 +160,6 @@ export default function Home() {
             >
               <Phone className="h-5 w-5" />
               <span className="text-xs">Calls</span>
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="flex-1 flex flex-col items-center gap-1 h-auto py-2"
-              onClick={() => setLocation("/settings")}
-            >
-              <Settings className="h-5 w-5" />
-              <span className="text-xs">Settings</span>
             </Button>
           </div>
         </div>
