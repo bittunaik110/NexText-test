@@ -22,13 +22,21 @@ export default function Home() {
     name: user?.displayName || "User",
     email: user?.email || "",
     pin: "XYZ789",
-    bio: "Love connecting with people through NexText! 🚀",
+    bio: user?.email ? "Love connecting with people through NexText! 🚀" : "",
   };
 
   const selectedChatData = chats.find((c) => c.id === selectedChat);
 
-  const handleConnect = (pin: string) => {
-    console.log("Connecting with PIN:", pin);
+  const handleConnect = async (pin: string) => {
+    try {
+      const { usersApi, chatsApi } = await import("@/lib/api");
+      const foundUser = await usersApi.findByPin(pin);
+      if (foundUser && foundUser.uid) {
+        await chatsApi.create(foundUser.uid);
+      }
+    } catch (error) {
+      console.error("Error connecting with PIN:", error);
+    }
   };
 
   const displayChats = chats.map(chat => {
@@ -36,6 +44,7 @@ export default function Home() {
     return {
       id: chat.id,
       name: chat.participantNames?.[otherParticipant] || "Unknown",
+      avatar: chat.participantPhotos?.[otherParticipant],
       lastMessage: chat.lastMessage,
       timestamp: new Date(chat.lastMessageTime),
       unreadCount: chat.unreadCount[user?.uid || ""] || 0,

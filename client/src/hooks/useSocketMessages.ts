@@ -1,67 +1,131 @@
-import { useEffect, useRef } from "react";
-import { io, Socket } from "socket.io-client";
-import { useAuth } from "@/contexts/AuthContext";
+
+import { useEffect, useCallback } from "react";
+import { useSocket } from "./useSocket";
+import { useToast } from "./use-toast";
 
 export function useSocketMessages(chatId: string | undefined) {
-  const socketRef = useRef<Socket | null>(null);
-  const { user } = useAuth();
+  const socket = useSocket();
+  const { toast } = useToast();
 
   useEffect(() => {
-    if (!user || !chatId) return;
+    if (!socket || !chatId) return;
 
-    const initSocket = async () => {
-      const token = await user.getIdToken();
-      
-      socketRef.current = io({
-        auth: { token }
-      });
+    socket.emit("join-chat", chatId);
 
-      socketRef.current.on("connect", () => {
-        console.log("Socket connected");
-        socketRef.current?.emit("join-chat", chatId);
-      });
-
-      socketRef.current.on("disconnect", () => {
-        console.log("Socket disconnected");
+    const handleMessageError = (data: { error: string }) => {
+      console.error("Message error:", data.error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: data.error || "Failed to send message",
       });
     };
 
-    initSocket();
+    socket.on("message-error", handleMessageError);
 
     return () => {
-      if (socketRef.current) {
-        socketRef.current.emit("leave-chat", chatId);
-        socketRef.current.disconnect();
+      socket.emit("leave-chat", chatId);
+      socket.off("message-error", handleMessageError);
+    };
+  }, [socket, chatId, toast]);
+
+  const sendMessage = useCallback(
+    async (text: string, mediaUrl?: string, gifUrl?: string) => {
+      if (!socket || !chatId) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Not connected to chat server",
+        });
+        return;
       }
-    };
-  }, [user, chatId]);
 
-  const sendMessage = async (text: string, mediaUrl?: string, gifUrl?: string) => {
-    if (!socketRef.current || !chatId) return;
+      if (!text.trim() && !mediaUrl && !gifUrl) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Message cannot be empty",
+        });
+        return;
+      }
 
-    const messageData = {
-      text,
-      mediaUrl: mediaUrl || "",
-      gifUrl: gifUrl || "",
-    };
+      try {
+        socket.emit("send-message", {
+          chatId,
+          messageData: {
+            text: text.trim(),
+            mediaUrl: mediaUrl || "",
+            gifUrl: gifUrl || "",
+          },
+        });
+      } catch (error) {
+        console.error("Error sending message:", error);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to send message",
+        });
+      }
+    },
+    [socket, chatId, toast]
+  );
 
-    socketRef.current.emit("send-message", { chatId, messageData });
+  const reactToMessage = useCallback(
+    (messageId: string, emoji: string) => {
+      if (!socket || !chatId) return;
+
+      socket.emit("react-to-message", {
+        chatId,
+        messageId,
+        emoji,
+      });
+    },
+    [socket, chatId]
+  );
+
+  const startTyping = useCallback(() => {
+    if (!socket || !chatId) return;
+
+    socket.emit("typing-start", { chatId });
+  }, [socket, chatId]);
+
+  const stopTyping = useCallback(() => {
+    if (!socket || !chatId) return;
+
+    socket.emit("typing-stop", { chatId });
+  }, [socket, chatId]);
+
+  const editMessage = useCallback(
+    (messageId: string, newText: string) => {
+      if (!socket || !chatId) return;
+
+      socket.emit("edit-message", {
+        chatId,
+        messageId,
+        newText,
+      });
+    },
+    [socket, chatId]
+  );
+
+  const deleteMessage = useCallback(
+    (messageId: string) => {
+      if (!socket || !chatId) return;
+
+      socket.emit("delete-message", {
+        chatId,
+        messageId,
+      });
+    },
+    [socket, chatId]
+  );
+
+  return {
+    sendMessage,
+    reactToMessage,
+    startTyping,
+    stopTyping,
+    editMessage,
+    deleteMessage,
   };
-
-  const reactToMessage = (messageId: string, emoji: string) => {
-    if (!socketRef.current || !chatId) return;
-    socketRef.current.emit("react-to-message", { chatId, messageId, emoji });
-  };
-
-  const startTyping = () => {
-    if (!socketRef.current || !chatId) return;
-    socketRef.current.emit("typing-start", { chatId });
-  };
-
-  const stopTyping = () => {
-    if (!socketRef.current || !chatId) return;
-    socketRef.current.emit("typing-stop", { chatId });
-  };
-
-  return { sendMessage, reactToMessage, startTyping, stopTyping };
 }
