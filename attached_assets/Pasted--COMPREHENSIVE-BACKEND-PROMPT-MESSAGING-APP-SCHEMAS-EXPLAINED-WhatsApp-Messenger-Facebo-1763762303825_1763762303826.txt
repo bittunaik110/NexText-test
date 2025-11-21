@@ -1,0 +1,389 @@
+# **COMPREHENSIVE BACKEND PROMPT: MESSAGING APP SCHEMAS EXPLAINED**
+## **WhatsApp, Messenger, Facebook Chat Architecture & Implementation**
+
+***
+
+## **TABLE OF CONTENTS**
+1. WhatsApp Schema & Architecture
+2. Facebook Messenger Schema & Architecture
+3. Comparison & Hybrid Approach
+4. Complete Backend Implementation for NexText
+5. API Endpoints Design
+6. Real-time Sync with WebSockets/Firebase
+7. Performance Optimization
+8. Security & Encryption
+
+***
+
+***
+
+# **PART 1: WHATSAPP SCHEMA & ARCHITECTURE**
+
+## **1.1 WHY WHATSAPP'S DESIGN**
+
+WhatsApp is the most popular messaging app with 100M+ DAU. Key characteristics:
+- **Peer-to-peer focus**: Most chats are 1-on-1
+- **End-to-end encryption**: Every message is encrypted
+- **Minimal metadata**: Focus on privacy
+- **Simple group chats**: Limited to 256 members per group
+- **Status updates**: Stories (photos/videos)
+- **Media-heavy**: Image, video, document sharing
+- **Offline-first**: Works offline with sync on reconnect
+
+## **1.2 WHATSAPP DATABASE SCHEMA**
+
+```
+USERS Table:
+├── user_id (UUID, PRIMARY KEY)
+├── phone_number (VARCHAR, UNIQUE) - Identity
+├── public_key (TEXT) - For end-to-end encryption
+├── status (ENUM: active|away|offline)
+├── last_seen (TIMESTAMP)
+├── profile_photo_url (VARCHAR)
+├── name (VARCHAR)
+├── about (TEXT)
+├── created_at (TIMESTAMP)
+├── updated_at (TIMESTAMP)
+└── deleted_at (TIMESTAMP, soft delete)
+
+CONTACTS Table:
+├── contact_id (UUID, PRIMARY KEY)
+├── user_id (UUID, FOREIGN KEY → users)
+├── contact_user_id (UUID, FOREIGN KEY → users)
+├── name (VARCHAR) - Custom name in contacts
+├── is_blocked (BOOLEAN)
+├── added_at (TIMESTAMP)
+└── UNIQUE(user_id, contact_user_id)
+
+CHATS Table (Conversations):
+├── chat_id (UUID, PRIMARY KEY)
+├── chat_type (ENUM: individual|group|broadcast)
+├── created_by (UUID, FOREIGN KEY → users)
+├── created_at (TIMESTAMP)
+├── updated_at (TIMESTAMP)
+├── is_archived (BOOLEAN)
+├── is_pinned (BOOLEAN)
+├── last_message_id (UUID, FOREIGN KEY → messages)
+├── deleted_at (TIMESTAMP)
+└── [For Group Chats]
+    ├── group_name (VARCHAR)
+    ├── group_photo_url (VARCHAR)
+    ├── group_description (TEXT)
+    └── group_created_at (TIMESTAMP)
+
+CHAT_PARTICIPANTS Table:
+├── participant_id (UUID, PRIMARY KEY)
+├── chat_id (UUID, FOREIGN KEY → chats)
+├── user_id (UUID, FOREIGN KEY → users)
+├── added_by (UUID, FOREIGN KEY → users)
+├── role (ENUM: admin|member|moderator)
+├── joined_at (TIMESTAMP)
+├── left_at (TIMESTAMP)
+├── is_admin (BOOLEAN)
+├── muted_until (TIMESTAMP)
+├── UNIQUE(chat_id, user_id)
+└── INDEX on (user_id, joined_at DESC)
+
+MESSAGES Table:
+├── message_id (UUID, PRIMARY KEY)
+├── chat_id (UUID, FOREIGN KEY → chats)
+├── sender_id (UUID, FOREIGN KEY → users)
+├── message_text (TEXT) - Encrypted
+├── message_type (ENUM: text|image|video|audio|document|location|contact|sticker)
+├── media_url (VARCHAR)
+├── media_size (BIGINT)
+├── status (ENUM: sent|delivered|read|failed)
+├── created_at (TIMESTAMP)
+├── edited_at (TIMESTAMP)
+├── deleted_at (TIMESTAMP, soft delete)
+├── is_replied_to (BOOLEAN)
+├── replied_to_message_id (UUID, FOREIGN KEY → messages)
+├── forwarded_from_message_id (UUID, FOREIGN KEY → messages)
+├── encryption_type (ENUM: none|e2e|rsa)
+└── INDEX on (chat_id, created_at DESC)
+└── INDEX on (sender_id, created_at DESC)
+
+MESSAGE_READ_RECEIPTS Table:
+├── read_receipt_id (UUID, PRIMARY KEY)
+├── message_id (UUID, FOREIGN KEY → messages)
+├── chat_id (UUID, FOREIGN KEY → chats)
+├── user_id (UUID, FOREIGN KEY → users)
+├── read_at (TIMESTAMP)
+└── INDEX on (message_id, read_at)
+
+STATUS_UPDATES Table (Stories):
+├── status_id (UUID, PRIMARY KEY)
+├── user_id (UUID, FOREIGN KEY → users)
+├── media_url (VARCHAR)
+├── media_type (ENUM: image|video)
+├── text_content (TEXT)
+├── created_at (TIMESTAMP)
+├── expires_at (TIMESTAMP) - Auto delete after 24h
+├── view_count (INT)
+└── INDEX on (user_id, created_at DESC)
+
+STATUS_VIEWS Table:
+├── view_id (UUID, PRIMARY KEY)
+├── status_id (UUID, FOREIGN KEY → status_updates)
+├── user_id (UUID, FOREIGN KEY → users)
+├── viewed_at (TIMESTAMP)
+└── UNIQUE(status_id, user_id)
+
+BLOCKED_USERS Table:
+├── block_id (UUID, PRIMARY KEY)
+├── user_id (UUID, FOREIGN KEY → users)
+├── blocked_user_id (UUID, FOREIGN KEY → users)
+├── blocked_at (TIMESTAMP)
+└── reason (VARCHAR)
+
+CHAT_SETTINGS Table:
+├── setting_id (UUID, PRIMARY KEY)
+├── chat_id (UUID, FOREIGN KEY → chats)
+├── user_id (UUID, FOREIGN KEY → users)
+├── notifications_enabled (BOOLEAN)
+├── notifications_sound (VARCHAR)
+├── notifications_vibrate (BOOLEAN)
+├── background_color (VARCHAR)
+├── is_muted (BOOLEAN)
+└── UNIQUE(chat_id, user_id)
+```
+
+## **1.3 WHATSAPP API ENDPOINTS**
+
+### **User Management**
+```
+POST /api/users/auth/register
+POST /api/users/auth/verify-otp
+POST /api/users/profile
+GET /api/users/{userId}/profile
+PUT /api/users/{userId}/profile
+GET /api/users/{userId}/status
+POST /api/users/{userId}/status/upload
+
+POST /api/contacts/add
+GET /api/contacts/list
+DELETE /api/contacts/{contactId}
+POST /api/contacts/{userId}/block
+GET /api/contacts/blocked
+```
+
+### **Chat Management**
+```
+POST /api/chats/individual
+POST /api/chats/group
+GET /api/chats/list
+GET /api/chats/{chatId}
+PUT /api/chats/{chatId}
+DELETE /api/chats/{chatId}
+POST /api/chats/{chatId}/archive
+POST /api/chats/{chatId}/mute
+PUT /api/chats/{chatId}/settings
+```
+
+### **Group Management**
+```
+POST /api/groups/create
+PUT /api/groups/{groupId}
+GET /api/groups/{groupId}/members
+POST /api/groups/{groupId}/members/add
+DELETE /api/groups/{groupId}/members/{userId}
+POST /api/groups/{groupId}/leave
+```
+
+### **Message Operations**
+```
+POST /api/messages/send
+GET /api/chats/{chatId}/messages
+PUT /api/messages/{messageId}
+DELETE /api/messages/{messageId}
+POST /api/messages/{messageId}/react
+POST /api/messages/{messageId}/reply
+POST /api/messages/{messageId}/forward
+GET /api/messages/{messageId}/receipts
+```
+
+***
+
+***
+
+# **PART 2: FACEBOOK MESSENGER SCHEMA & ARCHITECTURE**
+
+## **2.1 WHY MESSENGER'S DESIGN**
+
+Facebook Messenger differs from WhatsApp:
+- **Social-first**: Integrates with friend connections
+- **Business messaging**: Chat businesses + customers
+- **Video/voice calls**: Built-in calling
+- **Bots & automation**: Messenger bots
+- **Reactions & rich content**: More interactive
+- **Threads & conversations**: Organized by conversation
+- **Groups & rooms**: Large group support
+- **Payment integration**: Send money
+
+## **2.2 MESSENGER DATABASE SCHEMA**
+
+```
+USERS Table:
+├── user_id (UUID, PRIMARY KEY)
+├── email (VARCHAR, UNIQUE)
+├── username (VARCHAR, UNIQUE)
+├── full_name (VARCHAR)
+├── profile_picture_url (VARCHAR)
+├── bio (TEXT)
+├── status (ENUM: online|away|offline)
+├── status_message (VARCHAR)
+├── last_active_at (TIMESTAMP)
+├── created_at (TIMESTAMP)
+├── verified (BOOLEAN)
+├── verification_type (ENUM: email|phone|two_factor)
+└── privacy_settings (JSON)
+
+FRIENDSHIPS Table (Social Graph):
+├── friendship_id (UUID, PRIMARY KEY)
+├── user_id_1 (UUID, FOREIGN KEY → users)
+├── user_id_2 (UUID, FOREIGN KEY → users)
+├── status (ENUM: pending|accepted|blocked)
+├── created_at (TIMESTAMP)
+├── accepted_at (TIMESTAMP)
+└── UNIQUE(user_id_1, user_id_2)
+
+CONVERSATIONS Table (Major change from WhatsApp):
+├── conversation_id (UUID, PRIMARY KEY)
+├── conversation_type (ENUM: individual|group|room|page_inbox)
+├── created_by (UUID, FOREIGN KEY → users)
+├── created_at (TIMESTAMP)
+├── updated_at (TIMESTAMP)
+├── is_archived (BOOLEAN)
+├── is_muted (BOOLEAN)
+├── custom_name (VARCHAR) - User can name conversations
+├── theme_color (VARCHAR)
+├── emoji (VARCHAR)
+├── last_message_id (UUID, FOREIGN KEY → messages)
+├── snippet (VARCHAR) - Preview of last message
+├── [For Group Conversations]
+│   ├── group_name (VARCHAR)
+│   ├── group_picture_url (VARCHAR)
+│   ├── group_description (TEXT)
+│   ├── member_count (INT)
+│   └── is_default_emoji_reaction (BOOLEAN)
+└── [For Page Inboxes]
+    └── page_id (VARCHAR, FOREIGN KEY)
+
+CONVERSATION_MEMBERS Table:
+├── member_id (UUID, PRIMARY KEY)
+├── conversation_id (UUID, FOREIGN KEY → conversations)
+├── user_id (UUID, FOREIGN KEY → users)
+├── role (ENUM: admin|moderator|member)
+├── joined_at (TIMESTAMP)
+├── left_at (TIMESTAMP)
+├── nickname (VARCHAR)
+├── custom_color (VARCHAR)
+├── reactions_enabled (BOOLEAN)
+├── UNIQUE(conversation_id, user_id)
+└── INDEX on (user_id, joined_at DESC)
+
+MESSAGES Table (Enhanced):
+├── message_id (UUID, PRIMARY KEY)
+├── conversation_id (UUID, FOREIGN KEY → conversations)
+├── sender_id (UUID, FOREIGN KEY → users)
+├── message_text (TEXT)
+├── message_type (ENUM: text|image|video|audio|sticker|gif|payment|call|share|poll|reaction_add|reaction_remove)
+├── media_url (VARCHAR)
+├── media_size (BIGINT)
+├── media_duration (INT)
+├── created_at (TIMESTAMP)
+├── edited_at (TIMESTAMP)
+├── deleted_at (TIMESTAMP)
+├── is_pinned (BOOLEAN)
+├── is_replied_to (BOOLEAN)
+├── reply_to_message_id (UUID, FOREIGN KEY → messages)
+├── [Reactions]
+│   └── reactions (JSON) - {emoji: [user_ids]}
+├── [Forwarding]
+│   └── forwarded_from_message_id (UUID)
+├── [Payments]
+│   ├── payment_amount (DECIMAL)
+│   ├── payment_currency (VARCHAR)
+│   └── payment_status (ENUM: pending|completed|failed)
+├── [Rich Content]
+│   ├── share_type (ENUM: link|file|location)
+│   └── metadata (JSON)
+└── INDEX on (conversation_id, created_at DESC)
+└── INDEX on (sender_id, created_at DESC)
+
+REACTIONS Table (Separate for better querying):
+├── reaction_id (UUID, PRIMARY KEY)
+├── message_id (UUID, FOREIGN KEY → messages)
+├── user_id (UUID, FOREIGN KEY → users)
+├── emoji (VARCHAR)
+├── created_at (TIMESTAMP)
+├── UNIQUE(message_id, user_id, emoji)
+└── INDEX on (message_id, emoji)
+
+MESSAGE_THREADS Table (For nested replies):
+├── thread_id (UUID, PRIMARY KEY)
+├── parent_message_id (UUID, FOREIGN KEY → messages)
+├── conversation_id (UUID, FOREIGN KEY → conversations)
+├── reply_count (INT)
+├── created_at (TIMESTAMP)
+└── last_reply_at (TIMESTAMP)
+
+THREAD_REPLIES Table:
+├── reply_id (UUID, PRIMARY KEY)
+├── thread_id (UUID, FOREIGN KEY → message_threads)
+├── message_id (UUID, FOREIGN KEY → messages)
+├── sender_id (UUID, FOREIGN KEY → users)
+├── reply_text (TEXT)
+├── created_at (TIMESTAMP)
+└── INDEX on (thread_id, created_at DESC)
+
+MESSAGE_READ_RECEIPTS Table:
+├── read_receipt_id (UUID, PRIMARY KEY)
+├── message_id (UUID, FOREIGN KEY → messages)
+├── conversation_id (UUID, FOREIGN KEY → conversations)
+├── user_id (UUID, FOREIGN KEY → users)
+├── read_at (TIMESTAMP)
+└── INDEX on (message_id, read_at)
+
+TYPING_INDICATORS Table (Real-time):
+├── typing_id (UUID, PRIMARY KEY)
+├── conversation_id (UUID, FOREIGN KEY → conversations)
+├── user_id (UUID, FOREIGN KEY → users)
+├── started_at (TIMESTAMP)
+├── expires_at (TIMESTAMP) - Auto expire after 5s
+└── INDEX on (conversation_id, started_at)
+
+VOICE_CALLS Table:
+├── call_id (UUID, PRIMARY KEY)
+├── conversation_id (UUID, FOREIGN KEY → conversations)
+├── caller_id (UUID, FOREIGN KEY → users)
+├── call_type (ENUM: voice|video)
+├── started_at (TIMESTAMP)
+├── ended_at (TIMESTAMP)
+├── duration (INT)
+├── call_status (ENUM: ringing|ongoing|missed|declined)
+├── recording_url (VARCHAR)
+└── INDEX on (conversation_id, started_at DESC)
+
+POLLS Table (For poll messages):
+├── poll_id (UUID, PRIMARY KEY)
+├── message_id (UUID, FOREIGN KEY → messages)
+├── conversation_id (UUID, FOREIGN KEY → conversations)
+├── creator_id (UUID, FOREIGN KEY → users)
+├── question (VARCHAR)
+├── options (JSON ARRAY)
+├── created_at (TIMESTAMP)
+├── expires_at (TIMESTAMP)
+└── status (ENUM: active|closed)
+
+POLL_VOTES Table:
+├── vote_id (UUID, PRIMARY KEY)
+├── poll_id (UUID, FOREIGN KEY → polls)
+├── user_id (UUID, FOREIGN KEY → users)
+├── option_index (INT)
+├── voted_at (TIMESTAMP)
+└── UNIQUE(poll_id, user_id)
+
+NOTIFICATIONS Table:
+├── notification_id (UUID, PRIMARY KEY)
+├── user_id (
