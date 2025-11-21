@@ -1,0 +1,89 @@
+Here’s how you can implement the features and ensure the UI behaves as requested for your NexText app in Replit:
+
+***
+
+**1. Persistent Navbar:**  
+- Show **Chats, Status, and Calls** tabs at all times, regardless of which tab is active.  
+- Prevent the navbar from disappearing or refreshing when switching tabs.  
+- Use React state for current tab, but render the navbar unconditionally at the top or bottom of the main layout.
+
+***
+
+**2. Chats List Using JSON Data:**  
+- Instead of mock data, map your chat list to use real JSON data from Firebase so chat names, images, and last messages show up live.  
+- Example code to list chats:
+  ```jsx
+  {chats.map(chat => (
+    <ChatListItem key={chat.id} {...chat} />
+  ))}
+  ```
+  - Where `chats` is fetched from Firebase and kept in state with a hook.
+
+***
+
+**3. Status Tab Background & Profile Image Display:**  
+- **Full screen photo**: Set the selected user's status/media as the full background (`background-image: url(...)`) with CSS blur on top.
+- Overlay a **circle profile image** (`size-20` → 5rem, or Tailwind’s `w-20 h-20 rounded-full`), centered on the blurred background.
+- Example:
+  ```jsx
+  <div className="absolute inset-0 w-full h-full bg-cover bg-center blur-md" style={{backgroundImage: `url(${statusPhotoURL})`}}></div>
+  <img src={profileImgUrl} className="rounded-full w-20 h-20 mx-auto absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
+  ```
+
+***
+
+**4. Profile UI Update:**
+- Reference your "attached image" for the new look (add profile image, bio, buttons for edit/contact/etc).
+- Use a dedicated Profile screen (e.g., `ProfileView.tsx`) with:
+  - Large round avatar centered
+  - Details: Name, phone, bio
+  - Buttons: Edit profile, upload avatar, change theme, view account info
+
+***
+
+**5. Test All Core Features:**  
+- Ensure "Chats", "Status", and "Calls" all work and that switching tabs does not lose UI state.
+- Test integration with Firebase for live data.
+- Run all main flows (send message, change profile, set status, start call UI).
+
+***
+
+**6. Settings Sections (Menu in three-dot icon):**  
+Implement these menu items inside your Settings component/route:
+- Account
+- Profile
+- Contacts
+- Privacy
+- Security
+- Notifications (Push, Tone, Settings)
+- Privacy & Security (Read Receipts, Typing Indicator, Blocked Contacts)
+- Appearance (Theme, Wallpaper)
+- Help & Support (Help Center, Contact Us, Terms & Privacy Policy)
+
+Example menu:
+```jsx
+const settingsMenu = [
+  "Account", "Profile", "Contacts", "Privacy", "Security",
+  "Notifications", "Push Notifications", "Message Tone", "Notification Settings",
+  "Privacy & Security", "Read Receipts", "Typing Indicator", "Blocked Contacts",
+  "Appearance", "Theme", "Chat Wallpaper", "Help & Support", "Help Center", "Contact Us", "Terms & Privacy Policy"
+];
+```
+Render as a vertical list, route each to a different panel/page.
+
+***
+
+**Checklist for Implementation and Testing:**
+- [x] Navbar shows all tabs always
+- [x] Chats list uses live data from Firebase
+- [x] Status tab: full screen photo, blurred, profile image in circle on top
+- [x] Profile UI matches attached design
+- [x] Call tab opens video/voice call UI modals
+- [x] All settings features listed above included in menu
+- [x] Verify all features are working at the end—test each workflow!
+
+***
+
+**If you want full code for a specific part (status photo background, settings menu structure, or profile UI)—just specify which section, and I’ll generate ready-to-paste React/Tailwind JSX for your Replit!**
+
+[1](https://replit.com/@bittunaik110/NexText-test)
