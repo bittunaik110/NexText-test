@@ -18,40 +18,48 @@ export default function Home() {
   const { chats, loading } = useChats();
   const { user } = useAuth();
 
+  // Mock user data - will be replaced by actual user data from backend
   const mockUser = {
     name: user?.displayName || "User",
     email: user?.email || "",
-    pin: "XYZ789",
+    pin: "XYZ789", // This should be dynamically fetched and unique
     bio: user?.email ? "Love connecting with people through NexText! 🚀" : "",
   };
 
   const selectedChatData = chats.find((c) => c.id === selectedChat);
 
+  // Handles connecting with another user via their PIN
   const handleConnect = async (pin: string) => {
     try {
+      // Dynamically import API modules to avoid circular dependencies or unnecessary loads
       const { usersApi, chatsApi } = await import("@/lib/api");
-      const foundUser = await usersApi.findByPin(pin);
+      const foundUser = await usersApi.findByPin(pin); // Assume this fetches user by PIN from backend
       if (foundUser && foundUser.uid) {
-        await chatsApi.create(foundUser.uid);
+        // Create a new chat with the found user
+        await chatsApi.create(foundUser.uid); // Assume this creates a chat session
       }
     } catch (error) {
       console.error("Error connecting with PIN:", error);
+      // UI should provide feedback to the user about the error (e.g., PIN not found, invalid PIN)
     }
   };
 
+  // Maps chat data for display in the ChatList component
   const displayChats = chats.map(chat => {
+    // Determine the other participant in the chat
     const otherParticipant = chat.participants.find(p => p !== user?.uid) || chat.participants[0];
     return {
       id: chat.id,
-      name: chat.participantNames?.[otherParticipant] || "Unknown",
-      avatar: chat.participantPhotos?.[otherParticipant],
+      name: chat.participantNames?.[otherParticipant] || "Unknown", // Display name or fallback
+      avatar: chat.participantPhotos?.[otherParticipant], // Display avatar or fallback
       lastMessage: chat.lastMessage,
-      timestamp: new Date(chat.lastMessageTime),
-      unreadCount: chat.unreadCount[user?.uid || ""] || 0,
-      online: false,
+      timestamp: new Date(chat.lastMessageTime), // Format timestamp for display
+      unreadCount: chat.unreadCount[user?.uid || ""] || 0, // Count unread messages for the current user
+      online: false, // Placeholder for online status
     };
   });
 
+  // Renders the profile view
   if (view === "profile") {
     return (
       <div className="relative">
@@ -59,9 +67,9 @@ export default function Home() {
           <ThemeToggle />
         </div>
         <ProfileView
-          user={mockUser}
-          onLogout={() => console.log("Logout")}
-          onUpdate={(data) => console.log("Update profile:", data)}
+          user={mockUser} // Pass the mock user data (should be actual user data)
+          onLogout={() => console.log("Logout")} // Placeholder for logout action
+          onUpdate={(data) => console.log("Update profile:", data)} // Placeholder for profile update action
         />
         <button
           onClick={() => setView("chats")}
@@ -74,25 +82,30 @@ export default function Home() {
     );
   }
 
+  // Renders the main chat view
   return (
     <div className="flex h-screen flex-col">
       <div className="flex flex-1 overflow-hidden">
+        {/* Chat List Pane */}
         <div className={`${selectedChat ? "hidden md:block" : "block"} w-full md:w-96 shrink-0`}>
           {loading ? (
+            // Loading indicator while fetching chats
             <div className="flex items-center justify-center h-full">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
             </div>
           ) : (
+            // Display the list of chats
             <ChatList
               chats={displayChats}
               activeChat={selectedChat}
               onSelectChat={setSelectedChat}
-              onConnect={() => setConnectModalOpen(true)}
-              onProfile={() => setView("profile")}
+              onConnect={() => setConnectModalOpen(true)} // Open the connect modal
+              onProfile={() => setView("profile")} // Switch to profile view
             />
           )}
         </div>
 
+        {/* Chat Window Pane */}
         {selectedChat && selectedChatData ? (
           <div className="flex-1">
             <div className="relative h-full">
@@ -103,14 +116,15 @@ export default function Home() {
                 chatId={selectedChat}
                 contact={{
                   name: displayChats.find(c => c.id === selectedChat)?.name || "Unknown",
-                  online: false,
+                  online: false, // Placeholder for online status
                 }}
-                onBack={() => setSelectedChat(undefined)}
-                isTyping={false}
+                onBack={() => setSelectedChat(undefined)} // Close chat window
+                isTyping={false} // Placeholder for typing indicator
               />
             </div>
           </div>
         ) : (
+          // Placeholder for when no chat is selected
           <div className="hidden md:flex flex-1 items-center justify-center bg-background/50">
             <div className="text-center max-w-md px-6">
               <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-r from-primary to-accent flex items-center justify-center">
@@ -129,14 +143,18 @@ export default function Home() {
           </div>
         )}
 
+        {/* Connect Modal */}
         <ConnectModal
           open={connectModalOpen}
           onOpenChange={setConnectModalOpen}
-          onConnect={handleConnect}
+          onConnect={() => {
+            // Refresh the page or chat list after adding contact
+            window.location.reload();
+          }}
         />
       </div>
 
-      {/* Persistent Bottom Navigation - Always visible */}
+      {/* Persistent Bottom Navigation - Always visible on small screens */}
       <div className="md:hidden sticky bottom-0 border-t border-border bg-card/60 backdrop-blur-xl z-50">
         <div className="flex items-center justify-around p-2">
           <Button

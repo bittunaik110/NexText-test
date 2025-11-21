@@ -46,6 +46,12 @@ export const usersApi = {
     }),
 
   findByPin: (pin: string) => apiRequest(`/users/by-pin/${pin}`),
+
+  addContactByPin: (pin: string) =>
+    apiRequest("/users/contacts/add-by-pin", {
+      method: "POST",
+      body: JSON.stringify({ pin }),
+    }),
 };
 
 export const chatsApi = {

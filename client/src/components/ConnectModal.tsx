@@ -2,27 +2,64 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import PinInput from "./PinInput";
-import { UserPlus } from "lucide-react";
+import { UserPlus, Loader2 } from "lucide-react";
+import { usersApi } from "@/lib/api";
+import { useToast } from "@/hooks/use-toast";
 
 interface ConnectModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onConnect: (pin: string) => void;
+  onConnect?: () => void;
 }
 
 export default function ConnectModal({ open, onOpenChange, onConnect }: ConnectModalProps) {
   const [pin, setPin] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
-  const handleConnect = () => {
-    if (pin.length === 6) {
-      onConnect(pin);
+  const handleConnect = async () => {
+    if (pin.length !== 6) {
+      toast({
+        title: "Invalid PIN",
+        description: "Please enter a 6-character PIN",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await usersApi.addContactByPin(pin);
+      
+      toast({
+        title: "Contact Added",
+        description: `${response.contact.displayName} has been added to your contacts`,
+      });
+      
       setPin("");
       onOpenChange(false);
+      onConnect?.();
+    } catch (error: any) {
+      console.error("Error adding contact:", error);
+      toast({
+        title: "Failed to Add Contact",
+        description: error.message || "User not found or already added",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleOpenChange = (newOpen: boolean) => {
+    if (!isLoading) {
+      setPin("");
+      onOpenChange(newOpen);
     }
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-md bg-card/95 backdrop-blur-xl border-white/10">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -41,19 +78,27 @@ export default function ConnectModal({ open, onOpenChange, onConnect }: ConnectM
         <div className="flex gap-3">
           <Button
             variant="outline"
-            onClick={() => onOpenChange(false)}
+            onClick={() => handleOpenChange(false)}
             className="flex-1"
+            disabled={isLoading}
             data-testid="button-cancel"
           >
             Cancel
           </Button>
           <Button
             onClick={handleConnect}
-            disabled={pin.length !== 6}
+            disabled={pin.length !== 6 || isLoading}
             className="flex-1 bg-gradient-to-r from-primary to-accent hover:opacity-90"
             data-testid="button-connect"
           >
-            Connect
+            {isLoading ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Adding...
+              </>
+            ) : (
+              "Connect"
+            )}
           </Button>
         </div>
       </DialogContent>

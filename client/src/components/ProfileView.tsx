@@ -43,15 +43,20 @@ export default function ProfileView({ user, onLogout, onUpdate }: ProfileViewPro
           <h3 className="text-lg font-semibold mb-4">Your Connection PIN</h3>
           <div className="flex items-center gap-3">
             <div className="flex-1 px-4 py-3 rounded-xl bg-card/60 backdrop-blur-xl border border-white/10 text-center">
-              <span className="text-2xl font-bold tracking-wider bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                {user.pin}
-              </span>
+              {user.pin ? (
+                <span className="text-2xl font-bold tracking-wider bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                  {user.pin}
+                </span>
+              ) : (
+                <span className="text-sm text-muted-foreground">Loading PIN...</span>
+              )}
             </div>
             <Button
               size="icon"
               variant="outline"
               onClick={copyPin}
               className="shrink-0"
+              disabled={!user.pin}
               data-testid="button-copy-pin"
             >
               <Copy className="h-4 w-4" />
