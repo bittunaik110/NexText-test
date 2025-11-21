@@ -38,42 +38,37 @@ export default function SettingsPage() {
       title: "Account Settings",
       items: [
         { icon: User, label: "Profile", onClick: () => setLocation("/profile") },
-        { icon: User, label: "Account", onClick: () => console.log("Account") },
-        { icon: User, label: "Contacts", onClick: () => setLocation("/contacts") },
+        { icon: User, label: "Account", onClick: () => setLocation("/settings/account") },
+        { icon: Users, label: "Contacts", onClick: () => setLocation("/contacts") },
       ]
     },
     {
       title: "Privacy & Security",
       items: [
-        { icon: Lock, label: "Privacy", onClick: () => console.log("Privacy") },
-        { icon: Shield, label: "Security", onClick: () => console.log("Security") },
-        { icon: Shield, label: "Read Receipts", onClick: () => console.log("Read Receipts") },
-        { icon: Shield, label: "Typing Indicator", onClick: () => console.log("Typing Indicator") },
-        { icon: Shield, label: "Blocked Contacts", onClick: () => console.log("Blocked") },
+        { icon: Lock, label: "Privacy", onClick: () => setLocation("/settings/privacy") },
+        { icon: Shield, label: "Security", onClick: () => setLocation("/settings/security") },
+        { icon: Shield, label: "Blocked Contacts", onClick: () => setLocation("/settings/blocked-contacts") },
       ]
     },
     {
       title: "Notifications",
       items: [
-        { icon: Bell, label: "Notifications", onClick: () => console.log("Notifications") },
-        { icon: Bell, label: "Push Notifications", onClick: () => console.log("Push Notifications") },
-        { icon: Bell, label: "Message Tone", onClick: () => console.log("Message Tone") },
-        { icon: Bell, label: "Notification Settings", onClick: () => console.log("Notification Settings") },
+        { icon: Bell, label: "Notifications", onClick: () => setLocation("/settings/notifications") },
       ]
     },
     {
       title: "Appearance",
       items: [
-        { icon: Palette, label: "Theme", onClick: () => console.log("Theme") },
-        { icon: Palette, label: "Wallpaper", onClick: () => console.log("Wallpaper") },
+        { icon: Palette, label: "Theme", onClick: () => setLocation("/settings/theme") },
+        { icon: Palette, label: "Wallpaper", onClick: () => setLocation("/settings/wallpaper") },
       ]
     },
     {
       title: "Help & Support",
       items: [
-        { icon: HelpCircle, label: "Help Center", onClick: () => console.log("Help Center") },
-        { icon: Mail, label: "Contact Us", onClick: () => console.log("Contact") },
-        { icon: FileText, label: "Terms & Privacy Policy", onClick: () => console.log("Terms") },
+        { icon: HelpCircle, label: "Help Center", onClick: () => setLocation("/settings/help") },
+        { icon: Mail, label: "Contact Us", onClick: () => setLocation("/settings/contact") },
+        { icon: FileText, label: "Terms & Privacy Policy", onClick: () => setLocation("/settings/terms") },
       ]
     }
   ];
