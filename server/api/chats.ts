@@ -113,8 +113,7 @@ router.get("/:chatId", authenticateUser, async (req: AuthenticatedRequest, res) 
     const { chatId } = req.params;
     const userId = req.user!.uid;
 
-    const chatRef = ref(realtimeDb, `chats/${chatId}`);
-    const chatSnapshot = await get(chatRef);
+    const chatSnapshot = await realtimeDb.ref(`chats/${chatId}`).get();
 
     if (!chatSnapshot.exists()) {
       return res.status(404).json({ error: "Chat not found" });
@@ -138,8 +137,7 @@ router.put("/:chatId/read", authenticateUser, async (req: AuthenticatedRequest, 
     const { chatId } = req.params;
     const userId = req.user!.uid;
 
-    const chatRef = ref(realtimeDb, `chats/${chatId}`);
-    const chatSnapshot = await get(chatRef);
+    const chatSnapshot = await realtimeDb.ref(`chats/${chatId}`).get();
 
     if (!chatSnapshot.exists()) {
       return res.status(404).json({ error: "Chat not found" });
@@ -151,7 +149,7 @@ router.put("/:chatId/read", authenticateUser, async (req: AuthenticatedRequest, 
       return res.status(403).json({ error: "Unauthorized" });
     }
 
-    await update(ref(realtimeDb, `chats/${chatId}`), {
+    await realtimeDb.ref(`chats/${chatId}`).update({
       [`unreadCount/${userId}`]: 0,
     });
 
@@ -167,8 +165,7 @@ router.delete("/:chatId", authenticateUser, async (req: AuthenticatedRequest, re
     const { chatId } = req.params;
     const userId = req.user!.uid;
 
-    const chatRef = ref(realtimeDb, `chats/${chatId}`);
-    const chatSnapshot = await get(chatRef);
+    const chatSnapshot = await realtimeDb.ref(`chats/${chatId}`).get();
 
     if (!chatSnapshot.exists()) {
       return res.status(404).json({ error: "Chat not found" });
@@ -181,7 +178,7 @@ router.delete("/:chatId", authenticateUser, async (req: AuthenticatedRequest, re
     }
 
     // Mark chat as deleted instead of actually deleting
-    await update(ref(realtimeDb, `chats/${chatId}`), {
+    await realtimeDb.ref(`chats/${chatId}`).update({
       deleted: true,
     });
 
@@ -198,8 +195,7 @@ router.post("/:chatId/archive", authenticateUser, async (req: AuthenticatedReque
     const userId = req.user!.uid;
     const { archived } = req.body;
 
-    const chatRef = ref(realtimeDb, `chats/${chatId}`);
-    const chatSnapshot = await get(chatRef);
+    const chatSnapshot = await realtimeDb.ref(`chats/${chatId}`).get();
 
     if (!chatSnapshot.exists()) {
       return res.status(404).json({ error: "Chat not found" });
@@ -211,7 +207,7 @@ router.post("/:chatId/archive", authenticateUser, async (req: AuthenticatedReque
       return res.status(403).json({ error: "Unauthorized" });
     }
 
-    await update(ref(realtimeDb, `chats/${chatId}`), {
+    await realtimeDb.ref(`chats/${chatId}`).update({
       [`archived/${userId}`]: archived !== false,
     });
 
@@ -228,8 +224,7 @@ router.post("/:chatId/pin", authenticateUser, async (req: AuthenticatedRequest, 
     const userId = req.user!.uid;
     const { pinned } = req.body;
 
-    const chatRef = ref(realtimeDb, `chats/${chatId}`);
-    const chatSnapshot = await get(chatRef);
+    const chatSnapshot = await realtimeDb.ref(`chats/${chatId}`).get();
 
     if (!chatSnapshot.exists()) {
       return res.status(404).json({ error: "Chat not found" });
@@ -241,7 +236,7 @@ router.post("/:chatId/pin", authenticateUser, async (req: AuthenticatedRequest, 
       return res.status(403).json({ error: "Unauthorized" });
     }
 
-    await update(ref(realtimeDb, `chats/${chatId}`), {
+    await realtimeDb.ref(`chats/${chatId}`).update({
       [`pinned/${userId}`]: pinned !== false,
     });
 
@@ -258,8 +253,7 @@ router.post("/:chatId/mute", authenticateUser, async (req: AuthenticatedRequest,
     const userId = req.user!.uid;
     const { muteUntil } = req.body;
 
-    const chatRef = ref(realtimeDb, `chats/${chatId}`);
-    const chatSnapshot = await get(chatRef);
+    const chatSnapshot = await realtimeDb.ref(`chats/${chatId}`).get();
 
     if (!chatSnapshot.exists()) {
       return res.status(404).json({ error: "Chat not found" });
@@ -273,7 +267,7 @@ router.post("/:chatId/mute", authenticateUser, async (req: AuthenticatedRequest,
 
     const muteTimestamp = muteUntil ? new Date(muteUntil).toISOString() : null;
 
-    await update(ref(realtimeDb, `chats/${chatId}`), {
+    await realtimeDb.ref(`chats/${chatId}`).update({
       [`muted/${userId}`]: muteTimestamp,
     });
 
@@ -289,8 +283,7 @@ router.get("/:chatId/settings", authenticateUser, async (req: AuthenticatedReque
     const { chatId } = req.params;
     const userId = req.user!.uid;
 
-    const chatRef = ref(realtimeDb, `chats/${chatId}`);
-    const chatSnapshot = await get(chatRef);
+    const chatSnapshot = await realtimeDb.ref(`chats/${chatId}`).get();
 
     if (!chatSnapshot.exists()) {
       return res.status(404).json({ error: "Chat not found" });
@@ -330,8 +323,7 @@ router.put("/:chatId/settings", authenticateUser, async (req: AuthenticatedReque
     const userId = req.user!.uid;
     const { notifications, theme } = req.body;
 
-    const chatRef = ref(realtimeDb, `chats/${chatId}`);
-    const chatSnapshot = await get(chatRef);
+    const chatSnapshot = await realtimeDb.ref(`chats/${chatId}`).get();
 
     if (!chatSnapshot.exists()) {
       return res.status(404).json({ error: "Chat not found" });
@@ -360,7 +352,7 @@ router.put("/:chatId/settings", authenticateUser, async (req: AuthenticatedReque
       };
     }
 
-    await update(ref(realtimeDb, `chats/${chatId}`), updates);
+    await realtimeDb.ref(`chats/${chatId}`).update(updates);
 
     res.json({ success: true, message: "Settings updated successfully" });
   } catch (error) {
