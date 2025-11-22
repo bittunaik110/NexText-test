@@ -43,12 +43,14 @@ export default function MessageBubble({
   );
 
   return (
-    <div className={cn("flex w-full mb-3 animate-slide-up group", sent ? "justify-end" : "justify-start")}>
+    <div className={cn("flex w-full mb-3 animate-message-send group", sent ? "justify-end" : "justify-start")}>
       <div className="relative">
         <div 
           className={cn(
-            "max-w-[75%] px-4 py-3 rounded-3xl relative",
-            sent ? "bg-gradient-to-br from-primary to-primary/80" : "bg-card/60 backdrop-blur-xl border border-white/10"
+            "max-w-[75%] px-5 py-3 rounded-3xl relative backdrop-blur-xl transition-all duration-200",
+            sent 
+              ? "bg-gradient-to-br from-primary via-purple-500 to-accent text-white shadow-lg hover:shadow-xl" 
+              : "bg-white/10 border border-white/20 text-foreground hover:bg-white/15"
           )}
           onContextMenu={(e) => {
             e.preventDefault();
@@ -82,17 +84,17 @@ export default function MessageBubble({
             </a>
           )}
           {text && (
-            <p className={cn("text-[15px] break-words", sent ? "text-primary-foreground" : "text-foreground")}>
+            <p className="text-[15px] break-words leading-1.5 font-medium">
               {text}
             </p>
           )}
-          <div className={cn("flex items-center justify-end gap-1 mt-1", sent ? "text-primary-foreground/70" : "text-muted-foreground")}>
-            <span className="text-xs">{format(timestamp, "HH:mm")}</span>
+          <div className={cn("flex items-center justify-end gap-2 mt-2", sent ? "text-white/70" : "text-muted-foreground")}>
+            <span className="text-xs font-medium">{format(timestamp, "HH:mm")}</span>
             {sent && (
-              <span className="ml-1" data-testid={`message-status-${status}`}>
+              <span className="ml-0.5" data-testid={`message-status-${status}`}>
                 {status === "sent" && <Check className="h-3 w-3" />}
-                {status === "delivered" && <CheckCheck className="h-3 w-3 text-secondary" />}
-                {status === "read" && <CheckCheck className="h-3 w-3 text-primary-foreground" />}
+                {status === "delivered" && <CheckCheck className="h-3 w-3" />}
+                {status === "read" && <CheckCheck className="h-3 w-3" />}
               </span>
             )}
           </div>
