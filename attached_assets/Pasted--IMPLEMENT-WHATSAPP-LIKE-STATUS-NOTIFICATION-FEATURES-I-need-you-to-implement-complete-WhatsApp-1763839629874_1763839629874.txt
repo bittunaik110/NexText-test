@@ -1,0 +1,225 @@
+📱 IMPLEMENT WHATSAPP-LIKE STATUS & NOTIFICATION FEATURES
+
+I need you to implement complete WhatsApp-style features for online/offline status, message delivery indicators, unread counts, and notifications.
+
+🟢 1. ONLINE/OFFLINE STATUS SYSTEM:
+
+IN CHAT LIST:
+- Show green pulsing dot on avatar when user is online
+- Dot size: 12px, position: bottom-right of avatar
+- Online color: #10b981 (bright green) with pulse animation
+- Offline: no dot (or gray dot #6b7280)
+- "Last seen" text below name when offline: "Last seen 2 hours ago", "Last seen today at 3:45 PM"
+
+IN CHAT HEADER:
+- Show "Online" in green when user is active
+- Show "Last seen today at [time]" when offline
+- Show "typing..." with animated dots when user is typing
+- Real-time updates via WebSocket
+
+ONLINE STATUS LOGIC:
+- User is online when: actively using the app, tab is focused
+- Update status every 30 seconds
+- Send presence heartbeat to server
+- Listen for other users' presence updates
+- Store lastSeen timestamp in database
+
+✅ 2. WHATSAPP MESSAGE DELIVERY STATUS (TICK SYSTEM):
+
+IMPLEMENT EXACT WHATSAPP BEHAVIOR:
+
+🕒 **SINGLE GRAY TICK** (✓):
+- When: Message sent to server successfully
+- Color: #8b949e (gray)
+- Icon: Single checkmark
+- Database: status = "sent"
+
+✅ **DOUBLE GRAY TICKS** (✓✓):
+- When: Message delivered to recipient's device
+- Color: #8b949e (gray)
+- Icon: Two checkmarks
+- Database: status = "delivered"
+- Update when recipient's socket receives the message
+
+🔵 **DOUBLE BLUE TICKS** (✓✓):
+- When: Message read by recipient
+- Color: #06b6d4 (bright cyan/blue)
+- Icon: Two checkmarks
+- Database: status = "read"
+- Update when:
+  * Recipient opens the chat
+  * Message is visible in viewport
+  * Chat window is focused
+
+🕘 **CLOCK ICON** (⌛):
+- When: Message is being sent (pending)
+- Show spinning/loading animation
+- Database: status = "pending"
+
+IMPLEMENTATION:
+```typescript
+type MessageStatus = 'pending' | 'sent' | 'delivered' | 'read';
+
+interface Message {
+  id: string;
+  text: string;
+  senderId: string;
+  timestamp: number;
+  status: MessageStatus; // Add this field
+}
+
+// Render ticks based on status
+function renderTicks(status: MessageStatus) {
+  switch(status) {
+    case 'pending': return <Clock className="animate-spin" />;
+    case 'sent': return <Check className="text-gray-400" />;
+    case 'delivered': return <CheckCheck className="text-gray-400" />;
+    case 'read': return <CheckCheck className="text-cyan-400" />;
+  }
+}
+```
+
+🔔 3. UNREAD MESSAGE COUNTER:
+
+IN CHAT LIST:
+- Show badge with unread count on each conversation
+- Badge position: right side, aligned with message preview
+- Badge style:
+  * Background: #10b981 (green) or #3b82f6 (blue)
+  * Text: white, bold
+  * Border-radius: 12px (pill shape)
+  * Padding: 4px 8px
+  * Font-size: 12px
+- Show count: "1", "5", "99+" (max 99+)
+- Hide badge when count is 0
+
+IN APP ICON/TITLE:
+- Update document.title with unread count: "(3) NexText"
+- Show favicon badge (if possible)
+- Update when messages arrive
+
+COUNTER LOGIC:
+- Increment when new message arrives in background chat
+- Reset to 0 when user opens that chat
+- Store unread count per chat in database
+- Sync across devices
+
+🔊 4. NOTIFICATION SYSTEM:
+
+BROWSER NOTIFICATIONS:
+- Request permission on first load: Notification.requestPermission()
+- Show notification when:
+  * New message arrives
+  * User is not in the chat
+  * Tab is not focused
+  * Chat is not muted
+
+NOTIFICATION CONTENT:
+- Title: "Sender Name"
+- Body: Message text (truncate to 50 chars)
+- Icon: Sender's avatar
+- Badge: App icon
+- Sound: notification sound (if enabled)
+- Action buttons: "Reply", "Mark as Read"
+
+IN-APP NOTIFICATION:
+- Show toast/snackbar at top when:
+  * New message in background chat
+  * Someone comes online
+  * Typing indicator
+- Toast style:
+  * Slide from top
+  * Semi-transparent background
+  * Auto-dismiss after 3 seconds
+  * Click to open chat
+
+📡 5. REAL-TIME UPDATES VIA WEBSOCKET:
+
+EVENTS TO EMIT:
+```typescript
+// Client sends
+socket.emit('user:online', { userId });
+socket.emit('user:offline', { userId });
+socket.emit('typing:start', { chatId, userId });
+socket.emit('typing:stop', { chatId, userId });
+socket.emit('message:read', { chatId, messageIds });
+
+// Client listens
+socket.on('user:status', ({ userId, status, lastSeen }));
+socket.on('message:delivered', ({ messageId, chatId }));
+socket.on('message:read', ({ messageIds, chatId }));
+socket.on('typing', ({ chatId, userId, isTyping }));
+```
+
+👁️ 6. READ RECEIPTS:
+
+AUTO-MARK AS READ:
+- When user opens chat → mark all messages as read
+- When scrolling → mark visible messages as read
+- Use Intersection Observer API for viewport detection
+- Batch update: send array of message IDs
+- Update sender's message status to "read"
+
+MANUAL CONTROL:
+- Add setting: "Read Receipts" toggle (on by default)
+- If disabled: don't send read status to server
+- Still show blue ticks for your sent messages
+
+🎨 7. UI/UX POLISH:
+
+ANIMATIONS:
+- Tick change animation: fade from gray to blue
+- Unread badge: pulse animation when new message
+- Online dot: smooth pulse/glow effect
+- Typing dots: bouncing animation
+
+COLORS:
+- Online green: #10b981
+- Offline gray: #6b7280  
+- Gray ticks: #8b949e
+- Blue ticks: #06b6d4
+- Unread badge: #10b981 or #3b82f6
+
+TYPOGRAPHY:
+- Last seen: 13px, gray-400
+- Unread count: 12px, bold, white
+- Status: 13px
+
+📊 8. DATABASE SCHEMA UPDATES:
+
+```typescript
+// Add to Messages collection
+interface Message {
+  status: 'pending' | 'sent' | 'delivered' | 'read';
+  deliveredAt?: timestamp;
+  readAt?: timestamp;
+}
+
+// Add to Users collection  
+interface User {
+  isOnline: boolean;
+  lastSeen: timestamp;
+  lastActive: timestamp;
+}
+
+// Add to Chats collection
+interface Chat {
+  unreadCount: { [userId: string]: number };
+  lastMessage: {
+    text: string;
+    timestamp: number;
+    status: MessageStatus;
+  };
+}
+```
+
+⚡ PRIORITY IMPLEMENTATION ORDER:
+1. Message tick system (single → double → blue)
+2. Unread message counters in chat list
+3. Online/offline status with green dot
+4. Last seen timestamps
+5. Browser notifications
+6. Typing indicators
+7. Read receipts with Intersection Observer
+
+Please implement ALL these features to make the app feel exactly like WhatsApp with professional status tracking, delivery indicators, and notification system!

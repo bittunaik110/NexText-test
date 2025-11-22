@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import UserAvatar from "./UserAvatar";
 import { Badge } from "@/components/ui/badge";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, format } from "date-fns";
 
 interface ChatListItemProps {
   name: string;
@@ -12,7 +12,24 @@ interface ChatListItemProps {
   online?: boolean;
   active?: boolean;
   onClick?: () => void;
+  lastSeen?: number;
 }
+
+const formatLastSeen = (lastSeenTime?: number): string => {
+  if (!lastSeenTime) return "";
+  const now = Date.now();
+  const diff = now - lastSeenTime;
+  const minutes = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+
+  if (minutes < 1) return "now";
+  if (minutes < 60) return `${minutes}m ago`;
+  if (hours < 24) return `${hours}h ago`;
+  if (days === 0) return `today at ${format(new Date(lastSeenTime), "h:mm a")}`;
+  if (days === 1) return `yesterday`;
+  return format(new Date(lastSeenTime), "MMM d");
+};
 
 export default function ChatListItem({
   name,
@@ -23,6 +40,7 @@ export default function ChatListItem({
   online,
   active,
   onClick,
+  lastSeen,
 }: ChatListItemProps) {
   return (
     <div
@@ -39,8 +57,8 @@ export default function ChatListItem({
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between gap-2 mb-1">
           <h3 className="font-600 text-foreground truncate">{name}</h3>
-          <span className="text-xs text-muted-foreground shrink-0">
-            {formatDistanceToNow(timestamp, { addSuffix: true })}
+          <span className={cn("text-xs shrink-0 font-medium", online ? "text-status-online" : "text-muted-foreground")}>
+            {online ? "Online" : lastSeen ? formatLastSeen(lastSeen) : ""}
           </span>
         </div>
         <p className="text-sm text-muted-foreground truncate line-clamp-1">{lastMessage || "No messages yet"}</p>

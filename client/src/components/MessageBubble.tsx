@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { Check, CheckCheck, Smile } from "lucide-react";
+import { Check, CheckCheck, Smile, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -91,10 +91,11 @@ export default function MessageBubble({
           <div className={cn("flex items-center justify-end gap-2 mt-1.5 text-xs font-medium", sent ? "text-white/70" : "text-muted-foreground")}>
             <span>{format(timestamp, "HH:mm")}</span>
             {sent && (
-              <span className="ml-0.5" data-testid={`message-status-${status}`}>
-                {status === "sent" && <Check className="h-3 w-3" />}
-                {status === "delivered" && <CheckCheck className="h-3 w-3" />}
-                {status === "read" && <CheckCheck className="h-3 w-3" />}
+              <span className="ml-0.5 transition-all duration-300" data-testid={`message-status-${status}`}>
+                {status === "pending" && <Clock className="h-3 w-3 animate-spin text-white/60" />}
+                {status === "sent" && <Check className="h-3 w-3 text-white/50" />}
+                {status === "delivered" && <CheckCheck className="h-3 w-3 text-white/50" />}
+                {status === "read" && <CheckCheck className="h-3 w-3 text-cyan-400 animate-fade-in" />}
               </span>
             )}
           </div>

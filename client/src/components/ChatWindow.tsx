@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import UserAvatar from "./UserAvatar";
 import MessageBubble from "./MessageBubble";
@@ -8,6 +8,8 @@ import { ArrowLeft, MoreVertical, Phone, Video, Search, Trash2, VolumeOff, Alert
 import { cn } from "@/lib/utils";
 import { useMessages } from "@/hooks/useMessages";
 import { useSocketMessages } from "@/hooks/useSocketMessages";
+import { usePresence } from "@/hooks/usePresence";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,6 +35,7 @@ interface ChatWindowProps {
     name: string;
     avatar?: string;
     online?: boolean;
+    userId?: string;
   };
   onBack?: () => void;
   isTyping?: boolean;
@@ -40,15 +43,65 @@ interface ChatWindowProps {
 
 export default function ChatWindow({ chatId, contact, onBack, isTyping }: ChatWindowProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const { messages, loading, userId } = useMessages(chatId);
   const { sendMessage, reactToMessage, startTyping, stopTyping } = useSocketMessages(chatId);
   const { toast } = useToast();
   const [showClearDialog, setShowClearDialog] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
+  const { user } = useAuth();
+  const contactPresence = usePresence(contact.userId);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
+
+  // Mark messages as read using Intersection Observer
+  const markMessagesAsRead = useCallback((messageIds: string[]) => {
+    if (!user?.uid || messageIds.length === 0) return;
+    
+    messageIds.forEach(messageId => {
+      const message = messages.find(m => m.id === messageId);
+      if (message && message.userId !== user.uid && message.status !== "read") {
+        // Mark as delivered first if needed
+        if (message.status === "sent") {
+          const deliverEvent = new CustomEvent("deliver-message", {
+            detail: { chatId, messageId },
+          });
+          window.dispatchEvent(deliverEvent);
+        }
+        // Mark as read
+        const readEvent = new CustomEvent("read-message", {
+          detail: { chatId, messageId },
+        });
+        window.dispatchEvent(readEvent);
+      }
+    });
+  }, [messages, user?.uid, chatId]);
+
+  useEffect(() => {
+    if (!messagesContainerRef.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visibleMessageIds = entries
+          .filter(entry => entry.isIntersecting)
+          .map(entry => entry.target.getAttribute("data-message-id"))
+          .filter((id): id is string => id !== null);
+
+        markMessagesAsRead(visibleMessageIds);
+      },
+      { threshold: 0.5 }
+    );
+
+    // Observe all message elements
+    const messageElements = messagesContainerRef.current.querySelectorAll("[data-message-id]");
+    messageElements.forEach(el => observer.observe(el));
+
+    return () => {
+      messageElements.forEach(el => observer.unobserve(el));
+    };
+  }, [messages, markMessagesAsRead]);
 
   const handleVoiceCall = () => {
     toast({
@@ -98,6 +151,18 @@ export default function ChatWindow({ chatId, contact, onBack, isTyping }: ChatWi
     scrollToBottom();
   }, [messages, isTyping]);
 
+  const formatLastSeen = (lastSeenTime: number): string => {
+    const now = Date.now();
+    const diff = now - lastSeenTime;
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+
+    if (minutes < 1) return "just now";
+    if (minutes < 60) return `${minutes}m ago`;
+    if (hours < 24) return `${hours}h ago`;
+    return "yesterday";
+  };
+
   return (
     <div className="flex flex-col h-screen bg-background">
       <div className="sticky top-0 z-10 px-4 py-3 border-b border-border bg-card/60 backdrop-blur-xl">
@@ -118,8 +183,23 @@ export default function ChatWindow({ chatId, contact, onBack, isTyping }: ChatWi
           
           <div className="flex-1 min-w-0">
             <h2 className="font-semibold text-foreground truncate">{contact.name}</h2>
-            <p className="text-xs text-muted-foreground">
-              {contact.online ? "Online" : "Offline"}
+            <p className={cn("text-xs font-medium", contactPresence?.isOnline ? "text-status-online" : "text-muted-foreground")}>
+              {isTyping ? (
+                <span className="flex items-center gap-1">
+                  typing
+                  <span className="inline-flex gap-0.5">
+                    <span className="w-1 h-1 bg-current rounded-full animate-typing-dot"></span>
+                    <span className="w-1 h-1 bg-current rounded-full animate-typing-dot"></span>
+                    <span className="w-1 h-1 bg-current rounded-full animate-typing-dot"></span>
+                  </span>
+                </span>
+              ) : contactPresence?.isOnline ? (
+                "Online"
+              ) : contactPresence?.lastSeen ? (
+                `Last seen ${formatLastSeen(contactPresence.lastSeen)}`
+              ) : (
+                "Offline"
+              )}
             </p>
           </div>
 
@@ -177,25 +257,26 @@ export default function ChatWindow({ chatId, contact, onBack, isTyping }: ChatWi
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-2">
+      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-2">
         {loading ? (
           <div className="flex items-center justify-center h-full">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
         ) : (
           messages.map((message) => (
-            <MessageBubble 
-              key={message.id}
-              text={message.text}
-              sent={message.userId === userId}
-              timestamp={new Date(message.timestamp)}
-              status={message.status}
-              imageUrl={message.mediaUrl && message.mediaUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? message.mediaUrl : undefined}
-              videoUrl={message.mediaUrl && message.mediaUrl.match(/\.(mp4|webm|mov)$/i) ? message.mediaUrl : undefined}
-              fileUrl={message.mediaUrl && !message.mediaUrl.match(/\.(jpg|jpeg|png|gif|webp|mp4|webm|mov)$/i) ? message.mediaUrl : undefined}
-              reactions={message.reactions}
-              onReact={(emoji) => reactToMessage(message.id, emoji)}
-            />
+            <div key={message.id} data-message-id={message.id}>
+              <MessageBubble 
+                text={message.text}
+                sent={message.userId === userId}
+                timestamp={new Date(message.timestamp)}
+                status={message.status || "sent"}
+                imageUrl={message.mediaUrl && message.mediaUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? message.mediaUrl : undefined}
+                videoUrl={message.mediaUrl && message.mediaUrl.match(/\.(mp4|webm|mov)$/i) ? message.mediaUrl : undefined}
+                fileUrl={message.mediaUrl && !message.mediaUrl.match(/\.(jpg|jpeg|png|gif|webp|mp4|webm|mov)$/i) ? message.mediaUrl : undefined}
+                reactions={message.reactions}
+                onReact={(emoji) => reactToMessage(message.id, emoji)}
+              />
+            </div>
           ))
         )}
         {isTyping && (

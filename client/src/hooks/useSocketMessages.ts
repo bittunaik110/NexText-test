@@ -25,13 +25,33 @@ export function useSocketMessages(chatId: string | undefined) {
       });
     };
 
+    const handleDeliverMessage = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      const { chatId: eventChatId, messageId } = customEvent.detail;
+      if (eventChatId === chatId) {
+        socket.emit("message-delivered", { chatId, messageId });
+      }
+    };
+
+    const handleReadMessage = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      const { chatId: eventChatId, messageId } = customEvent.detail;
+      if (eventChatId === chatId) {
+        socket.emit("message-read", { chatId, messageId });
+      }
+    };
+
     socket.on("message-error", handleMessageError);
+    window.addEventListener("deliver-message", handleDeliverMessage);
+    window.addEventListener("read-message", handleReadMessage);
 
     return () => {
       if (socket && chatId) {
         socket.emit("leave-chat", chatId);
         socket.off("message-error", handleMessageError);
       }
+      window.removeEventListener("deliver-message", handleDeliverMessage);
+      window.removeEventListener("read-message", handleReadMessage);
     };
   }, [socket, chatId, isConnected, toast]);
 
