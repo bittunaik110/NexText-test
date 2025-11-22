@@ -34,28 +34,36 @@ export function useChats() {
     setError(null);
 
     const chatsRef = ref(database, 'chats');
+    console.log("useChats: Setting up listener for user:", user.uid);
 
     const unsubscribe = onValue(
       chatsRef,
       (snapshot) => {
         try {
           const data = snapshot.val();
+          console.log("useChats: Raw data from Realtime DB:", data);
+          
           if (data) {
             const chatList = Object.entries(data)
               .map(([id, chat]: [string, any]) => ({
                 id,
                 ...chat,
               }))
-              .filter((chat: Chat) => 
-                chat.participants.includes(user.uid) && !chat.deleted
-              ) as Chat[];
+              .filter((chat: Chat) => {
+                const isParticipant = chat.participants && chat.participants.includes(user.uid);
+                const isNotDeleted = !chat.deleted;
+                console.log(`useChats: Chat ${chat.id} - isParticipant: ${isParticipant}, isNotDeleted: ${isNotDeleted}`);
+                return isParticipant && isNotDeleted;
+              }) as Chat[];
             
             chatList.sort((a, b) => 
               new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime()
             );
             
+            console.log("useChats: Filtered chat list:", chatList);
             setChats(chatList);
           } else {
+            console.log("useChats: No data in Realtime DB");
             setChats([]);
           }
           setLoading(false);
@@ -71,7 +79,7 @@ export function useChats() {
         }
       },
       (err) => {
-        console.error("Error fetching chats:", err);
+        console.error("Error fetching chats from Realtime DB:", err);
         setError(err.message);
         toast({
           variant: "destructive",

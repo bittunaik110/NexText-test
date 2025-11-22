@@ -30,10 +30,20 @@ export default function ConnectModal({ open, onOpenChange, onConnect }: ConnectM
     setIsLoading(true);
     try {
       const { usersApi, chatsApi } = await import("@/lib/api");
+      console.log("Adding contact with PIN:", pin);
+      
       const response = await usersApi.addContactByPin(pin);
+      console.log("Contact added response:", response);
+      
+      const contactId = response.contact?.id || response.contact?.userId;
+      if (!contactId) {
+        throw new Error("No contact ID received from server");
+      }
       
       // Create a chat with the contact - this is the key step!
-      await chatsApi.create(response.contact.id);
+      console.log("Creating chat with contact ID:", contactId);
+      const chatResponse = await chatsApi.create(contactId);
+      console.log("Chat created:", chatResponse);
       
       toast({
         title: "Contact Added",

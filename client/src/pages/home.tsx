@@ -74,20 +74,9 @@ export default function Home() {
 
   const selectedChatData = chats.find((c) => c.id === selectedChat);
 
-  // Handles connecting with another user via their PIN
-  const handleConnect = async (pin: string) => {
-    try {
-      // Dynamically import API modules to avoid circular dependencies or unnecessary loads
-      const { usersApi, chatsApi } = await import("@/lib/api");
-      const foundUser = await usersApi.findByPin(pin); // Assume this fetches user by PIN from backend
-      if (foundUser && foundUser.uid) {
-        // Create a new chat with the found user
-        await chatsApi.create(foundUser.uid); // Assume this creates a chat session
-      }
-    } catch (error) {
-      console.error("Error connecting with PIN:", error);
-      // UI should provide feedback to the user about the error (e.g., PIN not found, invalid PIN)
-    }
+  // Refresh chats after successful connection
+  const handleConnectSuccess = () => {
+    console.log("Connection successful, chats should refresh automatically via useChats listener");
   };
 
   // Maps chat data for display in the ChatList component
@@ -145,8 +134,8 @@ export default function Home() {
               chats={displayChats}
               activeChat={selectedChat}
               onSelectChat={setSelectedChat}
-              onConnect={() => setConnectModalOpen(true)} // Open the connect modal
-              onProfile={() => setView("profile")} // Switch to profile view
+              onConnect={() => setConnectModalOpen(true)}
+              onProfile={() => setView("profile")}
             />
           )}
         </div>
