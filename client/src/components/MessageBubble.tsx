@@ -43,11 +43,11 @@ export default function MessageBubble({
   );
 
   return (
-    <div className={cn("flex w-full mb-3 animate-message-send group", sent ? "justify-end" : "justify-start")}>
-      <div className="relative">
+    <div className={cn("flex w-full mb-3 animate-message-send group px-4", sent ? "justify-end" : "justify-start")}>
+      <div className={cn("relative max-w-[85%] sm:max-w-[75%]")}>
         <div 
           className={cn(
-            "max-w-[75%] px-5 py-3 rounded-3xl relative backdrop-blur-xl transition-all duration-200",
+            "px-4 py-2.5 rounded-3xl relative backdrop-blur-xl transition-all duration-200 w-full",
             sent 
               ? "bg-gradient-to-br from-primary via-purple-500 to-accent text-white shadow-lg hover:shadow-xl" 
               : "bg-white/10 border border-white/20 text-foreground hover:bg-white/15"
@@ -77,19 +77,19 @@ export default function MessageBubble({
             <a 
               href={fileUrl} 
               download={fileName}
-              className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg mb-2 hover:bg-muted transition-colors"
+              className="flex items-center gap-2 p-2 bg-white/10 rounded-lg mb-2 hover:bg-white/20 transition-colors"
               data-testid="message-file"
             >
-              <span className="text-sm truncate">{fileName}</span>
+              <span className="text-sm truncate font-medium">{fileName}</span>
             </a>
           )}
           {text && (
-            <p className="text-[15px] break-words leading-1.5 font-medium">
+            <p className="text-[15px] break-words leading-6 font-normal whitespace-pre-wrap">
               {text}
             </p>
           )}
-          <div className={cn("flex items-center justify-end gap-2 mt-2", sent ? "text-white/70" : "text-muted-foreground")}>
-            <span className="text-xs font-medium">{format(timestamp, "HH:mm")}</span>
+          <div className={cn("flex items-center justify-end gap-2 mt-1.5 text-xs font-medium", sent ? "text-white/70" : "text-muted-foreground")}>
+            <span>{format(timestamp, "HH:mm")}</span>
             {sent && (
               <span className="ml-0.5" data-testid={`message-status-${status}`}>
                 {status === "sent" && <Check className="h-3 w-3" />}

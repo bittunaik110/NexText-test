@@ -1,8 +1,8 @@
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Paperclip, Smile, X, Image as ImageIcon } from "lucide-react";
+import { Send, Paperclip, X, Image as ImageIcon, FileText } from "lucide-react";
 import { SiGiphy } from "react-icons/si";
 import { cn } from "@/lib/utils";
 import EmojiPicker from "./EmojiPicker";
@@ -20,6 +20,9 @@ export default function MessageInput({ onSend, onTyping, className }: MessageInp
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedGif, setSelectedGif] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const docInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [textareaHeight, setTextareaHeight] = useState(40);
 
   const handleSend = async () => {
     if (!message.trim() && !selectedFile && !selectedGif) return;
@@ -65,6 +68,22 @@ export default function MessageInput({ onSend, onTyping, className }: MessageInp
     setMessage(prev => prev + emoji);
   };
 
+  const handleDocumentSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'text/plain', 'application/zip'].includes(file.type)) {
+      setSelectedFile(file);
+    }
+  };
+
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      const newHeight = Math.min(textareaRef.current.scrollHeight, 120);
+      textareaRef.current.style.height = `${newHeight}px`;
+      setTextareaHeight(newHeight);
+    }
+  }, [message]);
+
   return (
     <div className={cn("relative", className)}>
       {showGifPicker && (
@@ -77,16 +96,21 @@ export default function MessageInput({ onSend, onTyping, className }: MessageInp
         />
       )}
       
-      <div className="rounded-xl bg-card/60 backdrop-blur-xl border border-white/10 p-3">
+      <div className="rounded-2xl glass-effect p-4">
         {selectedFile && (
-          <div className="mb-2 flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
-            <ImageIcon className="h-4 w-4 text-primary" />
-            <span className="text-sm flex-1 truncate">{selectedFile.name}</span>
+          <div className="mb-3 flex items-center gap-2 p-3 bg-white/5 rounded-lg border border-white/10">
+            {selectedFile.type.startsWith('image') ? (
+              <ImageIcon className="h-4 w-4 text-primary shrink-0" />
+            ) : (
+              <FileText className="h-4 w-4 text-primary shrink-0" />
+            )}
+            <span className="text-sm flex-1 truncate font-medium">{selectedFile.name}</span>
             <Button
               size="icon"
               variant="ghost"
-              className="h-6 w-6"
+              className="h-6 w-6 shrink-0"
               onClick={() => setSelectedFile(null)}
+              data-testid="button-remove-file"
             >
               <X className="h-4 w-4" />
             </Button>
@@ -94,13 +118,14 @@ export default function MessageInput({ onSend, onTyping, className }: MessageInp
         )}
 
         {selectedGif && (
-          <div className="mb-2 relative">
-            <img src={selectedGif} alt="Selected GIF" className="rounded-lg max-h-32 w-auto" />
+          <div className="mb-3 relative">
+            <img src={selectedGif} alt="Selected GIF" className="rounded-lg max-h-40 w-auto" />
             <Button
               size="icon"
               variant="ghost"
-              className="absolute top-1 right-1 h-6 w-6 bg-background/80"
+              className="absolute top-1 right-1 h-6 w-6 bg-background/80 backdrop-blur-sm"
               onClick={() => setSelectedGif(null)}
+              data-testid="button-remove-gif"
             >
               <X className="h-4 w-4" />
             </Button>
@@ -114,13 +139,24 @@ export default function MessageInput({ onSend, onTyping, className }: MessageInp
             className="hidden"
             onChange={handleFileSelect}
             accept="image/*,video/*,application/pdf"
+            data-testid="input-file"
           />
+          <input
+            type="file"
+            ref={docInputRef}
+            className="hidden"
+            onChange={handleDocumentSelect}
+            accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.zip"
+            data-testid="input-document"
+          />
+          
           <Button 
             size="icon" 
             variant="ghost" 
-            className="shrink-0"
+            className="shrink-0 hover:bg-white/10"
             onClick={() => fileInputRef.current?.click()}
             data-testid="button-attach"
+            title="Attach image or video"
           >
             <Paperclip className="h-5 w-5" />
           </Button>
@@ -128,14 +164,27 @@ export default function MessageInput({ onSend, onTyping, className }: MessageInp
           <Button 
             size="icon" 
             variant="ghost" 
-            className="shrink-0"
+            className="shrink-0 hover:bg-white/10"
+            onClick={() => docInputRef.current?.click()}
+            data-testid="button-document"
+            title="Attach document"
+          >
+            <FileText className="h-5 w-5" />
+          </Button>
+
+          <Button 
+            size="icon" 
+            variant="ghost" 
+            className="shrink-0 hover:bg-white/10"
             onClick={() => setShowGifPicker(!showGifPicker)}
             data-testid="button-gif"
+            title="Add GIF"
           >
             <SiGiphy className="h-5 w-5" />
           </Button>
 
           <Textarea
+            ref={textareaRef}
             value={message}
             onChange={(e) => {
               setMessage(e.target.value);
@@ -143,8 +192,8 @@ export default function MessageInput({ onSend, onTyping, className }: MessageInp
             }}
             onKeyDown={handleKeyPress}
             placeholder="Type a message..."
-            className="resize-none border-0 focus-visible:ring-0 bg-transparent min-h-[40px] max-h-[120px]"
-            rows={1}
+            className="resize-none border-0 focus-visible:ring-0 bg-transparent text-base leading-6 font-normal"
+            style={{ height: `${textareaHeight}px`, minHeight: '40px', maxHeight: '120px' }}
             data-testid="input-message"
           />
 
@@ -154,8 +203,9 @@ export default function MessageInput({ onSend, onTyping, className }: MessageInp
             size="icon"
             onClick={handleSend}
             disabled={!message.trim() && !selectedFile && !selectedGif}
-            className="shrink-0 rounded-full bg-gradient-to-r from-primary to-accent hover:opacity-90"
+            className="shrink-0 rounded-full bg-gradient-to-r from-primary to-accent hover:opacity-90 disabled:opacity-50"
             data-testid="button-send"
+            title="Send message"
           >
             <Send className="h-5 w-5" />
           </Button>

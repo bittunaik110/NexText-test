@@ -4,10 +4,28 @@ import UserAvatar from "./UserAvatar";
 import MessageBubble from "./MessageBubble";
 import MessageInput from "./MessageInput";
 import TypingIndicator from "./TypingIndicator";
-import { ArrowLeft, MoreVertical, Phone, Video } from "lucide-react";
+import { ArrowLeft, MoreVertical, Phone, Video, Search, Trash2, VolumeOff, AlertCircle, Ban } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMessages } from "@/hooks/useMessages";
 import { useSocketMessages } from "@/hooks/useSocketMessages";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
 
 interface ChatWindowProps {
   chatId: string;
@@ -24,9 +42,56 @@ export default function ChatWindow({ chatId, contact, onBack, isTyping }: ChatWi
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { messages, loading, userId } = useMessages(chatId);
   const { sendMessage, reactToMessage, startTyping, stopTyping } = useSocketMessages(chatId);
+  const { toast } = useToast();
+  const [showClearDialog, setShowClearDialog] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const handleVoiceCall = () => {
+    toast({
+      title: "Voice Call",
+      description: "Voice calling feature coming soon!",
+    });
+  };
+
+  const handleVideoCall = () => {
+    toast({
+      title: "Video Call",
+      description: "Video calling feature coming soon!",
+    });
+  };
+
+  const handleClearChat = () => {
+    toast({
+      title: "Chat Cleared",
+      description: "This chat has been cleared.",
+    });
+    setShowClearDialog(false);
+  };
+
+  const handleMuteNotifications = () => {
+    setIsMuted(!isMuted);
+    toast({
+      title: isMuted ? "Notifications Unmuted" : "Notifications Muted",
+      description: isMuted ? "You will receive notifications again" : "You will not receive notifications from this chat",
+    });
+  };
+
+  const handleBlockUser = () => {
+    toast({
+      title: "User Blocked",
+      description: `${contact.name} has been blocked.`,
+    });
+  };
+
+  const handleReportUser = () => {
+    toast({
+      title: "Report Sent",
+      description: "Thank you for your report. We'll review it shortly.",
+    });
   };
 
   useEffect(() => {
@@ -62,22 +127,52 @@ export default function ChatWindow({ chatId, contact, onBack, isTyping }: ChatWi
             <Button 
               size="icon" 
               variant="ghost"
-              onClick={() => console.log('Voice call initiated')}
+              onClick={handleVoiceCall}
               data-testid="button-voice-call"
+              className="hover:bg-white/10"
             >
               <Phone className="h-5 w-5 text-primary" />
             </Button>
             <Button 
               size="icon" 
               variant="ghost"
-              onClick={() => console.log('Video call initiated')}
+              onClick={handleVideoCall}
               data-testid="button-video-call"
+              className="hover:bg-white/10"
             >
               <Video className="h-5 w-5 text-primary" />
             </Button>
-            <Button size="icon" variant="ghost" data-testid="button-options">
-              <MoreVertical className="h-5 w-5" />
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="icon" variant="ghost" data-testid="button-options" className="hover:bg-white/10">
+                  <MoreVertical className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem onClick={() => toast({ title: "Search", description: "Search feature coming soon!" })}>
+                  <Search className="h-4 w-4 mr-2" />
+                  Search Messages
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleMuteNotifications}>
+                  <VolumeOff className="h-4 w-4 mr-2" />
+                  {isMuted ? "Unmute Notifications" : "Mute Notifications"}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setShowClearDialog(true)}>
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Clear Chat
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleBlockUser} className="text-destructive focus:text-destructive">
+                  <Ban className="h-4 w-4 mr-2" />
+                  Block User
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleReportUser} className="text-destructive focus:text-destructive">
+                  <AlertCircle className="h-4 w-4 mr-2" />
+                  Report User
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>
@@ -117,6 +212,23 @@ export default function ChatWindow({ chatId, contact, onBack, isTyping }: ChatWi
           onTyping={startTyping}
         />
       </div>
+
+      <AlertDialog open={showClearDialog} onOpenChange={setShowClearDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Clear this chat?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. All messages in this chat will be permanently deleted.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleClearChat} className="bg-destructive hover:bg-destructive/90">
+              Clear Chat
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -1,0 +1,129 @@
+🔧 FIX CHAT AREA FUNCTIONALITY & IMPROVE MESSAGE LAYOUT
+
+The user has tested the chat and reported issues. I need you to fix ALL non-working features and improve the message layout:
+
+🚨 CRITICAL ISSUES TO FIX:
+
+1. MESSAGE ALIGNMENT & TEXT LAYOUT:
+   - User complaint: "message text align ment not good dude i am not feel"
+   - User complaint: "text widht also"
+   - FIX: Message text alignment must be perfect
+   - FIX: Message bubble width should be responsive (max 75% on desktop, 85% on mobile)
+   - Ensure text wrapping is smooth and natural
+   - Left-align text inside bubbles
+   - Add proper padding (16px horizontal, 12px vertical)
+   - Line height should be comfortable (1.5)
+   - No text overflow or clipping
+
+2. MAKE ALL ICONS IN INPUT AREA FUNCTIONAL:
+
+   📎 ATTACHMENT ICON:
+   - Must open file picker
+   - Support: images (jpg, png, gif, webp), videos (mp4), documents (pdf, doc, txt)
+   - Show preview before sending
+   - Display file name and size
+   - Upload to storage and send as message
+
+   📄 DOCUMENT ICON:
+   - Open file picker specifically for documents
+   - Support: PDF, DOC, DOCX, XLS, XLSX, TXT, ZIP
+   - Show document icon with file name in chat
+   - Make clickable to download
+
+   😊 EMOJI PICKER:
+   - Open emoji picker popup
+   - Show categories: Smileys, People, Animals, Food, Travel, Objects, Symbols
+   - Insert emoji at cursor position in textarea
+   - Recent emojis section
+   - Search functionality
+
+   🎤 VOICE MESSAGE (if button exists):
+   - Hold to record voice message
+   - Show recording timer and waveform
+   - Release to send, slide to cancel
+   - Store audio file and display waveform in chat
+
+   ➤ SEND BUTTON:
+   - Already working, but ensure:
+   - Disabled when textarea is empty
+   - Shows loading state while sending
+   - Success animation on sent
+   - Clear textarea after sending
+
+3. MAKE HEADER ICONS FUNCTIONAL:
+
+   📞 VOICE CALL ICON:
+   - Click to initiate voice call
+   - Show calling screen with ringtone animation
+   - Display duration timer
+   - Mute, speaker, end call buttons
+   - For now: show modal "Voice calling feature coming soon!"
+
+   📹 VIDEO CALL ICON:
+   - Click to initiate video call
+   - Show video call screen
+   - Camera preview, flip camera button
+   - For now: show modal "Video calling feature coming soon!"
+
+   ⋮ MENU (THREE DOTS):
+   - Open dropdown menu with options:
+     * View Profile
+     * Media, Links, Docs (show all shared files)
+     * Search Messages
+     * Mute Notifications
+     * Clear Chat
+     * Block User
+     * Report User
+   - Each option should have proper icon
+   - Implement at least basic functionality
+
+4. IMPROVE MESSAGE BUBBLE LAYOUT:
+   - Sent messages (right side):
+     * Max-width: 75% on desktop, 85% on mobile
+     * Margin-left: auto (pushes to right)
+     * Text-align: left (NOT center or right)
+     * Padding: 12px 16px
+     * Break long words properly (word-wrap: break-word)
+   
+   - Received messages (left side):
+     * Max-width: 75% on desktop, 85% on mobile
+     * Margin-right: auto (pushes to left)
+     * Text-align: left
+     * Padding: 12px 16px
+
+   - Text rendering:
+     * Font-size: 15px (readable)
+     * Line-height: 1.5
+     * Letter-spacing: 0.01em
+     * No text truncation or overflow
+     * URLs should be clickable links
+     * Support for line breaks
+
+5. ADD MISSING INTERACTIONS:
+   - Long-press message for reactions (❤️, 👍, 😂, 😮, 😢, 🙏)
+   - Click message to select (show checkmark)
+   - Show action bar when message selected (Copy, Forward, Delete, Reply)
+   - Swipe left on message to reply (mobile)
+   - Double-tap message to react with ❤️
+
+6. IMPROVE TEXTAREA:
+   - Auto-grow as user types (max 5 lines)
+   - Shift+Enter for new line
+   - Enter to send
+   - Placeholder: "Type a message..."
+   - Show character count for long messages (optional)
+   - Disable send button when empty
+
+7. ADD TYPING INDICATOR:
+   - Show "W is typing..." when other user is typing
+   - Animated dots: • • •
+   - Position at bottom of message list
+
+PLEASE FIX ALL THESE ISSUES:
+- Make EVERY icon functional (even if placeholder functionality)
+- Fix message text alignment and width issues
+- Ensure professional, smooth user experience
+- Add proper error handling
+- Test all interactions work properly
+
+The goal: Create a FULLY FUNCTIONAL chat interface where every button does something meaningful. No broken or non-working features!
