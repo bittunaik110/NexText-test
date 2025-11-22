@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { db } from "../firebase-admin";
+import { db, realtimeDb } from "../firebase-admin";
 import { authenticateUser, AuthenticatedRequest } from "../middleware/auth";
 
 const router = Router();
@@ -18,17 +18,24 @@ router.post("/create", authenticateUser, async (req: AuthenticatedRequest, res) 
     }
 
     const participants = [userId, participantId].sort();
+    const chatId = `${participants[0]}_${participants[1]}`;
 
-    const existingChats = await db
-      .collection("chats")
-      .where("participants", "==", participants)
-      .limit(1)
-      .get();
-
-    if (!existingChats.empty) {
-      const existingChat = existingChats.docs[0];
-      return res.json({ chatId: existingChat.id, chat: existingChat.data() });
+    // Check if chat already exists in Realtime Database
+    const chatsSnapshot = await realtimeDb.ref('chats').get();
+    
+    if (chatsSnapshot.exists()) {
+      const chats = chatsSnapshot.val();
+      if (chats && chats[chatId]) {
+        return res.json({ chatId, chat: chats[chatId] });
+      }
     }
+
+    // Get user data from Firestore
+    const user1Doc = await db.collection("users").doc(userId).get();
+    const user2Doc = await db.collection("users").doc(participantId).get();
+
+    const user1Data = user1Doc.data();
+    const user2Data = user2Doc.data();
 
     const chatData = {
       participants,
@@ -39,11 +46,21 @@ router.post("/create", authenticateUser, async (req: AuthenticatedRequest, res) 
         [userId]: 0,
         [participantId]: 0,
       },
+      deleted: false,
+      participantNames: {
+        [userId]: user1Data?.displayName || "Unknown",
+        [participantId]: user2Data?.displayName || "Unknown",
+      },
+      participantPhotos: {
+        [userId]: user1Data?.photoURL || "",
+        [participantId]: user2Data?.photoURL || "",
+      },
     };
 
-    const chatRef = await db.collection("chats").add(chatData);
+    // Store in Realtime Database
+    await realtimeDb.ref(`chats/${chatId}`).set(chatData);
 
-    res.json({ chatId: chatRef.id, chat: chatData });
+    res.json({ chatId, chat: chatData });
   } catch (error) {
     console.error("Error creating chat:", error);
     res.status(500).json({ error: "Failed to create chat" });
@@ -54,31 +71,35 @@ router.get("/list", authenticateUser, async (req: AuthenticatedRequest, res) => 
   try {
     const userId = req.user!.uid;
 
-    const chatsSnapshot = await db
-      .collection("chats")
-      .where("participants", "array-contains", userId)
-      .orderBy("lastMessageTime", "desc")
-      .get();
+    const chatsSnapshot = await realtimeDb.ref('chats').get();
 
-    const chats = await Promise.all(
-      chatsSnapshot.docs.map(async (doc) => {
-        const chatData = doc.data();
+    const chatsData = chatsSnapshot.val();
+    if (!chatsData) {
+      return res.json({ chats: [] });
+    }
+
+    const chats = Object.entries(chatsData)
+      .map(([chatId, chatData]: [string, any]) => {
+        if (!chatData.participants.includes(userId) || chatData.deleted) {
+          return null;
+        }
+
         const otherUserId = chatData.participants.find((p: string) => p !== userId);
 
-        const userDoc = await db.collection("users").doc(otherUserId).get();
-        const userData = userDoc.data();
-
         return {
-          id: doc.id,
+          id: chatId,
           ...chatData,
           participant: {
             id: otherUserId,
-            displayName: userData?.displayName || "Unknown",
-            photoURL: userData?.photoURL || "",
+            displayName: chatData.participantNames?.[otherUserId] || "Unknown",
+            photoURL: chatData.participantPhotos?.[otherUserId] || "",
           },
         };
       })
-    );
+      .filter((chat): chat is any => chat !== null)
+      .sort((a, b) => 
+        new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime()
+      );
 
     res.json({ chats });
   } catch (error) {
@@ -92,19 +113,20 @@ router.get("/:chatId", authenticateUser, async (req: AuthenticatedRequest, res) 
     const { chatId } = req.params;
     const userId = req.user!.uid;
 
-    const chatDoc = await db.collection("chats").doc(chatId).get();
+    const chatRef = ref(realtimeDb, `chats/${chatId}`);
+    const chatSnapshot = await get(chatRef);
 
-    if (!chatDoc.exists) {
+    if (!chatSnapshot.exists()) {
       return res.status(404).json({ error: "Chat not found" });
     }
 
-    const chatData = chatDoc.data();
+    const chatData = chatSnapshot.val();
 
     if (!chatData?.participants.includes(userId)) {
       return res.status(403).json({ error: "Unauthorized" });
     }
 
-    res.json({ chat: { id: chatDoc.id, ...chatData } });
+    res.json({ chat: { id: chatId, ...chatData } });
   } catch (error) {
     console.error("Error fetching chat:", error);
     res.status(500).json({ error: "Failed to fetch chat" });
@@ -116,20 +138,21 @@ router.put("/:chatId/read", authenticateUser, async (req: AuthenticatedRequest, 
     const { chatId } = req.params;
     const userId = req.user!.uid;
 
-    const chatDoc = await db.collection("chats").doc(chatId).get();
+    const chatRef = ref(realtimeDb, `chats/${chatId}`);
+    const chatSnapshot = await get(chatRef);
 
-    if (!chatDoc.exists) {
+    if (!chatSnapshot.exists()) {
       return res.status(404).json({ error: "Chat not found" });
     }
 
-    const chatData = chatDoc.data();
+    const chatData = chatSnapshot.val();
 
     if (!chatData?.participants.includes(userId)) {
       return res.status(403).json({ error: "Unauthorized" });
     }
 
-    await db.collection("chats").doc(chatId).update({
-      [`unreadCount.${userId}`]: 0,
+    await update(ref(realtimeDb, `chats/${chatId}`), {
+      [`unreadCount/${userId}`]: 0,
     });
 
     res.json({ success: true });
@@ -144,20 +167,21 @@ router.delete("/:chatId", authenticateUser, async (req: AuthenticatedRequest, re
     const { chatId } = req.params;
     const userId = req.user!.uid;
 
-    const chatDoc = await db.collection("chats").doc(chatId).get();
+    const chatRef = ref(realtimeDb, `chats/${chatId}`);
+    const chatSnapshot = await get(chatRef);
 
-    if (!chatDoc.exists) {
+    if (!chatSnapshot.exists()) {
       return res.status(404).json({ error: "Chat not found" });
     }
 
-    const chatData = chatDoc.data();
+    const chatData = chatSnapshot.val();
 
     if (!chatData?.participants.includes(userId)) {
       return res.status(403).json({ error: "Unauthorized" });
     }
 
     // Mark chat as deleted instead of actually deleting
-    await db.collection("chats").doc(chatId).update({
+    await update(ref(realtimeDb, `chats/${chatId}`), {
       deleted: true,
     });
 
@@ -174,20 +198,21 @@ router.post("/:chatId/archive", authenticateUser, async (req: AuthenticatedReque
     const userId = req.user!.uid;
     const { archived } = req.body;
 
-    const chatDoc = await db.collection("chats").doc(chatId).get();
+    const chatRef = ref(realtimeDb, `chats/${chatId}`);
+    const chatSnapshot = await get(chatRef);
 
-    if (!chatDoc.exists) {
+    if (!chatSnapshot.exists()) {
       return res.status(404).json({ error: "Chat not found" });
     }
 
-    const chatData = chatDoc.data();
+    const chatData = chatSnapshot.val();
 
     if (!chatData?.participants.includes(userId)) {
       return res.status(403).json({ error: "Unauthorized" });
     }
 
-    await db.collection("chats").doc(chatId).update({
-      [`archived.${userId}`]: archived !== false,
+    await update(ref(realtimeDb, `chats/${chatId}`), {
+      [`archived/${userId}`]: archived !== false,
     });
 
     res.json({ success: true, archived: archived !== false });
@@ -203,20 +228,21 @@ router.post("/:chatId/pin", authenticateUser, async (req: AuthenticatedRequest, 
     const userId = req.user!.uid;
     const { pinned } = req.body;
 
-    const chatDoc = await db.collection("chats").doc(chatId).get();
+    const chatRef = ref(realtimeDb, `chats/${chatId}`);
+    const chatSnapshot = await get(chatRef);
 
-    if (!chatDoc.exists) {
+    if (!chatSnapshot.exists()) {
       return res.status(404).json({ error: "Chat not found" });
     }
 
-    const chatData = chatDoc.data();
+    const chatData = chatSnapshot.val();
 
     if (!chatData?.participants.includes(userId)) {
       return res.status(403).json({ error: "Unauthorized" });
     }
 
-    await db.collection("chats").doc(chatId).update({
-      [`pinned.${userId}`]: pinned !== false,
+    await update(ref(realtimeDb, `chats/${chatId}`), {
+      [`pinned/${userId}`]: pinned !== false,
     });
 
     res.json({ success: true, pinned: pinned !== false });
@@ -232,13 +258,14 @@ router.post("/:chatId/mute", authenticateUser, async (req: AuthenticatedRequest,
     const userId = req.user!.uid;
     const { muteUntil } = req.body;
 
-    const chatDoc = await db.collection("chats").doc(chatId).get();
+    const chatRef = ref(realtimeDb, `chats/${chatId}`);
+    const chatSnapshot = await get(chatRef);
 
-    if (!chatDoc.exists) {
+    if (!chatSnapshot.exists()) {
       return res.status(404).json({ error: "Chat not found" });
     }
 
-    const chatData = chatDoc.data();
+    const chatData = chatSnapshot.val();
 
     if (!chatData?.participants.includes(userId)) {
       return res.status(403).json({ error: "Unauthorized" });
@@ -246,8 +273,8 @@ router.post("/:chatId/mute", authenticateUser, async (req: AuthenticatedRequest,
 
     const muteTimestamp = muteUntil ? new Date(muteUntil).toISOString() : null;
 
-    await db.collection("chats").doc(chatId).update({
-      [`muted.${userId}`]: muteTimestamp,
+    await update(ref(realtimeDb, `chats/${chatId}`), {
+      [`muted/${userId}`]: muteTimestamp,
     });
 
     res.json({ success: true, mutedUntil: muteTimestamp });
@@ -262,13 +289,14 @@ router.get("/:chatId/settings", authenticateUser, async (req: AuthenticatedReque
     const { chatId } = req.params;
     const userId = req.user!.uid;
 
-    const chatDoc = await db.collection("chats").doc(chatId).get();
+    const chatRef = ref(realtimeDb, `chats/${chatId}`);
+    const chatSnapshot = await get(chatRef);
 
-    if (!chatDoc.exists) {
+    if (!chatSnapshot.exists()) {
       return res.status(404).json({ error: "Chat not found" });
     }
 
-    const chatData = chatDoc.data();
+    const chatData = chatSnapshot.val();
 
     if (!chatData?.participants.includes(userId)) {
       return res.status(403).json({ error: "Unauthorized" });
@@ -302,13 +330,14 @@ router.put("/:chatId/settings", authenticateUser, async (req: AuthenticatedReque
     const userId = req.user!.uid;
     const { notifications, theme } = req.body;
 
-    const chatDoc = await db.collection("chats").doc(chatId).get();
+    const chatRef = ref(realtimeDb, `chats/${chatId}`);
+    const chatSnapshot = await get(chatRef);
 
-    if (!chatDoc.exists) {
+    if (!chatSnapshot.exists()) {
       return res.status(404).json({ error: "Chat not found" });
     }
 
-    const chatData = chatDoc.data();
+    const chatData = chatSnapshot.val();
 
     if (!chatData?.participants.includes(userId)) {
       return res.status(403).json({ error: "Unauthorized" });
@@ -317,7 +346,7 @@ router.put("/:chatId/settings", authenticateUser, async (req: AuthenticatedReque
     const updates: any = {};
 
     if (notifications) {
-      updates[`notificationSettings.${userId}`] = {
+      updates[`notificationSettings/${userId}`] = {
         enabled: notifications.enabled !== false,
         sound: notifications.sound !== false,
         vibrate: notifications.vibrate !== false,
@@ -325,13 +354,13 @@ router.put("/:chatId/settings", authenticateUser, async (req: AuthenticatedReque
     }
 
     if (theme) {
-      updates[`theme.${userId}`] = {
+      updates[`theme/${userId}`] = {
         backgroundColor: theme.backgroundColor || null,
         emoji: theme.emoji || null,
       };
     }
 
-    await db.collection("chats").doc(chatId).update(updates);
+    await update(ref(realtimeDb, `chats/${chatId}`), updates);
 
     res.json({ success: true, message: "Settings updated successfully" });
   } catch (error) {

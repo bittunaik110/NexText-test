@@ -10,6 +10,7 @@ import Settings from "@/pages/settings";
 import Profile from "@/pages/profile";
 import Calls from "@/pages/calls";
 import Status from "@/pages/status";
+import ContactsPage from "@/pages/contacts";
 import AccountPage from "@/pages/settings/account";
 import PrivacyPage from "@/pages/settings/privacy";
 import SecurityPage from "@/pages/settings/security";
@@ -63,6 +64,7 @@ function AppRoutes() {
     <Switch>
       <Route path="/auth" component={() => <AuthRoute component={Auth} path="/auth" />} />
       <Route path="/" component={() => <ProtectedRoute component={Home} path="/" />} />
+      <Route path="/contacts" component={() => <ProtectedRoute component={ContactsPage} path="/contacts" />} />
       <Route path="/settings" component={() => <ProtectedRoute component={Settings} path="/settings" />} />
       <Route path="/profile" component={() => <ProtectedRoute component={Profile} path="/profile" />} />
       <Route path="/calls" component={() => <ProtectedRoute component={Calls} path="/calls" />} />

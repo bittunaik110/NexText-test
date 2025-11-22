@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import UserAvatar from "@/components/UserAvatar";
 import { ArrowLeft, Search, UserPlus, UserMinus, Ban } from "lucide-react";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import { Card } from "@/components/ui/card";
 import {
   AlertDialog,
@@ -19,53 +20,88 @@ import {
 
 interface Contact {
   id: string;
-  name: string;
-  email: string;
-  avatar?: string;
-  blocked?: boolean;
+  userId: string;
+  displayName: string;
+  photoURL?: string;
+  bio?: string;
 }
 
 export default function ContactsPage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { user } = useAuth();
+  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
-  const [actionDialog, setActionDialog] = useState<"block" | "unblock" | "remove" | null>(null);
+  const [actionDialog, setActionDialog] = useState<"remove" | null>(null);
 
-  const [contacts] = useState<Contact[]>([
-    { id: "1", name: "Sarah Chen", email: "sarah@example.com" },
-    { id: "2", name: "Mike Wilson", email: "mike@example.com" },
-    { id: "3", name: "Emily Rodriguez", email: "emily@example.com" },
-    { id: "4", name: "David Lee", email: "david@example.com", blocked: true },
-  ]);
+  useEffect(() => {
+    const loadContacts = async () => {
+      try {
+        const token = await user?.getIdToken();
+        const response = await fetch("/api/users/contacts/list", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = await response.json();
+        if (data.contacts) {
+          setContacts(
+            data.contacts.map((contact: any) => ({
+              id: contact.userId,
+              userId: contact.userId,
+              displayName: contact.displayName,
+              photoURL: contact.photoURL,
+              bio: contact.bio,
+            }))
+          );
+        }
+      } catch (error) {
+        console.error("Error loading contacts:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load contacts",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (user) {
+      loadContacts();
+    }
+  }, [user, toast]);
 
   const filteredContacts = contacts.filter((contact) =>
-    contact.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    contact.email.toLowerCase().includes(searchQuery.toLowerCase())
+    contact.displayName.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleAction = () => {
+  const handleRemoveContact = async () => {
     if (!selectedContact) return;
 
-    switch (actionDialog) {
-      case "block":
-        toast({
-          title: "Contact blocked",
-          description: `${selectedContact.name} has been blocked`,
-        });
-        break;
-      case "unblock":
-        toast({
-          title: "Contact unblocked",
-          description: `${selectedContact.name} has been unblocked`,
-        });
-        break;
-      case "remove":
-        toast({
-          title: "Contact removed",
-          description: `${selectedContact.name} has been removed from contacts`,
-        });
-        break;
+    try {
+      const token = await user?.getIdToken();
+      await fetch(`/api/users/contacts/remove/${selectedContact.userId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      
+      setContacts(contacts.filter(c => c.userId !== selectedContact.userId));
+      toast({
+        title: "Contact removed",
+        description: `${selectedContact.displayName} has been removed from contacts`,
+      });
+    } catch (error) {
+      console.error("Error removing contact:", error);
+      toast({
+        title: "Error",
+        description: "Failed to remove contact",
+        variant: "destructive",
+      });
     }
 
     setActionDialog(null);
@@ -112,49 +148,29 @@ export default function ContactsPage() {
           </div>
         </Card>
 
-        {filteredContacts.map((contact) => (
-          <Card
-            key={contact.id}
-            className={`p-4 ${contact.blocked ? 'opacity-60' : ''}`}
-            data-testid={`contact-${contact.id}`}
-          >
-            <div className="flex items-center gap-3">
-              <UserAvatar name={contact.name} src={contact.avatar} size="lg" />
-              <div className="flex-1 min-w-0">
-                <h3 className="font-semibold truncate">
-                  {contact.name}
-                  {contact.blocked && (
-                    <span className="ml-2 text-xs text-destructive">(Blocked)</span>
-                  )}
-                </h3>
-                <p className="text-sm text-muted-foreground truncate">{contact.email}</p>
-              </div>
-              <div className="flex gap-1">
-                {contact.blocked ? (
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    onClick={() => {
-                      setSelectedContact(contact);
-                      setActionDialog("unblock");
-                    }}
-                    data-testid={`button-unblock-${contact.id}`}
-                  >
-                    <Ban className="h-5 w-5" />
-                  </Button>
-                ) : (
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    onClick={() => {
-                      setSelectedContact(contact);
-                      setActionDialog("block");
-                    }}
-                    data-testid={`button-block-${contact.id}`}
-                  >
-                    <Ban className="h-5 w-5 text-destructive" />
-                  </Button>
-                )}
+        {loading ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        ) : filteredContacts.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-8 text-center">
+            <UserPlus className="h-12 w-12 text-muted-foreground mb-3 opacity-50" />
+            <p className="text-muted-foreground">No contacts yet</p>
+            <p className="text-sm text-muted-foreground">Add contacts to see them here</p>
+          </div>
+        ) : (
+          filteredContacts.map((contact) => (
+            <Card
+              key={contact.id}
+              className="p-4 hover-elevate cursor-pointer"
+              data-testid={`contact-${contact.id}`}
+            >
+              <div className="flex items-center gap-3">
+                <UserAvatar name={contact.displayName} src={contact.photoURL} size="lg" />
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold truncate">{contact.displayName}</h3>
+                  {contact.bio && <p className="text-sm text-muted-foreground truncate">{contact.bio}</p>}
+                </div>
                 <Button
                   size="icon"
                   variant="ghost"
@@ -167,31 +183,23 @@ export default function ContactsPage() {
                   <UserMinus className="h-5 w-5" />
                 </Button>
               </div>
-            </div>
-          </Card>
-        ))}
+            </Card>
+          ))
+        )}
       </div>
 
       <AlertDialog open={actionDialog !== null} onOpenChange={() => setActionDialog(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>
-              {actionDialog === "block" && "Block Contact"}
-              {actionDialog === "unblock" && "Unblock Contact"}
-              {actionDialog === "remove" && "Remove Contact"}
-            </AlertDialogTitle>
+            <AlertDialogTitle>Remove Contact</AlertDialogTitle>
             <AlertDialogDescription>
-              {actionDialog === "block" && `Are you sure you want to block ${selectedContact?.name}? They won't be able to send you messages.`}
-              {actionDialog === "unblock" && `Are you sure you want to unblock ${selectedContact?.name}?`}
-              {actionDialog === "remove" && `Are you sure you want to remove ${selectedContact?.name} from your contacts?`}
+              Are you sure you want to remove {selectedContact?.displayName} from your contacts?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel data-testid="button-cancel-action">Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleAction} data-testid="button-confirm-action">
-              {actionDialog === "block" && "Block"}
-              {actionDialog === "unblock" && "Unblock"}
-              {actionDialog === "remove" && "Remove"}
+            <AlertDialogAction onClick={handleRemoveContact} data-testid="button-confirm-action">
+              Remove
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
