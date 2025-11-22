@@ -17,7 +17,7 @@ export interface Message {
   reactions?: Record<string, string>;
   edited?: boolean;
   editedAt?: number;
-  status?: "sent" | "delivered" | "read";
+  status?: "pending" | "sent" | "delivered" | "read";
   readBy?: string[];
 }
 

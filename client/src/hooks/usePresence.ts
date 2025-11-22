@@ -49,9 +49,12 @@ export function useMyPresence() {
     // Update presence when component mounts
     const updatePresence = () => {
       const presenceRef = ref(database, `presence/${user.uid}`);
-      presenceRef.set({
-        isOnline: true,
-        lastSeen: Date.now(),
+      // Use set for client SDK
+      import("firebase/database").then(({ set: fbSet }) => {
+        fbSet(presenceRef, {
+          isOnline: true,
+          lastSeen: Date.now(),
+        }).catch(console.error);
       }).catch(console.error);
     };
 
@@ -74,9 +77,11 @@ export function useMyPresence() {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       // Set offline when component unmounts
       const presenceRef = ref(database, `presence/${user.uid}`);
-      presenceRef.set({
-        isOnline: false,
-        lastSeen: Date.now(),
+      import("firebase/database").then(({ set: fbSet }) => {
+        fbSet(presenceRef, {
+          isOnline: false,
+          lastSeen: Date.now(),
+        }).catch(console.error);
       }).catch(console.error);
     };
   }, [user?.uid]);

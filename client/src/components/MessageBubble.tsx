@@ -8,7 +8,7 @@ interface MessageBubbleProps {
   text: string;
   sent: boolean;
   timestamp: Date;
-  status?: "sent" | "delivered" | "read";
+  status?: "pending" | "sent" | "delivered" | "read";
   imageUrl?: string;
   videoUrl?: string;
   fileUrl?: string;
