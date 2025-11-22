@@ -4,12 +4,16 @@ import { useSocket } from "./useSocket";
 import { useToast } from "./use-toast";
 
 export function useSocketMessages(chatId: string | undefined) {
-  const socket = useSocket();
+  const { socket, isConnected } = useSocket();
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!socket || !chatId) return;
+    if (!socket || !chatId || !isConnected) {
+      console.log("useSocketMessages: Waiting for socket connection", { socket: !!socket, chatId, isConnected });
+      return;
+    }
 
+    console.log("useSocketMessages: Joining chat", chatId);
     socket.emit("join-chat", chatId);
 
     const handleMessageError = (data: { error: string }) => {
@@ -24,14 +28,17 @@ export function useSocketMessages(chatId: string | undefined) {
     socket.on("message-error", handleMessageError);
 
     return () => {
-      socket.emit("leave-chat", chatId);
-      socket.off("message-error", handleMessageError);
+      if (socket && chatId) {
+        socket.emit("leave-chat", chatId);
+        socket.off("message-error", handleMessageError);
+      }
     };
-  }, [socket, chatId, toast]);
+  }, [socket, chatId, isConnected, toast]);
 
   const sendMessage = useCallback(
     async (text: string, mediaUrl?: string, gifUrl?: string) => {
-      if (!socket || !chatId) {
+      if (!socket || !chatId || !isConnected) {
+        console.warn("sendMessage: Socket not ready", { socket: !!socket, chatId, isConnected });
         toast({
           variant: "destructive",
           title: "Error",
@@ -67,7 +74,7 @@ export function useSocketMessages(chatId: string | undefined) {
         });
       }
     },
-    [socket, chatId, toast]
+    [socket, chatId, isConnected, toast]
   );
 
   const reactToMessage = useCallback(
