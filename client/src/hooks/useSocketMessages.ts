@@ -54,6 +54,16 @@ export function useSocketMessages(chatId: string | undefined) {
     };
   }, [socket, chatId, isConnected, toast]);
 
+  const startTyping = useCallback(() => {
+    if (!socket || !chatId || !isConnected) return;
+    socket.emit("typing-start", { chatId });
+  }, [socket, chatId, isConnected]);
+
+  const stopTyping = useCallback(() => {
+    if (!socket || !chatId || !isConnected) return;
+    socket.emit("typing-stop", { chatId });
+  }, [socket, chatId, isConnected]);
+
   const sendMessage = useCallback(
     async (text: string, mediaUrl?: string, gifUrl?: string) => {
       if (!socket || !chatId || !isConnected) {
@@ -91,7 +101,6 @@ export function useSocketMessages(chatId: string | undefined) {
     [socket, chatId, isConnected, toast, stopTyping]
   );
 
-
   const reactToMessage = useCallback(
     (messageId: string, emoji: string) => {
       if (!socket || !chatId || !isConnected) return;
@@ -99,16 +108,6 @@ export function useSocketMessages(chatId: string | undefined) {
     },
     [socket, chatId, isConnected]
   );
-
-  const startTyping = useCallback(() => {
-    if (!socket || !chatId || !isConnected) return;
-    socket.emit("typing-start", { chatId });
-  }, [socket, chatId, isConnected]);
-
-  const stopTyping = useCallback(() => {
-    if (!socket || !chatId || !isConnected) return;
-    socket.emit("typing-stop", { chatId });
-  }, [socket, chatId, isConnected]);
 
   const editMessage = useCallback(
     (messageId: string, newText: string) => {
