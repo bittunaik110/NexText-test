@@ -183,7 +183,7 @@ export default function ChatList({
             <AlertDialogTitle>Confirm Logout</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to log out? You'll need to sign in again to access your chats.
-            </AlertDialogAction>
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
