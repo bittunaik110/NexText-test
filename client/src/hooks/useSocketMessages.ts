@@ -1,4 +1,3 @@
-
 import { useEffect, useCallback } from "react";
 import { useSocket } from "./useSocket";
 import { useToast } from "./use-toast";
@@ -76,55 +75,44 @@ export function useSocketMessages(chatId: string | undefined) {
         return;
       }
 
-      try {
-        socket.emit("send-message", {
-          chatId,
-          messageData: {
-            text: text.trim(),
-            mediaUrl: mediaUrl || "",
-            gifUrl: gifUrl || "",
-          },
-        });
-      } catch (error) {
-        console.error("Error sending message:", error);
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to send message",
-        });
-      }
+      // Stop typing when sending
+      stopTyping();
+
+      const messageData = {
+        text: text.trim(),
+        mediaUrl,
+        gifUrl,
+        timestamp: Date.now(),
+      };
+
+      console.log("sendMessage: Emitting send-message event", { chatId, messageData });
+      socket.emit("send-message", { chatId, messageData });
     },
-    [socket, chatId, isConnected, toast]
+    [socket, chatId, isConnected, toast, stopTyping]
   );
+
 
   const reactToMessage = useCallback(
     (messageId: string, emoji: string) => {
-      if (!socket || !chatId) return;
-
-      socket.emit("react-to-message", {
-        chatId,
-        messageId,
-        emoji,
-      });
+      if (!socket || !chatId || !isConnected) return;
+      socket.emit("react-to-message", { chatId, messageId, emoji });
     },
-    [socket, chatId]
+    [socket, chatId, isConnected]
   );
 
   const startTyping = useCallback(() => {
-    if (!socket || !chatId) return;
-
+    if (!socket || !chatId || !isConnected) return;
     socket.emit("typing-start", { chatId });
-  }, [socket, chatId]);
+  }, [socket, chatId, isConnected]);
 
   const stopTyping = useCallback(() => {
-    if (!socket || !chatId) return;
-
+    if (!socket || !chatId || !isConnected) return;
     socket.emit("typing-stop", { chatId });
-  }, [socket, chatId]);
+  }, [socket, chatId, isConnected]);
 
   const editMessage = useCallback(
     (messageId: string, newText: string) => {
-      if (!socket || !chatId) return;
+      if (!socket || !chatId || !isConnected) return;
 
       socket.emit("edit-message", {
         chatId,
@@ -132,19 +120,19 @@ export function useSocketMessages(chatId: string | undefined) {
         newText,
       });
     },
-    [socket, chatId]
+    [socket, chatId, isConnected]
   );
 
   const deleteMessage = useCallback(
     (messageId: string) => {
-      if (!socket || !chatId) return;
+      if (!socket || !chatId || !isConnected) return;
 
       socket.emit("delete-message", {
         chatId,
         messageId,
       });
     },
-    [socket, chatId]
+    [socket, chatId, isConnected]
   );
 
   return {

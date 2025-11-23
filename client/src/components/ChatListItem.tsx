@@ -66,10 +66,10 @@ export default function ChatListItem({
 
       {unreadCount > 0 && (
         <Badge 
-          className="bg-gradient-to-r from-primary via-accent to-primary shrink-0 min-w-[24px] h-6 flex items-center justify-center px-2 animate-pulse-badge font-semibold text-xs"
+          className="bg-gradient-to-r from-green-500 to-green-600 shrink-0 min-w-[20px] h-5 flex items-center justify-center px-1.5 font-bold text-[11px] text-white rounded-full shadow-lg animate-pulse"
           data-testid={`unread-badge-${name.toLowerCase().replace(/\s+/g, '-')}`}
         >
-          {unreadCount}
+          {unreadCount > 99 ? '99+' : unreadCount}
         </Badge>
       )}
     </div>

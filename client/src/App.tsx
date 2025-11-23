@@ -22,9 +22,11 @@ import HelpPage from "@/pages/settings/help";
 import ContactPage from "@/pages/settings/contact";
 import TermsPage from "@/pages/settings/terms";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { useMyPresence } from "@/hooks/usePresence";
 
 function ProtectedRoute({ component: Component, ...rest }: { component: React.ComponentType; path: string }) {
   const { user, loading } = useAuth();
+  useMyPresence(); // Initialize presence tracking
 
   if (loading) {
     return (

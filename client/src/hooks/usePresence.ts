@@ -47,42 +47,43 @@ export function useMyPresence() {
     if (!user?.uid) return;
 
     // Update presence when component mounts
-    const updatePresence = () => {
+    const updatePresence = async (isOnline: boolean = true) => {
       const presenceRef = ref(database, `presence/${user.uid}`);
-      // Use set for client SDK
-      import("firebase/database").then(({ set: fbSet }) => {
-        fbSet(presenceRef, {
-          isOnline: true,
+      try {
+        const { set: fbSet } = await import("firebase/database");
+        await fbSet(presenceRef, {
+          isOnline,
           lastSeen: Date.now(),
-        }).catch(console.error);
-      }).catch(console.error);
-    };
-
-    updatePresence();
-
-    // Update presence every 30 seconds
-    const interval = setInterval(updatePresence, 30000);
-
-    // Update presence when page visibility changes
-    const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        updatePresence();
+        });
+      } catch (error) {
+        console.error("Error updating presence:", error);
       }
     };
 
+    updatePresence(true);
+
+    // Update presence every 15 seconds (more frequent)
+    const interval = setInterval(() => updatePresence(true), 15000);
+
+    // Update presence when page visibility changes
+    const handleVisibilityChange = () => {
+      updatePresence(!document.hidden);
+    };
+
+    // Handle before unload to set offline
+    const handleBeforeUnload = () => {
+      updatePresence(false);
+    };
+
     document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("beforeunload", handleBeforeUnload);
 
     return () => {
       clearInterval(interval);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
       // Set offline when component unmounts
-      const presenceRef = ref(database, `presence/${user.uid}`);
-      import("firebase/database").then(({ set: fbSet }) => {
-        fbSet(presenceRef, {
-          isOnline: false,
-          lastSeen: Date.now(),
-        }).catch(console.error);
-      }).catch(console.error);
+      updatePresence(false);
     };
   }, [user?.uid]);
 }

@@ -4,6 +4,7 @@ import { database } from "@/lib/firebase";
 import { ref, onValue, off } from "firebase/database";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { useSocket } from "./useSocket";
 
 export interface Message {
   id: string;
@@ -27,6 +28,28 @@ export function useMessages(chatId: string | undefined) {
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
+  const { socket, isConnected } = useSocket();
+
+  // Listen for status updates via socket
+  useEffect(() => {
+    if (!socket || !chatId || !isConnected) return;
+
+    const handleStatusUpdate = ({ messageId, status }: { messageId: string; status: string }) => {
+      setMessages(prev => 
+        prev.map(msg => 
+          msg.id === messageId 
+            ? { ...msg, status: status as Message["status"] }
+            : msg
+        )
+      );
+    };
+
+    socket.on("message-status-update", handleStatusUpdate);
+
+    return () => {
+      socket.off("message-status-update", handleStatusUpdate);
+    };
+  }, [socket, chatId, isConnected]);
 
   useEffect(() => {
     if (!chatId) {

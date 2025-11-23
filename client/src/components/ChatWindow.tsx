@@ -46,6 +46,14 @@ export default function ChatWindow({ chatId, contact, onBack, isTyping }: ChatWi
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const { messages, loading, userId } = useMessages(chatId);
   const { sendMessage, reactToMessage, startTyping, stopTyping } = useSocketMessages(chatId);
+  
+  const handleTypingChange = useCallback((typing: boolean) => {
+    if (typing) {
+      startTyping();
+    } else {
+      stopTyping();
+    }
+  }, [startTyping, stopTyping]);
   const { toast } = useToast();
   const [showClearDialog, setShowClearDialog] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
@@ -156,11 +164,16 @@ export default function ChatWindow({ chatId, contact, onBack, isTyping }: ChatWi
     const diff = now - lastSeenTime;
     const minutes = Math.floor(diff / 60000);
     const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
 
-    if (minutes < 1) return "just now";
-    if (minutes < 60) return `${minutes}m ago`;
-    if (hours < 24) return `${hours}h ago`;
-    return "yesterday";
+    if (minutes < 1) return "online";
+    if (minutes < 60) return `last seen ${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+    if (hours < 24) return `last seen ${hours} hour${hours > 1 ? 's' : ''} ago`;
+    if (days === 1) return "last seen yesterday";
+    if (days < 7) return `last seen ${days} days ago`;
+    
+    const date = new Date(lastSeenTime);
+    return `last seen ${date.toLocaleDateString()}`;
   };
 
   return (
@@ -183,22 +196,28 @@ export default function ChatWindow({ chatId, contact, onBack, isTyping }: ChatWi
           
           <div className="flex-1 min-w-0">
             <h2 className="font-semibold text-foreground truncate">{contact.name}</h2>
-            <p className={cn("text-xs font-medium", contactPresence?.isOnline ? "text-status-online" : "text-muted-foreground")}>
+            <p className={cn(
+              "text-xs font-medium transition-all duration-200",
+              isTyping ? "text-green-500" : contactPresence?.isOnline ? "text-green-500" : "text-muted-foreground"
+            )}>
               {isTyping ? (
-                <span className="flex items-center gap-1">
+                <span className="flex items-center gap-1 text-green-500">
                   typing
-                  <span className="inline-flex gap-0.5">
-                    <span className="w-1 h-1 bg-current rounded-full animate-typing-dot"></span>
-                    <span className="w-1 h-1 bg-current rounded-full animate-typing-dot"></span>
-                    <span className="w-1 h-1 bg-current rounded-full animate-typing-dot"></span>
+                  <span className="inline-flex gap-0.5 ml-0.5">
+                    <span className="w-1 h-1 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                    <span className="w-1 h-1 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                    <span className="w-1 h-1 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
                   </span>
                 </span>
               ) : contactPresence?.isOnline ? (
-                "Online"
+                <span className="flex items-center gap-1">
+                  <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                  online
+                </span>
               ) : contactPresence?.lastSeen ? (
-                `Last seen ${formatLastSeen(contactPresence.lastSeen)}`
+                formatLastSeen(contactPresence.lastSeen)
               ) : (
-                "Offline"
+                "offline"
               )}
             </p>
           </div>
@@ -290,7 +309,7 @@ export default function ChatWindow({ chatId, contact, onBack, isTyping }: ChatWi
       <div className="sticky bottom-0 p-4 bg-background border-t border-border">
         <MessageInput 
           onSend={sendMessage}
-          onTyping={startTyping}
+          onTyping={handleTypingChange}
         />
       </div>
 

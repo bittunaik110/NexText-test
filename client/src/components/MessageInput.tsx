@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,8 +8,8 @@ import EmojiPicker from "./EmojiPicker";
 import GifPicker from "./GifPicker";
 
 interface MessageInputProps {
-  onSend: (message: string, mediaUrl?: string, gifUrl?: string) => void;
-  onTyping?: () => void;
+  onSend: (text: string, mediaUrl?: string, gifUrl?: string) => void;
+  onTyping?: (isTyping: boolean) => void;
   className?: string;
 }
 
@@ -23,6 +22,35 @@ export default function MessageInput({ onSend, onTyping, className }: MessageInp
   const docInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [textareaHeight, setTextareaHeight] = useState(40);
+  const [isTyping, setIsTyping] = useState(false);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Handle typing indicator
+  useEffect(() => {
+    if (message.trim() && !isTyping) {
+      setIsTyping(true);
+      onTyping?.(true);
+    }
+
+    // Clear existing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    // Set new timeout to stop typing after 2 seconds of inactivity
+    typingTimeoutRef.current = setTimeout(() => {
+      if (isTyping) {
+        setIsTyping(false);
+        onTyping?.(false);
+      }
+    }, 2000);
+
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    };
+  }, [message, isTyping, onTyping]);
 
   const handleSend = async () => {
     if (!message.trim() && !selectedFile && !selectedGif) return;
@@ -45,6 +73,11 @@ export default function MessageInput({ onSend, onTyping, className }: MessageInp
       setSelectedFile(null);
       setSelectedGif(null);
       setShowGifPicker(false);
+      setIsTyping(false);
+      onTyping?.(false);
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
     } catch (error) {
       console.error("Failed to send message:", error);
     }
@@ -95,7 +128,7 @@ export default function MessageInput({ onSend, onTyping, className }: MessageInp
           onClose={() => setShowGifPicker(false)}
         />
       )}
-      
+
       <div className="rounded-2xl glass-effect p-4">
         {selectedFile && (
           <div className="mb-3 flex items-center gap-2 p-3 bg-white/5 rounded-lg border border-white/10">
@@ -149,10 +182,10 @@ export default function MessageInput({ onSend, onTyping, className }: MessageInp
             accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.zip"
             data-testid="input-document"
           />
-          
-          <Button 
-            size="icon" 
-            variant="ghost" 
+
+          <Button
+            size="icon"
+            variant="ghost"
             className="shrink-0 hover:bg-white/10"
             onClick={() => fileInputRef.current?.click()}
             data-testid="button-attach"
@@ -161,9 +194,9 @@ export default function MessageInput({ onSend, onTyping, className }: MessageInp
             <Paperclip className="h-5 w-5" />
           </Button>
 
-          <Button 
-            size="icon" 
-            variant="ghost" 
+          <Button
+            size="icon"
+            variant="ghost"
             className="shrink-0 hover:bg-white/10"
             onClick={() => docInputRef.current?.click()}
             data-testid="button-document"
@@ -172,9 +205,9 @@ export default function MessageInput({ onSend, onTyping, className }: MessageInp
             <FileText className="h-5 w-5" />
           </Button>
 
-          <Button 
-            size="icon" 
-            variant="ghost" 
+          <Button
+            size="icon"
+            variant="ghost"
             className="shrink-0 hover:bg-white/10"
             onClick={() => setShowGifPicker(!showGifPicker)}
             data-testid="button-gif"
@@ -188,7 +221,16 @@ export default function MessageInput({ onSend, onTyping, className }: MessageInp
             value={message}
             onChange={(e) => {
               setMessage(e.target.value);
-              onTyping?.();
+              if (!isTyping && e.target.value.trim()) {
+                setIsTyping(true);
+                onTyping?.(true);
+              } else if (isTyping && !e.target.value.trim()) {
+                setIsTyping(false);
+                onTyping?.(false);
+                if (typingTimeoutRef.current) {
+                  clearTimeout(typingTimeoutRef.current);
+                }
+              }
             }}
             onKeyDown={handleKeyPress}
             placeholder="Type a message..."

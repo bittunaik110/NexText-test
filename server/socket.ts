@@ -146,23 +146,38 @@ export function setupSocketIO(httpServer: HTTPServer) {
     });
 
     socket.on("message-delivered", async ({ chatId, messageId }) => {
-      const messageRef = realtimeDb.ref(`messages/${chatId}/${messageId}`);
-      await messageRef.update({ status: "delivered" });
-      io.to(chatId).emit("message-status-update", { messageId, status: "delivered" });
+      try {
+        const messageRef = realtimeDb.ref(`messages/${chatId}/${messageId}`);
+        const snapshot = await messageRef.get();
+        const message = snapshot.val();
+        
+        if (message && message.status === "sent") {
+          await messageRef.update({ status: "delivered" });
+          io.to(chatId).emit("message-status-update", { messageId, status: "delivered" });
+          console.log(`Message ${messageId} marked as delivered`);
+        }
+      } catch (error) {
+        console.error("Error marking message as delivered:", error);
+      }
     });
 
-    socket.on("message-read", async ({ chatId, messageId, userId: readerId }) => {
-      const messageRef = realtimeDb.ref(`messages/${chatId}/${messageId}`);
-      const snapshot = await messageRef.get();
-      const message = snapshot.val();
+    socket.on("message-read", async ({ chatId, messageId }) => {
+      try {
+        const messageRef = realtimeDb.ref(`messages/${chatId}/${messageId}`);
+        const snapshot = await messageRef.get();
+        const message = snapshot.val();
 
-      if (message) {
-        const readBy = message.readBy || [];
-        if (!readBy.includes(readerId)) {
-          readBy.push(readerId);
-          await messageRef.update({ status: "read", readBy });
-          io.to(chatId).emit("message-status-update", { messageId, status: "read" });
+        if (message) {
+          const readBy = message.readBy || [];
+          if (!readBy.includes(userId)) {
+            readBy.push(userId);
+            await messageRef.update({ status: "read", readBy });
+            io.to(chatId).emit("message-status-update", { messageId, status: "read" });
+            console.log(`Message ${messageId} marked as read by ${userId}`);
+          }
         }
+      } catch (error) {
+        console.error("Error marking message as read:", error);
       }
     });
 

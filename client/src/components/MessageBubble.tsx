@@ -43,11 +43,11 @@ export default function MessageBubble({
   );
 
   return (
-    <div className={cn("flex w-full mb-3 animate-message-send group px-4", sent ? "justify-end" : "justify-start")}>
-      <div className={cn("relative max-w-[85%] sm:max-w-[75%]")}>
+    <div className={cn("flex w-full mb-3 animate-message-send group", sent ? "justify-end" : "justify-start")}>
+      <div className={cn("relative max-w-[85%] sm:max-w-[75%] min-w-[100px]")}>
         <div 
           className={cn(
-            "px-4 py-2.5 rounded-3xl relative backdrop-blur-xl transition-all duration-200 w-full",
+            "px-4 py-2.5 rounded-3xl relative backdrop-blur-xl transition-all duration-200",
             sent 
               ? "bg-gradient-to-br from-primary via-purple-500 to-accent text-white shadow-lg hover:shadow-xl" 
               : "bg-white/10 border border-white/20 text-foreground hover:bg-white/15"
@@ -84,18 +84,21 @@ export default function MessageBubble({
             </a>
           )}
           {text && (
-            <p className="text-[15px] break-words leading-6 font-normal whitespace-pre-wrap">
+            <p className="text-[15px] break-words leading-6 font-normal whitespace-pre-wrap pr-16 pb-1">
               {text}
             </p>
           )}
-          <div className={cn("flex items-center justify-end gap-2 mt-1.5 text-xs font-medium", sent ? "text-white/70" : "text-muted-foreground")}>
+          <div className={cn(
+            "flex items-center justify-end gap-1.5 text-[11px] font-medium absolute bottom-2 right-3",
+            sent ? "text-white/80" : "text-muted-foreground"
+          )}>
             <span>{format(timestamp, "HH:mm")}</span>
             {sent && (
-              <span className="ml-0.5 transition-all duration-300" data-testid={`message-status-${status}`}>
-                {status === "pending" && <Clock className="h-3 w-3 animate-spin text-white/60" />}
-                {status === "sent" && <Check className="h-3 w-3 text-white/50" />}
-                {status === "delivered" && <CheckCheck className="h-3 w-3 text-white/50" />}
-                {status === "read" && <CheckCheck className="h-3 w-3 text-cyan-400 animate-fade-in" />}
+              <span className="flex items-center" data-testid={`message-status-${status}`}>
+                {status === "pending" && <Clock className="h-3.5 w-3.5 text-white/60" />}
+                {status === "sent" && <Check className="h-3.5 w-3.5 text-white/70" />}
+                {status === "delivered" && <CheckCheck className="h-3.5 w-3.5 text-white/70" />}
+                {status === "read" && <CheckCheck className="h-3.5 w-3.5 text-blue-400" />}
               </span>
             )}
           </div>
