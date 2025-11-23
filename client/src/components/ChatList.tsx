@@ -54,6 +54,10 @@ export default function ChatList({
   const { toast } = useToast();
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
+  const handleSelectChat = (chatId: string) => {
+    onSelectChat(chatId);
+  };
+
   const filteredChats = chats.filter((chat) =>
     chat.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -170,7 +174,7 @@ export default function ChatList({
                 key={chat.id}
                 {...chat}
                 active={activeChat === chat.id}
-                onClick={() => onSelectChat(chat.id)}
+                onClick={() => handleSelectChat(chat.id)}
               />
             ))
           )}

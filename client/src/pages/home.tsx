@@ -26,7 +26,7 @@ export default function Home() {
     bio: "",
   });
 
-  // Fetch user profile on mount and when view changes back to profile
+  // Fetch user profile on mount
   useEffect(() => {
     const loadProfile = async () => {
       try {
@@ -70,7 +70,7 @@ export default function Home() {
     if (user) {
       loadProfile();
     }
-  }, [user, view]); // Refetch when view changes to ensure fresh data
+  }, [user]);
 
   const selectedChatData = chats.find((c) => c.id === selectedChat);
 

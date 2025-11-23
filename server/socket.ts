@@ -167,7 +167,7 @@ export function setupSocketIO(httpServer: HTTPServer) {
         const snapshot = await messageRef.get();
         const message = snapshot.val();
 
-        if (message) {
+        if (message && message.userId !== userId) {
           const readBy = message.readBy || [];
           if (!readBy.includes(userId)) {
             readBy.push(userId);
