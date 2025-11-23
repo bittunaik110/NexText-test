@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Plus, Search, Settings, Menu, LogOut } from "lucide-react";
 import ChatListItem from "./ChatListItem";
@@ -94,8 +93,8 @@ export default function ChatList({
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuItem onClick={onProfile}>
-                    <UserAvatar 
-                      name={user?.displayName || user?.email || "User"} 
+                    <UserAvatar
+                      name={user?.displayName || user?.email || "User"}
                       src={user?.photoURL || undefined}
                       size="sm"
                       className="mr-2"
@@ -107,7 +106,7 @@ export default function ChatList({
                     Settings
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem 
+                  <DropdownMenuItem
                     onClick={() => setShowLogoutDialog(true)}
                     className="text-destructive focus:text-destructive"
                   >
@@ -184,7 +183,7 @@ export default function ChatList({
             <AlertDialogTitle>Confirm Logout</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to log out? You'll need to sign in again to access your chats.
-            </AlertDialogDescription>
+            </AlertDialogAction>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>

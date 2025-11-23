@@ -20,6 +20,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use("/api/blocked", blockedRouter);
   app.use("/api/status", statusRouter);
 
+  // Log all incoming requests for debugging
+  app.use((req, res, next) => {
+    console.log(`${req.method} ${req.path}`);
+    next();
+  });
+
   const httpServer = createServer(app);
 
   setupSocketIO(httpServer);

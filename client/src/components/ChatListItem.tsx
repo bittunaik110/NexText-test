@@ -53,7 +53,7 @@ export default function ChatListItem({
       data-testid={`chat-${name.toLowerCase().replace(/\s+/g, '-')}`}
     >
       <UserAvatar name={name} src={avatar} online={online} size="md" />
-      
+
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between gap-2 mb-1">
           <h3 className="font-600 text-foreground truncate">{name}</h3>
@@ -65,7 +65,7 @@ export default function ChatListItem({
       </div>
 
       {unreadCount > 0 && (
-        <Badge 
+        <Badge
           className="bg-gradient-to-r from-green-500 to-green-600 shrink-0 min-w-[20px] h-5 flex items-center justify-center px-1.5 font-bold text-[11px] text-white rounded-full shadow-lg animate-pulse"
           data-testid={`unread-badge-${name.toLowerCase().replace(/\s+/g, '-')}`}
         >

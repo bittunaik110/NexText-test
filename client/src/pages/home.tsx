@@ -42,7 +42,7 @@ export default function Home() {
         }
       } catch (error: any) {
         console.error("Error fetching user profile:", error);
-        
+
         // Graceful handling for missing profile - try to create it
         if (error.message?.includes("404") || error.message?.includes("not found")) {
           try {
