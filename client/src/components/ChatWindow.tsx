@@ -278,7 +278,7 @@ export default function ChatWindow({ chatId, contact, onBack, isTyping }: ChatWi
         </div>
       </div>
 
-      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto px-4 py-6 space-y-1">
+      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto px-4 py-6 space-y-1 scroll-smooth">
         {loading ? (
           <div className="flex items-center justify-center h-full">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>

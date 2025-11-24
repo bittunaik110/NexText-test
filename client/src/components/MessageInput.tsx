@@ -1,14 +1,11 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Paperclip, X, Image as ImageIcon, FileText, Mic, Camera, Plus } from "lucide-react";
-import { SiGiphy } from "react-icons/si";
+import { Send, Mic, Smile, Paperclip } from "lucide-react";
 import { cn } from "@/lib/utils";
 import EmojiPicker from "./EmojiPicker";
-import GifPicker from "./GifPicker";
+import AttachmentMenu from "./AttachmentMenu";
 import { Message } from "@/hooks/useMessages";
-import ReplyIndicator from "@/components/ReplyIndicator";
-import VoiceMessage from "@/components/VoiceMessage";
 
 interface MessageInputProps {
   onSend: (text: string, mediaUrl?: string, gifUrl?: string, replyTo?: string, voiceUrl?: string) => void;
@@ -20,17 +17,33 @@ interface MessageInputProps {
 
 export default function MessageInput({ onSend, onTyping, className, replyTo, onClearReply }: MessageInputProps) {
   const [message, setMessage] = useState("");
-  const [showGifPicker, setShowGifPicker] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedGif, setSelectedGif] = useState<string | null>(null);
-  const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const docInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [textareaHeight, setTextareaHeight] = useState(40);
   const [isTyping, setIsTyping] = useState(false);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Auto-save draft to localStorage
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (message.trim()) {
+        localStorage.setItem("messageDraft", message);
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [message]);
+
+  // Load draft on mount
+  useEffect(() => {
+    const draft = localStorage.getItem("messageDraft");
+    if (draft) {
+      setMessage(draft);
+    }
+  }, []);
 
   // Handle typing indicator
   useEffect(() => {
@@ -39,12 +52,10 @@ export default function MessageInput({ onSend, onTyping, className, replyTo, onC
       onTyping?.(true);
     }
 
-    // Clear existing timeout
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
 
-    // Set new timeout to stop typing after 2 seconds of inactivity
     typingTimeoutRef.current = setTimeout(() => {
       if (isTyping) {
         setIsTyping(false);
@@ -75,13 +86,15 @@ export default function MessageInput({ onSend, onTyping, className, replyTo, onC
         gifUrl = selectedGif;
       }
 
-      onSend(message.trim(), fileUrl, gifUrl);
+      onSend(message.trim(), fileUrl, gifUrl, replyTo?.id);
       setMessage("");
       setSelectedFile(null);
       setSelectedGif(null);
-      setShowGifPicker(false);
+      setShowEmojiPicker(false);
       setIsTyping(false);
       onTyping?.(false);
+      localStorage.removeItem("messageDraft");
+      onClearReply?.();
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
       }
@@ -104,15 +117,16 @@ export default function MessageInput({ onSend, onTyping, className, replyTo, onC
     }
   };
 
-  const handleEmojiSelect = (emoji: string) => {
-    setMessage(prev => prev + emoji);
-  };
-
   const handleDocumentSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'text/plain', 'application/zip'].includes(file.type)) {
       setSelectedFile(file);
     }
+  };
+
+  const handleEmojiSelect = (emoji: string) => {
+    setMessage(prev => prev + emoji);
+    setShowEmojiPicker(false);
   };
 
   useEffect(() => {
@@ -126,59 +140,49 @@ export default function MessageInput({ onSend, onTyping, className, replyTo, onC
 
   return (
     <div className={cn("relative", className)}>
-      {showGifPicker && (
-        <GifPicker
-          onGifSelect={(gifUrl) => {
-            setSelectedGif(gifUrl);
-            setShowGifPicker(false);
-          }}
-          onClose={() => setShowGifPicker(false)}
-        />
+      {selectedFile && (
+        <div className="mb-3 flex items-center gap-2 p-3 bg-gray-50 rounded-xl border border-gray-200 mx-4">
+          <span className="text-sm flex-1 truncate font-medium text-foreground">{selectedFile.name}</span>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-6 w-6 shrink-0"
+            onClick={() => setSelectedFile(null)}
+            data-testid="button-remove-file"
+          >
+            <Paperclip className="h-4 w-4" />
+          </Button>
+        </div>
       )}
 
-      <div className="rounded-3xl bg-white border border-gray-200 p-3">
-        {selectedFile && (
-          <div className="mb-3 flex items-center gap-2 p-3 bg-gray-50 rounded-xl border border-gray-200">
-            {selectedFile.type.startsWith('image') ? (
-              <ImageIcon className="h-4 w-4 text-primary shrink-0" />
-            ) : (
-              <FileText className="h-4 w-4 text-primary shrink-0" />
-            )}
-            <span className="text-sm flex-1 truncate font-medium text-foreground">{selectedFile.name}</span>
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-6 w-6 shrink-0"
-              onClick={() => setSelectedFile(null)}
-              data-testid="button-remove-file"
-            >
-              <X className="h-4 w-4" />
-            </Button>
+      {replyTo && (
+        <div className="flex items-center gap-2 p-3 mx-4 rounded-lg border-l-4 border-primary bg-primary/5 mb-3">
+          <div className="flex-1 min-w-0">
+            <div className="text-xs font-semibold text-primary">Replying to</div>
+            <div className="text-sm text-foreground truncate">
+              {replyTo.text?.substring(0, 50) || "Message"}
+            </div>
           </div>
-        )}
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-6 w-6 shrink-0"
+            onClick={onClearReply}
+            data-testid="button-clear-reply"
+          >
+            <Paperclip className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
 
-        {selectedGif && (
-          <div className="mb-3 relative">
-            <img src={selectedGif} alt="Selected GIF" className="rounded-2xl max-h-40 w-auto" />
-            <Button
-              size="icon"
-              variant="ghost"
-              className="absolute top-1 right-1 h-6 w-6 bg-white/90 backdrop-blur-sm rounded-full"
-              onClick={() => setSelectedGif(null)}
-              data-testid="button-remove-gif"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-        )}
-
-        <div className="flex items-end gap-1.5">
+      <div className="px-4 py-3">
+        <div className="flex items-end gap-2 bg-white border border-gray-200 rounded-full px-3 py-2">
           <input
             type="file"
             ref={fileInputRef}
             className="hidden"
             onChange={handleFileSelect}
-            accept="image/*,video/*,application/pdf"
+            accept="image/*,video/*"
             data-testid="input-file"
           />
           <input
@@ -190,75 +194,57 @@ export default function MessageInput({ onSend, onTyping, className, replyTo, onC
             data-testid="input-document"
           />
 
-          <Button
-            size="icon"
-            variant="ghost"
-            className="shrink-0 text-primary hover:bg-primary/10 rounded-full h-9 w-9"
-            onClick={() => fileInputRef.current?.click()}
-            data-testid="button-gallery"
-            title="Gallery"
-          >
-            <ImageIcon className="h-5 w-5" />
-          </Button>
-
-          <Button
-            size="icon"
-            variant="ghost"
-            className="shrink-0 text-primary hover:bg-primary/10 rounded-full h-9 w-9"
-            onClick={() => docInputRef.current?.click()}
-            data-testid="button-document"
-            title="Document"
-          >
-            <FileText className="h-5 w-5" />
-          </Button>
-
-          <Button
-            size="icon"
-            variant="ghost"
-            className="shrink-0 text-primary hover:bg-primary/10 rounded-full h-9 w-9"
-            onClick={() => setShowGifPicker(!showGifPicker)}
-            data-testid="button-gif"
-            title="GIF"
-          >
-            <SiGiphy className="h-5 w-5" />
-          </Button>
+          <AttachmentMenu
+            onGallerySelect={() => fileInputRef.current?.click()}
+            onDocumentSelect={() => docInputRef.current?.click()}
+            onCameraSelect={() => console.log("Camera not yet implemented")}
+            onVoiceSelect={() => console.log("Voice not yet implemented")}
+            onAudioSelect={() => console.log("Audio not yet implemented")}
+            onContactSelect={() => console.log("Contact not yet implemented")}
+            onLocationSelect={() => console.log("Location not yet implemented")}
+          />
 
           <Textarea
             ref={textareaRef}
             value={message}
-            onChange={(e) => {
-              setMessage(e.target.value);
-              if (!isTyping && e.target.value.trim()) {
-                setIsTyping(true);
-                onTyping?.(true);
-              } else if (isTyping && !e.target.value.trim()) {
-                setIsTyping(false);
-                onTyping?.(false);
-                if (typingTimeoutRef.current) {
-                  clearTimeout(typingTimeoutRef.current);
-                }
-              }
-            }}
+            onChange={(e) => setMessage(e.target.value)}
             onKeyDown={handleKeyPress}
-            placeholder="Aa"
-            className="resize-none border-0 focus-visible:ring-0 bg-transparent text-base leading-6 font-normal text-foreground"
-            style={{ height: `${textareaHeight}px`, minHeight: '40px', maxHeight: '120px' }}
+            placeholder="Type a message"
+            className="flex-1 resize-none border-0 focus-visible:ring-0 bg-transparent text-base leading-6 font-normal text-foreground p-0 m-0"
+            style={{ height: `${textareaHeight}px`, minHeight: '24px', maxHeight: '120px' }}
             data-testid="input-message"
           />
 
-          <EmojiPicker onSelect={handleEmojiSelect} />
+          <div className="flex items-center gap-1">
+            <Button
+              size="icon"
+              variant="ghost"
+              className="shrink-0 text-primary hover:bg-primary/10 rounded-full h-8 w-8"
+              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+              data-testid="button-emoji"
+              title="Emoji"
+            >
+              <Smile className="h-5 w-5" />
+            </Button>
 
-          <Button
-            size="icon"
-            onClick={handleSend}
-            disabled={!message.trim() && !selectedFile && !selectedGif}
-            className="shrink-0 rounded-full bg-primary hover:bg-blue-600 disabled:opacity-50 text-white"
-            data-testid="button-send"
-            title="Send message"
-          >
-            <Send className="h-5 w-5" />
-          </Button>
+            <Button
+              size="icon"
+              onClick={handleSend}
+              disabled={!message.trim() && !selectedFile && !selectedGif}
+              className="shrink-0 rounded-full bg-primary hover:bg-blue-600 disabled:opacity-50 text-white h-8 w-8"
+              data-testid="button-send"
+              title={message.trim() ? "Send message" : "Hold to record voice"}
+            >
+              {message.trim() ? <Send className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+            </Button>
+          </div>
         </div>
+
+        {showEmojiPicker && (
+          <div className="absolute bottom-20 right-4 z-50">
+            <EmojiPicker onSelect={handleEmojiSelect} />
+          </div>
+        )}
       </div>
     </div>
   );
