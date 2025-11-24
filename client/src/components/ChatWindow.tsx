@@ -8,8 +8,9 @@ import { ArrowLeft, MoreVertical, Phone, Video, Search, Trash2, VolumeOff, Alert
 import { cn } from "@/lib/utils";
 import { useMessages, Message } from "@/hooks/useMessages";
 import { useSocketMessages } from "@/hooks/useSocketMessages";
-import { usePresence } from "@/hooks/usePresence";
 import { useAuth } from "@/contexts/AuthContext";
+import { database } from "@/lib/firebase";
+import { ref, onValue, off } from "firebase/database";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -59,11 +60,29 @@ export default function ChatWindow({ chatId, contact, onBack, isTyping }: ChatWi
   const [replyTo, setReplyTo] = useState<Message | null>(null);
   const [isMuted, setIsMuted] = useState(false);
   const { user } = useAuth();
-  const contactPresence = usePresence(contact.userId);
+  const [contactOnline, setContactOnline] = useState(false);
 
+  // Simple direct listener for contact's online status
   useEffect(() => {
-    console.log("ChatWindow: contactPresence updated:", contactPresence);
-  }, [contactPresence]);
+    if (!contact.userId) return;
+
+    const presenceRef = ref(database, `presence/${contact.userId}`);
+    const unsubscribe = onValue(
+      presenceRef,
+      (snapshot) => {
+        const data = snapshot.val();
+        const isOnline = data?.isOnline === true;
+        setContactOnline(isOnline);
+        console.log(`ChatWindow: ${contact.name} status updated - isOnline: ${isOnline}`);
+      },
+      (error) => {
+        console.error("ChatWindow: Error reading presence:", error);
+        setContactOnline(false);
+      }
+    );
+
+    return () => off(presenceRef, "value", unsubscribe);
+  }, [contact.userId, contact.name]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -212,14 +231,10 @@ export default function ChatWindow({ chatId, contact, onBack, isTyping }: ChatWi
                       <span className="w-1 h-1 bg-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
                     </span>
                   </span>
-                ) : contactPresence?.isOnline ? (
+                ) : contactOnline ? (
                   <span className="flex items-center gap-1.5 text-emerald-400">
                     <span className="status-indicator status-online status-pulse"></span>
                     <span>online</span>
-                  </span>
-                ) : contactPresence?.lastSeen ? (
-                  <span className="text-muted-foreground">
-                    {formatLastSeen(contactPresence.lastSeen)}
                   </span>
                 ) : (
                   <span className="flex items-center gap-1.5 text-amber-600">
