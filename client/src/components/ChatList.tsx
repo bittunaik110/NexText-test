@@ -82,10 +82,10 @@ export default function ChatList({
 
   return (
     <>
-      <div className="flex h-full flex-col border-r border-border bg-card/60 backdrop-blur-xl">
-        <div className="sticky top-0 z-10 border-b border-border bg-card/80 backdrop-blur-xl p-4">
+      <div className="flex h-full flex-col border-r border-border bg-white">
+        <div className="sticky top-0 z-10 border-b border-border bg-white p-4">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+            <h1 className="text-2xl font-bold text-foreground">
               Chats
             </h1>
             <div className="flex items-center gap-2">
@@ -120,6 +120,18 @@ export default function ChatList({
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
+          </div>
+
+          <div className="flex gap-2 mb-4 -mx-2 px-2 overflow-x-auto">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div 
+                key={i}
+                className="flex-shrink-0 w-14 h-14 bg-gradient-to-br from-primary to-blue-600 rounded-full flex items-center justify-center text-white font-bold cursor-pointer hover:opacity-80 transition-opacity"
+                data-testid={`story-${i}`}
+              >
+                +
+              </div>
+            ))}
           </div>
 
           <div className="relative mb-3">

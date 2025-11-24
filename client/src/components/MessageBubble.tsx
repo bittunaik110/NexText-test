@@ -47,10 +47,10 @@ export default function MessageBubble({
       <div className={cn("relative max-w-[85%] sm:max-w-[75%] min-w-[100px]")}>
         <div 
           className={cn(
-            "px-4 py-2.5 rounded-3xl relative backdrop-blur-xl transition-all duration-200",
+            "px-4 py-2.5 rounded-3xl relative transition-all duration-200",
             sent 
-              ? "bg-gradient-to-br from-primary via-purple-500 to-accent text-white shadow-lg hover:shadow-xl" 
-              : "bg-white/10 border border-white/20 text-foreground hover:bg-white/15"
+              ? "bg-primary text-white shadow-md hover:shadow-lg" 
+              : "bg-gray-200 text-foreground hover:bg-gray-300"
           )}
           onContextMenu={(e) => {
             e.preventDefault();

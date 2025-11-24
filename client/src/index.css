@@ -3,41 +3,41 @@
 @tailwind components;
 @tailwind utilities;
 
-/* PREMIUM DARK THEME - NexText */
+/* Facebook Messenger Theme - NexText */
 :root {
-  --button-outline: rgba(255,255,255, .10);
-  --badge-outline: rgba(255,255,255, .05);
+  --button-outline: rgba(0,132,255, .10);
+  --badge-outline: rgba(0,132,255, .05);
   --opaque-button-border-intensity: 9;
-  --elevate-1: rgba(255,255,255, .04);
-  --elevate-2: rgba(255,255,255, .09);
+  --elevate-1: rgba(0,132,255, .04);
+  --elevate-2: rgba(0,132,255, .09);
 
-  /* Modern Premium Gradient Theme */
-  --background: 217 33% 7%;
-  --foreground: 210 40% 98%;
-  --border: 217 32% 15%;
-  --card: 217 32% 12%;
-  --card-foreground: 210 40% 98%;
-  --card-border: 217 32% 18%;
+  /* Facebook Messenger Theme - White & Blue */
+  --background: 0 0% 100%;
+  --foreground: 0 0% 0%;
+  --border: 0 0% 90%;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 0%;
+  --card-border: 0 0% 92%;
 
-  /* Premium Gradients */
-  --primary: 280 100% 56%;
-  --primary-foreground: 0 0% 98%;
-  --secondary: 189 94% 43%;
-  --secondary-foreground: 0 0% 98%;
-  --accent: 280 100% 56%;
-  --accent-foreground: 0 0% 98%;
-  --muted: 217 32% 22%;
-  --muted-foreground: 217 10% 65%;
+  /* Facebook Messenger Blue */
+  --primary: 213 100% 50%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 213 100% 50%;
+  --secondary-foreground: 0 0% 100%;
+  --accent: 213 100% 50%;
+  --accent-foreground: 0 0% 100%;
+  --muted: 0 0% 95%;
+  --muted-foreground: 0 0% 65%;
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 98%;
 
   /* Chat Colors */
-  --chat-sent: 280 100% 56%;
-  --chat-received: 217 32% 18%;
-  --online-status: 34 197 94%;
+  --chat-sent: 213 100% 50%;
+  --chat-received: 0 0% 94%;
+  --online-status: 120 100% 50%;
 
-  --input: 217 32% 18%;
-  --ring: 280 100% 56%;
+  --input: 0 0% 95%;
+  --ring: 213 100% 50%;
   --chart-1: 280 100% 70%;
   --chart-2: 189 94% 65%;
   --chart-3: 320 100% 68%;

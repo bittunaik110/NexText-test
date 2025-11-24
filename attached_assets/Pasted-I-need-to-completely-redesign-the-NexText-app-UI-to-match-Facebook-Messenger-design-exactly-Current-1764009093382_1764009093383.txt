@@ -1,0 +1,65 @@
+I need to completely redesign the NexText app UI to match Facebook Messenger design exactly. Current app has purple gradient theme, but I need the clean, modern Facebook Messenger look.
+
+DESIGN REQUIREMENTS (Facebook Messenger UI):
+
+1. COLOR SCHEME:
+   - Remove ALL purple gradients
+   - Use Facebook Messenger blue (#0084FF) for primary actions
+   - White/light gray background (#FFFFFF, #F0F2F5)
+   - Clean, minimal design like the reference images
+
+2. CHAT LIST SCREEN:
+   - Add Stories/Status row at top with horizontal scroll
+   - Circular avatars with + button for "Your story"
+   - Green dot indicator for online users (small, positioned on avatar)
+   - Clean white background
+   - Better spacing between chat items
+   - Show profile pictures for all chats
+   - Message preview text in gray
+   - Timestamp on the right side
+   - Read/unread status indicator (blue dot for unread)
+
+3. CHAT WINDOW:
+   - Header: Clean white background with user name
+   - User avatar on left of header
+   - Blue voice/video call buttons on right
+   - Message bubbles: Blue (#0084FF) for sent, Light gray (#E4E6EB) for received
+   - Rounded corners on bubbles (more rounded than current)
+   - Better message spacing
+   - Profile picture next to received messages
+   - Message status icons below sent messages (not inside)
+   - Smooth animations
+
+4. MESSAGE INPUT:
+   - Clean white background
+   - Rounded input field with light gray border
+   - Blue send button (Messenger blue)
+   - Icon buttons: Camera, Image, Mic, Emoji, Like button
+   - Modern icon design
+
+5. BOTTOM NAVIGATION:
+   - Clean white background
+   - Icon + label format
+   - Messenger blue for active tab
+   - Gray for inactive tabs
+   - Tabs: Chats, People/Contacts, Stories/Status (with notification badge if needed)
+
+6. TYPOGRAPHY:
+   - Use system fonts (SF Pro on iOS, Roboto on Android feel)
+   - Clean, readable text
+   - Proper font weights (semibold for names, regular for messages)
+
+7. KEEP ALL FEATURES:
+   - All WhatsApp-like chat functionality
+   - Message status ticks (pending → sent → delivered → read)
+   - Online/offline presence
+   - Typing indicators
+   - Unread badges
+   - No auto-opening chats
+
+REMOVE:
+   - All purple gradients and colors
+   - Dark theme (use light theme like Messenger)
+   - Current styling that doesn't match Messenger
+
+Please redesign the ENTIRE UI to look exactly like Facebook Messenger while keeping all chat features working. Make it look professional and polished like the real Messenger app.
