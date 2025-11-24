@@ -125,7 +125,20 @@ export default function MessageInput({ onSend, onTyping, className, replyTo, onC
   };
 
   const handleEmojiSelect = (emoji: string) => {
-    setMessage(prev => prev + emoji);
+    if (textareaRef.current) {
+      const start = textareaRef.current.selectionStart;
+      const end = textareaRef.current.selectionEnd;
+      const text = message.substring(0, start) + emoji + message.substring(end);
+      setMessage(text);
+      setTimeout(() => {
+        if (textareaRef.current) {
+          textareaRef.current.selectionStart = textareaRef.current.selectionEnd = start + emoji.length;
+          textareaRef.current.focus();
+        }
+      }, 0);
+    } else {
+      setMessage(prev => prev + emoji);
+    }
     setShowEmojiPicker(false);
   };
 
@@ -241,7 +254,7 @@ export default function MessageInput({ onSend, onTyping, className, replyTo, onC
         </div>
 
         {showEmojiPicker && (
-          <div className="absolute bottom-20 right-4 z-50">
+          <div className="absolute bottom-16 -right-2 z-50 bg-white rounded-2xl shadow-xl border border-gray-200">
             <EmojiPicker onSelect={handleEmojiSelect} />
           </div>
         )}

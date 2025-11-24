@@ -50,15 +50,34 @@ export default function AttachmentMenu({
 
   const handleSelect = (id: string) => {
     const handlers: Record<string, () => void> = {
-      camera: onCameraSelect || (() => {}),
-      gallery: onGallerySelect,
-      document: onDocumentSelect,
-      contact: onContactSelect || (() => {}),
-      location: onLocationSelect || (() => {}),
-      audio: onAudioSelect || (() => {}),
-      voice: onVoiceSelect || (() => {}),
+      camera: () => {
+        onCameraSelect?.();
+        console.log("📸 Camera feature coming soon");
+      },
+      gallery: () => {
+        onGallerySelect();
+      },
+      document: () => {
+        onDocumentSelect();
+      },
+      contact: () => {
+        onContactSelect?.();
+        console.log("👤 Contact share coming soon");
+      },
+      location: () => {
+        onLocationSelect?.();
+        console.log("📍 Location share coming soon");
+      },
+      audio: () => {
+        onAudioSelect?.();
+        console.log("🎵 Audio share coming soon");
+      },
+      voice: () => {
+        onVoiceSelect?.();
+        console.log("🎤 Voice message recording");
+      },
     };
-    handlers[id]();
+    handlers[id]?.();
     setIsOpen(false);
   };
 

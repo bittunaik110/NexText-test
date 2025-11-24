@@ -56,6 +56,7 @@ export default function ChatWindow({ chatId, contact, onBack, isTyping }: ChatWi
   }, [startTyping, stopTyping]);
   const { toast } = useToast();
   const [showClearDialog, setShowClearDialog] = useState(false);
+  const [replyTo, setReplyTo] = useState<Message | null>(null);
   const [isMuted, setIsMuted] = useState(false);
   const { user } = useAuth();
   const contactPresence = usePresence(contact.userId);
@@ -319,6 +320,8 @@ export default function ChatWindow({ chatId, contact, onBack, isTyping }: ChatWi
         <MessageInput 
           onSend={sendMessage}
           onTyping={handleTypingChange}
+          replyTo={replyTo}
+          onClearReply={() => setReplyTo(null)}
         />
       </div>
 
