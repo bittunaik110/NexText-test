@@ -1,58 +1,102 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import UserAvatar from "@/components/UserAvatar";
 import { ArrowLeft, Phone, Video, PhoneIncoming, PhoneOutgoing, PhoneMissed, PhoneOff, MessageCircle, User } from "lucide-react";
 import { useLocation } from "wouter";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { useAuth } from "@/contexts/AuthContext";
+import { database } from "@/lib/firebase";
+import { ref, query, orderByChild, limitToLast, onValue } from "firebase/database";
+import { AudioPlayer } from "@/components/AudioPlayer";
 
 interface Call {
   id: string;
+  callId: string;
+  initiator: string;
+  recipient: string;
+  initiatorName: string;
+  recipientName: string;
   user: {
     name: string;
     avatar?: string;
   };
   type: "audio" | "video";
-  direction: "incoming" | "outgoing" | "missed";
+  direction: "incoming" | "outgoing" | "missed" | "declined";
   timestamp: Date;
+  duration: number;
+  status: string;
+  recording?: {
+    url: string;
+    duration: number;
+    savedAt: number;
+  };
+  chatId: string;
 }
 
 export default function CallsPage() {
+  const { user } = useAuth();
   const [, setLocation] = useLocation();
-  const now = new Date();
+  const [calls, setCalls] = useState<Call[]>([]);
   const [videoCallOpen, setVideoCallOpen] = useState(false);
   const [voiceCallOpen, setVoiceCallOpen] = useState(false);
 
-  const [calls] = useState<Call[]>([
-    {
-      id: "1",
-      user: { name: "Sarah Chen" },
-      type: "video",
-      direction: "outgoing",
-      timestamp: new Date(now.getTime() - 3600000),
-    },
-    {
-      id: "2",
-      user: { name: "Mike Wilson" },
-      type: "audio",
-      direction: "incoming",
-      timestamp: new Date(now.getTime() - 7200000),
-    },
-    {
-      id: "3",
-      user: { name: "Emily Rodriguez" },
-      type: "video",
-      direction: "missed",
-      timestamp: new Date(now.getTime() - 86400000),
-    },
-    {
-      id: "4",
-      user: { name: "David Lee" },
-      type: "audio",
-      direction: "outgoing",
-      timestamp: new Date(now.getTime() - 172800000),
-    },
-  ]);
+  // Load calls from Firebase
+  useEffect(() => {
+    if (!user?.uid) return;
+
+    const callsRef = ref(database, "calls");
+    const q = query(callsRef, limitToLast(50));
+
+    const unsubscribe = onValue(q, (snapshot) => {
+      const allCalls: Call[] = [];
+
+      snapshot.forEach((chatSnapshot) => {
+        chatSnapshot.forEach((callSnapshot) => {
+          const callData = callSnapshot.val();
+          const isInitiator = callData.initiator === user.uid;
+
+          // Determine direction
+          let direction: "incoming" | "outgoing" | "missed" | "declined" = "incoming";
+          if (isInitiator) {
+            direction = "outgoing";
+          } else if (callData.status === "missed") {
+            direction = "missed";
+          } else if (callData.status === "declined") {
+            direction = "declined";
+          }
+
+          allCalls.push({
+            id: callData.callId,
+            callId: callData.callId,
+            initiator: callData.initiator,
+            recipient: callData.recipient,
+            initiatorName: callData.initiatorName,
+            recipientName: callData.recipientName,
+            user: {
+              name: isInitiator ? callData.recipientName : callData.initiatorName,
+            },
+            type: "audio",
+            direction,
+            timestamp: new Date(callData.startTime),
+            duration: callData.duration || 0,
+            status: callData.status,
+            recording: callData.recording,
+            chatId: chatSnapshot.key,
+          });
+        });
+      });
+
+      // Sort by timestamp descending
+      allCalls.sort(
+        (a, b) => b.timestamp.getTime() - a.timestamp.getTime()
+      );
+
+      setCalls(allCalls);
+    });
+
+    return () => unsubscribe();
+  }, [user?.uid]);
 
   const getCallIcon = (direction: string) => {
     switch (direction) {
@@ -68,14 +112,24 @@ export default function CallsPage() {
   };
 
   const formatTimestamp = (timestamp: Date) => {
+    const now = new Date();
     const diff = now.getTime() - timestamp.getTime();
     const hours = Math.floor(diff / 3600000);
     const days = Math.floor(diff / 86400000);
 
+    if (hours < 1) return "just now";
     if (hours < 24) {
       return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
     }
     return `${days} day${days !== 1 ? 's' : ''} ago`;
+  };
+
+  const formatDuration = (seconds: number) => {
+    if (seconds === 0) return "0s";
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    if (mins === 0) return `${secs}s`;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
   return (
@@ -94,36 +148,55 @@ export default function CallsPage() {
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        {calls.map((call) => (
-          <div
-            key={call.id}
-            className="flex items-center gap-3 p-4 hover:bg-muted/30 cursor-pointer transition-colors border-b border-border/50"
-          >
-            <UserAvatar name={call.user.name} src={call.user.avatar} size="lg" />
-            <div className="flex-1 min-w-0">
-              <h3 className={`font-semibold ${call.direction === 'missed' ? 'text-red-500' : ''}`}>
-                {call.user.name}
-              </h3>
-              <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                {getCallIcon(call.direction)}
-                <span className="capitalize">{call.direction}</span>
-                <span>·</span>
-                <span>{formatTimestamp(call.timestamp)}</span>
-              </div>
-            </div>
-            <Button
-              size="icon"
-              variant="ghost"
-              className="shrink-0"
-            >
-              {call.type === "video" ? (
-                <Video className="h-5 w-5 text-primary" />
-              ) : (
-                <Phone className="h-5 w-5 text-primary" />
-              )}
-            </Button>
+        {calls.length === 0 ? (
+          <div className="flex items-center justify-center h-full text-muted-foreground">
+            <p>No calls yet</p>
           </div>
-        ))}
+        ) : (
+          calls.map((call) => (
+            <div
+              key={call.id}
+              className="flex items-center gap-3 p-4 hover:bg-muted/30 cursor-pointer transition-colors border-b border-border/50"
+              data-testid={`call-item-${call.id}`}
+            >
+              <UserAvatar name={call.user.name} src={call.user.avatar} size="lg" />
+              <div className="flex-1 min-w-0">
+                <h3 className={`font-semibold ${call.direction === 'missed' ? 'text-red-500' : ''}`}>
+                  {call.user.name}
+                </h3>
+                <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                  {getCallIcon(call.direction)}
+                  <span className="capitalize">{call.direction}</span>
+                  <span>·</span>
+                  <span>{formatTimestamp(call.timestamp)}</span>
+                  {call.duration > 0 && (
+                    <>
+                      <span>·</span>
+                      <span>{formatDuration(call.duration)}</span>
+                    </>
+                  )}
+                </div>
+                {call.recording && (
+                  <div className="mt-2">
+                    <AudioPlayer url={call.recording.url} title={`Call with ${call.user.name}`} />
+                  </div>
+                )}
+              </div>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="shrink-0"
+                data-testid={`button-call-type-${call.id}`}
+              >
+                {call.type === "video" ? (
+                  <Video className="h-5 w-5 text-primary" />
+                ) : (
+                  <Phone className="h-5 w-5 text-primary" />
+                )}
+              </Button>
+            </div>
+          ))
+        )}
       </div>
 
       {/* Floating Action Buttons */}

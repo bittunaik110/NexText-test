@@ -248,15 +248,13 @@ export default function ChatWindow({ chatId, contact, onBack, isTyping }: ChatWi
           </div>
 
           <div className="flex gap-2">
-            <Button 
-              size="icon" 
-              variant="ghost"
-              onClick={handleVoiceCall}
-              data-testid="button-voice-call"
-              className="text-primary hover:bg-primary/10"
-            >
-              <Phone className="h-5 w-5" />
-            </Button>
+            <CallButton
+              contactId={contact.userId || ""}
+              contactName={contact.name}
+              chatId={chatId}
+              currentUserName={user?.displayName || "User"}
+              isOnline={contactOnline}
+            />
             <Button 
               size="icon" 
               variant="ghost"
