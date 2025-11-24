@@ -16,8 +16,28 @@ export default function Home() {
   const [selectedChat, setSelectedChat] = useState<string | undefined>();
   const [connectModalOpen, setConnectModalOpen] = useState(false);
   const [, setLocation] = useLocation();
+  const [hideBottomNav, setHideBottomNav] = useState(false);
   const { chats, loading } = useChats();
   const { user } = useAuth();
+
+  // Handle keyboard visibility on mobile
+  useEffect(() => {
+    const handleFocus = () => setHideBottomNav(true);
+    const handleBlur = () => setHideBottomNav(false);
+    
+    const inputs = document.querySelectorAll('input, textarea');
+    inputs.forEach(input => {
+      input.addEventListener('focus', handleFocus);
+      input.addEventListener('blur', handleBlur);
+    });
+    
+    return () => {
+      inputs.forEach(input => {
+        input.removeEventListener('focus', handleFocus);
+        input.removeEventListener('blur', handleBlur);
+      });
+    };
+  }, []);
 
   // Fetch user data from backend - will be loaded dynamically
   const [userProfile, setUserProfile] = useState({
@@ -191,7 +211,7 @@ export default function Home() {
       </div>
 
       {/* Persistent Bottom Navigation - Always visible on small screens */}
-      <div className="md:hidden sticky bottom-0 border-t border-gray-200 bg-white z-50">
+      <div className={cn("md:hidden sticky bottom-0 border-t border-gray-200 bg-white z-50 transition-all duration-300", hideBottomNav ? "translate-y-full" : "translate-y-0")}>
         <div className="flex items-center justify-around">
           <Button
             variant="ghost"

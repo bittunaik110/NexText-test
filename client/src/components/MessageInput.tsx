@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Paperclip, X, Image as ImageIcon, FileText, Mic } from "lucide-react";
+import { Send, Paperclip, X, Image as ImageIcon, FileText, Mic, Camera, Plus } from "lucide-react";
 import { SiGiphy } from "react-icons/si";
 import { cn } from "@/lib/utils";
 import EmojiPicker from "./EmojiPicker";
@@ -172,7 +172,7 @@ export default function MessageInput({ onSend, onTyping, className, replyTo, onC
           </div>
         )}
 
-        <div className="flex items-end gap-2">
+        <div className="flex items-end gap-1.5">
           <input
             type="file"
             ref={fileInputRef}
@@ -193,21 +193,21 @@ export default function MessageInput({ onSend, onTyping, className, replyTo, onC
           <Button
             size="icon"
             variant="ghost"
-            className="shrink-0 text-primary hover:bg-primary/10 rounded-full"
+            className="shrink-0 text-primary hover:bg-primary/10 rounded-full h-9 w-9"
             onClick={() => fileInputRef.current?.click()}
-            data-testid="button-attach"
-            title="Attach image or video"
+            data-testid="button-gallery"
+            title="Gallery"
           >
-            <Paperclip className="h-5 w-5" />
+            <ImageIcon className="h-5 w-5" />
           </Button>
 
           <Button
             size="icon"
             variant="ghost"
-            className="shrink-0 text-primary hover:bg-primary/10 rounded-full"
+            className="shrink-0 text-primary hover:bg-primary/10 rounded-full h-9 w-9"
             onClick={() => docInputRef.current?.click()}
             data-testid="button-document"
-            title="Attach document"
+            title="Document"
           >
             <FileText className="h-5 w-5" />
           </Button>
@@ -215,10 +215,10 @@ export default function MessageInput({ onSend, onTyping, className, replyTo, onC
           <Button
             size="icon"
             variant="ghost"
-            className="shrink-0 text-primary hover:bg-primary/10 rounded-full"
+            className="shrink-0 text-primary hover:bg-primary/10 rounded-full h-9 w-9"
             onClick={() => setShowGifPicker(!showGifPicker)}
             data-testid="button-gif"
-            title="Add GIF"
+            title="GIF"
           >
             <SiGiphy className="h-5 w-5" />
           </Button>
