@@ -100,6 +100,9 @@ export default function Home() {
     console.log("Connection successful, chats should refresh automatically via useChats listener");
   };
 
+  // Hide navbar when in chat view
+  const showBottomNav = !selectedChat;
+
   // Maps chat data for display in the ChatList component
   const displayChats = chats.map(chat => {
     // Determine the other participant in the chat
@@ -210,8 +213,8 @@ export default function Home() {
         />
       </div>
 
-      {/* Persistent Bottom Navigation - Always visible on small screens */}
-      <div className={cn("md:hidden sticky bottom-0 border-t border-gray-200 bg-white z-50 transition-all duration-300", hideBottomNav ? "translate-y-full" : "translate-y-0")}>
+      {/* Persistent Bottom Navigation - Only visible in chat list */}
+      <div className={cn("md:hidden sticky bottom-0 border-t border-gray-200 bg-white z-50 transition-all duration-300", !showBottomNav || hideBottomNav ? "translate-y-full" : "translate-y-0")}>
         <div className="flex items-center justify-around">
           <Button
             variant="ghost"

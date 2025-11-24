@@ -95,8 +95,8 @@ export default function AttachmentMenu({
       </Button>
 
       {isOpen && (
-        <div className="absolute bottom-12 left-0 bg-white border border-gray-200 rounded-2xl shadow-xl p-3 z-50 animate-in fade-in slide-in-from-bottom-2 duration-200">
-          <div className="grid grid-cols-3 gap-3">
+        <div className="absolute bottom-12 -left-8 bg-white border border-gray-200 rounded-2xl shadow-xl p-4 z-50 animate-in fade-in slide-in-from-bottom-2 duration-200 min-w-80">
+          <div className="grid grid-cols-3 gap-4">
             {attachmentOptions.map((option) => {
               const Icon = option.icon;
               return (

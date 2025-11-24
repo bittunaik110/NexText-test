@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Mic, Smile, Paperclip } from "lucide-react";
+import { Send, Mic, Smile, Paperclip, X, Square } from "lucide-react";
 import { cn } from "@/lib/utils";
 import EmojiPicker from "./EmojiPicker";
 import AttachmentMenu from "./AttachmentMenu";
 import { Message } from "@/hooks/useMessages";
+import VoiceMessage from "./VoiceMessage";
 
 interface MessageInputProps {
   onSend: (text: string, mediaUrl?: string, gifUrl?: string, replyTo?: string, voiceUrl?: string) => void;
@@ -20,6 +21,8 @@ export default function MessageInput({ onSend, onTyping, className, replyTo, onC
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedGif, setSelectedGif] = useState<string | null>(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
+  const [isRecordingVoice, setIsRecordingVoice] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const docInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -142,6 +145,22 @@ export default function MessageInput({ onSend, onTyping, className, replyTo, onC
     setShowEmojiPicker(false);
   };
 
+  const handleVoiceRecordingComplete = async (audioUrl: string, duration: number) => {
+    try {
+      const { uploadFile } = await import("@/lib/uploadFile");
+      const response = await fetch(audioUrl);
+      const blob = await response.blob();
+      const file = new File([blob], `voice-${Date.now()}.webm`, { type: "audio/webm" });
+      const fileUrl = await uploadFile(file);
+      onSend("", fileUrl, undefined, replyTo?.id);
+      setShowVoiceRecorder(false);
+      setIsRecordingVoice(false);
+      onClearReply?.();
+    } catch (error) {
+      console.error("Failed to send voice message:", error);
+    }
+  };
+
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
@@ -240,16 +259,28 @@ export default function MessageInput({ onSend, onTyping, className, replyTo, onC
               <Smile className="h-5 w-5" />
             </Button>
 
-            <Button
-              size="icon"
-              onClick={handleSend}
-              disabled={!message.trim() && !selectedFile && !selectedGif}
-              className="shrink-0 rounded-full bg-primary hover:bg-blue-600 disabled:opacity-50 text-white h-8 w-8"
-              data-testid="button-send"
-              title={message.trim() ? "Send message" : "Hold to record voice"}
-            >
-              {message.trim() ? <Send className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-            </Button>
+            {!message.trim() && !selectedFile && !selectedGif ? (
+              <Button
+                size="icon"
+                onClick={() => setShowVoiceRecorder(true)}
+                className="shrink-0 rounded-full bg-primary hover:bg-blue-600 text-white h-8 w-8"
+                data-testid="button-voice"
+                title="Record voice message"
+              >
+                <Mic className="h-4 w-4" />
+              </Button>
+            ) : (
+              <Button
+                size="icon"
+                onClick={handleSend}
+                disabled={!message.trim() && !selectedFile && !selectedGif}
+                className="shrink-0 rounded-full bg-primary hover:bg-blue-600 disabled:opacity-50 text-white h-8 w-8"
+                data-testid="button-send"
+                title="Send message"
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            )}
           </div>
         </div>
 
@@ -259,6 +290,16 @@ export default function MessageInput({ onSend, onTyping, className, replyTo, onC
           </div>
         )}
       </div>
+
+      {showVoiceRecorder && (
+        <VoiceMessage
+          onSend={handleVoiceRecordingComplete}
+          onCancel={() => {
+            setShowVoiceRecorder(false);
+            setIsRecordingVoice(false);
+          }}
+        />
+      )}
     </div>
   );
 }
