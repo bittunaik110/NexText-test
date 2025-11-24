@@ -4,7 +4,7 @@ import UserAvatar from "./UserAvatar";
 import MessageBubble from "./MessageBubble";
 import MessageInput from "./MessageInput";
 import TypingIndicator from "./TypingIndicator";
-import { ArrowLeft, MoreVertical, Phone, Video, Search, Trash2, VolumeOff, AlertCircle, Ban } from "lucide-react";
+import { ArrowLeft, MoreVertical, Phone, Video, Search, Trash2, VolumeOff, AlertCircle, Ban, PhoneCall } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMessages, Message } from "@/hooks/useMessages";
 import { useSocketMessages } from "@/hooks/useSocketMessages";
@@ -29,6 +29,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
+import { CallButton } from "./CallButton";
 
 interface ChatWindowProps {
   chatId: string;

@@ -1,0 +1,119 @@
+IMPLEMENT WEBRTC VOICE CALL FEATURE - COMPREHENSIVE REQUIREMENTS:
+
+1. VOICE CALL FUNCTIONALITY (WebRTC - Free/Open Source):
+   a) Use simple-peer or peerjs for WebRTC
+   b) When user clicks call button on contact:
+      - Initiate peer connection
+      - Request microphone permission
+      - Show calling UI: "Calling [contactName]..."
+      - Show answer/decline buttons on recipient side
+   c) Once connected:
+      - Start audio stream
+      - Show call duration timer
+      - Show end call button
+      - Show mute/unmute button
+   d) When call ends:
+      - Close peer connection
+      - Save call to history
+
+2. CALL RECORDING (Optional with Play Button):
+   a) If user enables recording:
+      - Use MediaRecorder API to record audio
+      - Save as audio file
+      - When call ends, save recording to database
+   b) In Calls tab:
+      - Show small PLAY button next to recorded calls
+      - Click to play recording
+      - Show duration of recording
+
+3. CALL HISTORY - SAVE TO DATABASE:
+   a) When call INITIATES:
+      - Save to Firebase: 
+        Path: calls/{chatId}/{callId}
+        Data: {
+          callId: unique_id,
+          initiator: currentUserId,
+          recipient: contactUserId,
+          startTime: timestamp,
+          status: 'initiated',
+          duration: 0,
+          callType: 'audio',
+          recording: null (if no recording)
+        }
+   b) When call ENDS:
+      - Update duration: Math.floor(endTime - startTime)
+      - Update status: 'completed' or 'missed' or 'declined'
+      - If recording: save audio blob to Firebase Storage and add URL
+
+4. CALLS TAB DISPLAY:
+   a) Show all calls from database:
+      - Avatar + Contact name
+      - Call type icon: outgoing (green arrow), incoming (blue arrow), missed (red X)
+      - Timestamp: "1 hour ago", "2 days ago"
+      - Duration: "00:45" if call completed
+   b) For recorded calls:
+      - Show small PLAY BUTTON (▶️) on the right
+      - Click to play recording
+   c) Click on call item:
+      - Show call details
+      - If recording: play option
+      - Option to call same contact again
+
+5. CALL INITIATION FLOW:
+   a) In Chats tab or Contacts:
+      - Add CALL button next to contact name
+      - Icon: 📞 or ☎️
+   b) Click call button:
+      - Check if contact is online
+      - Send call notification to recipient
+      - Start calling UI
+      - Save call initiation to DB
+   c) Recipient receives notification:
+      - Show "[ContactName] is calling..."
+      - Answer or Decline buttons
+      - If decline: mark as 'declined' in DB
+      - If answer: connect peers
+
+6. DATABASE SCHEMA:
+   calls collection:
+   {
+     callId: string,
+     chatId: string,
+     initiator: { id, name, avatar },
+     recipient: { id, name, avatar },
+     startTime: timestamp,
+     endTime: timestamp,
+     duration: number (seconds),
+     status: 'initiated'|'ringing'|'completed'|'missed'|'declined',
+     callType: 'audio'|'video' (for future),
+     recording: {
+       url: string (Firebase Storage URL),
+       duration: number,
+       savedAt: timestamp
+     },
+     createdAt: timestamp
+   }
+
+7. UI COMPONENTS NEEDED:
+   a) CallButton.tsx - In chat header/contact list
+   b) CallingModal.tsx - Show during active call
+   c) CallNotificationModal.tsx - Show incoming call
+   d) CallHistory.tsx - Display calls in Calls tab
+   e) CallRecordingPlayer.tsx - Play recorded calls
+   f) CallDurationTimer.tsx - Show call length
+
+8. TESTING REQUIREMENTS:
+   a) Test call initiation and database save
+   b) Test peer connection (use 2 browser tabs)
+   c) Test call recording if enabled
+   d) Test call history display
+   e) Test play button for recordings
+   f) Verify all calls saved correctly to DB
+
+9. AFTER COMPLETION:
+   a) Create README in FEATURES_DETAILS_ folder
+   b) File name: VOICE_CALL_FEATURE.md
+   c) Include: How to use, WebRTC setup, call recording, DB schema, testing guide
+
+IMPLEMENT THIS COMPREHENSIVE VOICE CALL FEATURE NOW!
+Work in parallel on all components and test thoroughly!
