@@ -1,0 +1,57 @@
+FIX ONLINE/OFFLINE STATUS NOT UPDATING IN DATABASE:
+
+Issue: User says "I am online but online indicator not showing"
+Problem: Database not correctly storing user online status
+
+1. CHECK & FIX USER STATUS STORAGE:
+   a) Check Firebase Firestore user document structure
+   b) Verify 'isOnline' field exists and is being updated
+   c) Fix: User status should be updated in:
+      Path: users/{userId}
+      Field: isOnline (boolean: true/false)
+      Also store: lastSeen (timestamp)
+   d) Status must sync in real-time
+
+2. REAL-TIME STATUS UPDATE ON APP LOAD:
+   a) When user opens app/enters chat: set isOnline = true
+   b) When user closes app/leaves: set isOnline = false
+   c) Use Firebase presence system or polling
+   d) Update immediately (not delayed)
+
+3. LISTEN TO USER STATUS CHANGES:
+   a) ChatWindow must LISTEN to realtime changes
+   b) Use Firestore .onSnapshot() listener
+   c) When isOnline changes in DB, UI updates instantly
+   d) Show green dot when isOnline = true
+   e) Show yellow dot when isOnline = false
+
+4. FIX CHAT WINDOW STATUS DISPLAY:
+   a) Get current contact's isOnline status from DB
+   b) Use useEffect to listen to status changes
+   c) Update component state when status changes
+   d) Display correct indicator based on real DB value
+
+5. IMPLEMENT PRESENCE TRACKING:
+   a) Track when user is active/inactive
+   b) On app load: set isOnline = true
+   c) On window close: set isOnline = false
+   d) On page visibility change: update status
+   e) Handle connection loss gracefully
+
+6. DEBUG CHECKLIST:
+   - Verify Firebase has users collection
+   - Verify each user has isOnline field
+   - Check Firestore security rules allow updates
+   - Test manual update in Firebase console
+   - Verify listeners are working
+   - Check component receives status updates
+   - Verify UI updates when status changes
+
+7. TEST WORKFLOW:
+   a) User opens app -> isOnline becomes true in DB
+   b) UI shows green dot with "online"
+   c) Close app/tab -> isOnline becomes false
+   d) UI shows yellow dot with "offline"
+   e) Refresh page -> correct status displays
+
+Fix this CRITICAL issue NOW. Make online status work perfectly!

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { database } from "@/lib/firebase";
-import { ref, onValue, off } from "firebase/database";
+import { ref, onValue, off, set } from "firebase/database";
 import { useAuth } from "@/contexts/AuthContext";
 
 export interface UserPresence {
@@ -46,32 +46,39 @@ export function useMyPresence() {
   useEffect(() => {
     if (!user?.uid) return;
 
+    console.log("useMyPresence: Setting up presence tracking for user:", user.uid);
+
     // Update presence when component mounts
     const updatePresence = async (isOnline: boolean = true) => {
       const presenceRef = ref(database, `presence/${user.uid}`);
       try {
-        const { set: fbSet } = await import("firebase/database");
-        await fbSet(presenceRef, {
+        await set(presenceRef, {
           isOnline,
           lastSeen: Date.now(),
+          userId: user.uid,
         });
+        console.log("useMyPresence: Updated presence to", isOnline);
       } catch (error) {
         console.error("Error updating presence:", error);
       }
     };
 
+    // Set online immediately
     updatePresence(true);
 
-    // Update presence every 15 seconds (more frequent)
+    // Update presence every 15 seconds to keep alive
     const interval = setInterval(() => updatePresence(true), 15000);
 
     // Update presence when page visibility changes
     const handleVisibilityChange = () => {
-      updatePresence(!document.hidden);
+      const newStatus = !document.hidden;
+      console.log("useMyPresence: Visibility changed, isOnline =", newStatus);
+      updatePresence(newStatus);
     };
 
     // Handle before unload to set offline
     const handleBeforeUnload = () => {
+      console.log("useMyPresence: Window unloading, setting offline");
       updatePresence(false);
     };
 
@@ -83,7 +90,7 @@ export function useMyPresence() {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       window.removeEventListener("beforeunload", handleBeforeUnload);
       // Set offline when component unmounts
-      updatePresence(false);
+      updatePresence(false).catch(err => console.error("Error setting offline:", err));
     };
   }, [user?.uid]);
 }
