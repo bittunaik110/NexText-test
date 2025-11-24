@@ -1,23 +1,30 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Paperclip, X, Image as ImageIcon, FileText } from "lucide-react";
+import { Send, Paperclip, X, Image as ImageIcon, FileText, Mic } from "lucide-react";
 import { SiGiphy } from "react-icons/si";
 import { cn } from "@/lib/utils";
 import EmojiPicker from "./EmojiPicker";
 import GifPicker from "./GifPicker";
+import { Message } from "@/hooks/useMessages";
+import ReplyIndicator from "@/components/ReplyIndicator";
+import VoiceMessage from "@/components/VoiceMessage";
 
 interface MessageInputProps {
-  onSend: (text: string, mediaUrl?: string, gifUrl?: string) => void;
+  onSend: (text: string, mediaUrl?: string, gifUrl?: string, replyTo?: string, voiceUrl?: string) => void;
   onTyping?: (isTyping: boolean) => void;
   className?: string;
+  replyTo?: Message | null;
+  onClearReply?: () => void;
 }
 
-export default function MessageInput({ onSend, onTyping, className }: MessageInputProps) {
+export default function MessageInput({ onSend, onTyping, className, replyTo, onClearReply }: MessageInputProps) {
   const [message, setMessage] = useState("");
   const [showGifPicker, setShowGifPicker] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedGif, setSelectedGif] = useState<string | null>(null);
+  const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const docInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);

@@ -58,12 +58,15 @@ export default function MessageBubble({
           }}
         >
           {imageUrl && (
-            <img 
-              src={imageUrl} 
-              alt="Shared" 
-              className="rounded-2xl mb-2 max-w-full h-auto max-h-64 object-cover" 
-              data-testid="message-image"
-            />
+            <div className="mb-2 rounded-2xl overflow-hidden">
+              <img 
+                src={imageUrl} 
+                alt="Shared" 
+                className="rounded-2xl max-w-full h-auto max-h-64 object-cover hover:opacity-90 transition-opacity cursor-pointer" 
+                data-testid="message-image"
+                onClick={() => window.open(imageUrl, '_blank')}
+              />
+            </div>
           )}
           {videoUrl && (
             <video 
@@ -98,7 +101,7 @@ export default function MessageBubble({
                 {status === "pending" && <Clock className="h-3.5 w-3.5 text-white/60" />}
                 {status === "sent" && <Check className="h-3.5 w-3.5 text-white/70" />}
                 {status === "delivered" && <CheckCheck className="h-3.5 w-3.5 text-white/70" />}
-                {status === "read" && <CheckCheck className="h-3.5 w-3.5 text-blue-400" />}
+                {status === "read" && <CheckCheck className="h-3.5 w-3.5 text-white" style={{ color: '#0084FF' }} />}
               </span>
             )}
           </div>
