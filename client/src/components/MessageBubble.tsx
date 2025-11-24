@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
-import { Check, CheckCheck, Smile, Clock } from "lucide-react";
+import { Check, CheckCheck, Smile, Clock, Play, Pause } from "lucide-react";
 import { format } from "date-fns";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 
 interface MessageBubbleProps {
@@ -13,6 +13,8 @@ interface MessageBubbleProps {
   videoUrl?: string;
   fileUrl?: string;
   fileName?: string;
+  voiceUrl?: string;
+  voiceDuration?: number;
   reactions?: Record<string, string>;
   onReact?: (emoji: string) => void;
   onLongPress?: () => void;
@@ -29,11 +31,32 @@ export default function MessageBubble({
   videoUrl,
   fileUrl,
   fileName,
+  voiceUrl,
+  voiceDuration = 0,
   reactions = {},
   onReact,
   onLongPress
 }: MessageBubbleProps) {
   const [showReactions, setShowReactions] = useState(false);
+  const [isPlayingVoice, setIsPlayingVoice] = useState(false);
+  const voiceAudioRef = useRef<HTMLAudioElement>(null);
+
+  const formatVoiceTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
+
+  const handlePlayVoice = () => {
+    if (voiceAudioRef.current) {
+      if (isPlayingVoice) {
+        voiceAudioRef.current.pause();
+      } else {
+        voiceAudioRef.current.play();
+      }
+      setIsPlayingVoice(!isPlayingVoice);
+    }
+  };
 
   const reactionCounts = Object.entries(
     Object.values(reactions).reduce((acc, emoji) => {
@@ -85,6 +108,32 @@ export default function MessageBubble({
             >
               <span className="text-sm truncate font-medium">{fileName}</span>
             </a>
+          )}
+          {voiceUrl && (
+            <div className="mb-2 flex items-center gap-2 p-2 bg-white/20 rounded-lg">
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-8 w-8 rounded-full shrink-0"
+                onClick={handlePlayVoice}
+                data-testid="button-play-voice-message"
+              >
+                {isPlayingVoice ? (
+                  <Pause className="h-4 w-4" />
+                ) : (
+                  <Play className="h-4 w-4" />
+                )}
+              </Button>
+              <audio
+                ref={voiceAudioRef}
+                src={voiceUrl}
+                onEnded={() => setIsPlayingVoice(false)}
+                data-testid="audio-message-player"
+              />
+              <div className="text-xs font-medium">
+                {formatVoiceTime(voiceDuration)}
+              </div>
+            </div>
           )}
           {text && (
             <p className="text-[15px] break-words leading-6 font-normal whitespace-pre-wrap pr-16 pb-1">

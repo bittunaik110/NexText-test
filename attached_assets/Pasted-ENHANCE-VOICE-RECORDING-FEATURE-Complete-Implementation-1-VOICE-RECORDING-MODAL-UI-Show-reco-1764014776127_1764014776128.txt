@@ -1,0 +1,59 @@
+ENHANCE VOICE RECORDING FEATURE - Complete Implementation:
+
+1. VOICE RECORDING MODAL UI:
+- Show recording timer (00:00 format)
+- Display waveform or recording indicator animation
+- Three buttons at bottom:
+  a) CANCEL button (X) - discard recording
+  b) REPLAY button (▶️) - play preview of recording
+  c) SEND/SHARE button (✓) - send the voice message
+
+2. PREVIEW & PLAYBACK:
+- After recording stops, show PLAY button (▶️) on right side of modal
+- Users can click to HEAR the recording before sending
+- Show duration of recording (e.g., "0:15" for 15 seconds)
+- Display waveform visualization while playing
+- Easy to retry or discard
+
+3. LOCAL STORAGE:
+- Store recorded audio blob to browser's localStorage
+- Save with key like: `voiceRecord_temp_{timestamp}`
+- Keep recording in memory during preview phase
+- Don't upload to DB yet - ONLY in local storage
+- Show recording duration and metadata in localStorage
+
+4. SHARE TO DATABASE:
+- When user clicks SEND/SHARE button:
+  a) Convert audio blob to base64 string
+  b) Save to Firebase as:
+     - Path: messages/{chatId}/{messageId}
+     - Store: { type: 'voice', audioData: base64, duration: seconds, timestamp: ... }
+  c) Send message with voice file reference
+  d) Show upload progress (if file is large)
+  e) Clear localStorage after successful upload
+
+5. VOICE MESSAGE DISPLAY IN CHAT:
+- Show voice message in chat bubble on RIGHT side (user's message)
+- Display:
+  📎 Voice message icon
+  "0:15" (duration)
+  ▶️ PLAY button on right
+- When clicked, play audio in browser
+- Show play progress bar
+
+6. TECHNICAL REQUIREMENTS:
+- Use MediaRecorder API for recording
+- Store as audio/webm or audio/mp3 format
+- Use localStorage.setItem() for temp storage
+- Use Firebase firestore.collection().add() for DB save
+- Implement base64 encoding for audio data
+- Handle file size limits (max 10MB)
+
+7. UX POLISH:
+- Smooth animations for modal
+- Clear visual feedback during recording
+- Success notification after upload
+- Error handling for permission denied
+- Cleanup old recordings from localStorage
+
+Make this PRODUCTION-READY with full testing!
