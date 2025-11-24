@@ -214,7 +214,8 @@ export default function Home() {
       </div>
 
       {/* Persistent Bottom Navigation - Only visible in chat list */}
-      <div className={cn("md:hidden sticky bottom-0 border-t border-gray-200 bg-white z-50 transition-all duration-300", !showBottomNav || hideBottomNav ? "translate-y-full" : "translate-y-0")}>
+      {showBottomNav && (
+      <div className="md:hidden sticky bottom-0 border-t border-gray-200 bg-white z-50">
         <div className="flex items-center justify-around">
           <Button
             variant="ghost"
@@ -251,6 +252,8 @@ export default function Home() {
           </Button>
         </div>
       </div>
+      )}
+
     </div>
   );
 }
