@@ -1,7 +1,9 @@
+import { useState, useRef } from "react";
 import { cn } from "@/lib/utils";
 import UserAvatar from "./UserAvatar";
 import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow, format } from "date-fns";
+import ContactNameDialog from "./ContactNameDialog";
 
 interface ChatListItemProps {
   name: string;
@@ -13,6 +15,8 @@ interface ChatListItemProps {
   active?: boolean;
   onClick?: () => void;
   lastSeen?: number;
+  userId?: string;
+  onSaveCustomName?: (customName: string) => void;
 }
 
 const formatLastSeen = (lastSeenTime?: number): string => {
@@ -41,16 +45,44 @@ export default function ChatListItem({
   active,
   onClick,
   lastSeen,
+  userId,
+  onSaveCustomName,
 }: ChatListItemProps) {
+  const [showNameDialog, setShowNameDialog] = useState(false);
+  const longPressRef = useRef<{ timeout?: NodeJS.Timeout; start?: number }>({});
+
+  const handleLongPress = () => {
+    setShowNameDialog(true);
+  };
+
+  const handleMouseDown = () => {
+    longPressRef.current.start = Date.now();
+    longPressRef.current.timeout = setTimeout(() => {
+      handleLongPress();
+    }, 500);
+  };
+
+  const handleMouseUp = () => {
+    if (longPressRef.current.timeout) {
+      clearTimeout(longPressRef.current.timeout);
+    }
+  };
+
   return (
-    <div
-      onClick={onClick}
-      className={cn(
-        "flex items-center gap-3 p-3 rounded-2xl cursor-pointer transition-all duration-300",
-        active ? "bg-gray-100 border border-gray-200" : "hover:bg-gray-50 border border-transparent"
-      )}
-      data-testid={`chat-${name.toLowerCase().replace(/\s+/g, '-')}`}
-    >
+    <>
+      <div
+        onClick={onClick}
+        onMouseDown={handleMouseDown}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+        onTouchStart={handleMouseDown}
+        onTouchEnd={handleMouseUp}
+        className={cn(
+          "flex items-center gap-3 p-3 rounded-2xl cursor-pointer transition-all duration-300 select-none",
+          active ? "bg-gray-100 border border-gray-200" : "hover:bg-gray-50 border border-transparent"
+        )}
+        data-testid={`chat-${name.toLowerCase().replace(/\s+/g, '-')}`}
+      >
       <UserAvatar name={name} src={avatar} online={online} size="md" />
 
       <div className="flex-1 min-w-0">
@@ -71,6 +103,19 @@ export default function ChatListItem({
           {unreadCount > 99 ? '99+' : unreadCount}
         </div>
       )}
-    </div>
+      </div>
+
+      {userId && (
+        <ContactNameDialog
+          open={showNameDialog}
+          onOpenChange={setShowNameDialog}
+          contactName={name}
+          originalName={name}
+          onSave={(customName) => {
+            onSaveCustomName?.(customName);
+          }}
+        />
+      )}
+    </>
   );
 }

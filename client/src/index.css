@@ -66,6 +66,13 @@
   --spacing: 0.25rem;
 }
 
+/* Hide bottom navbar when keyboard is visible on mobile */
+@media (max-height: 500px) {
+  .md\:hidden.sticky.bottom-0 {
+    display: none !important;
+  }
+}
+
 @layer base {
   * {
     @apply border-border;
