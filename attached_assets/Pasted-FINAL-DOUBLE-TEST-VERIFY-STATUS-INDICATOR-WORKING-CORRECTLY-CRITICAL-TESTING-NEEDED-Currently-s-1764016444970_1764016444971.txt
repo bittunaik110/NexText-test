@@ -1,0 +1,45 @@
+FINAL DOUBLE TEST - VERIFY STATUS INDICATOR WORKING CORRECTLY:
+
+CRITICAL TESTING NEEDED:
+Currently showing 🟡 offline on header, but we need to verify:
+
+1. IMMEDIATE TEST:
+   a) Check Firebase database - is current USER's isOnline field set to TRUE?
+   b) Does ChatWindow component correctly READ the contact's isOnline from DB?
+   c) Does header indicator UPDATE IN REAL-TIME when status changes?
+   d) Is the green 🟢 dot with pulse animation showing when isOnline=true?
+   e) Is the yellow 🟡 dot static (no animation) showing when isOnline=false?
+
+2. TEST DIFFERENT SCENARIOS:
+   a) Check user's own status in Firebase (should be true since app is open)
+   b) Manually toggle isOnline in Firebase console and watch header update
+   c) Does status change in real-time? (within 2-3 seconds)
+   d) Test with multiple chats - does each show correct status?
+
+3. VERIFY LISTENER SETUP:
+   a) Is ChatWindow using .onSnapshot() listener for contact's data?
+   b) Does listener trigger when contact's isOnline changes in DB?
+   c) Component state updates correctly?
+   d) UI re-renders with new status indicator?
+
+4. CHECK FOR BUGS:
+   a) Status indicator shows but not updating - WHY?
+   b) Is listener connected properly?
+   c) Are there console errors about listeners?
+   d) Is real-time sync working or is it delayed?
+
+5. FIX IF NEEDED:
+   - If not updating: ensure ChatWindow has active listener
+   - If colors wrong: verify CSS colors are correct
+   - If animation missing: verify pulse keyframes are applied
+
+AFTER TESTING, ANSWER THESE FOLLOW-UP QUESTIONS:
+   Q1: Is current user's status showing correctly as ONLINE in their own header?
+   Q2: When contact status changes in DB, does UI update within 3 seconds?
+   Q3: Are pulse animations working on green dot for ONLINE users?
+   Q4: Is yellow dot STATIC (no animation) for OFFLINE users?
+   Q5: Does header indicator work consistently across different chats?
+   Q6: Are there any console errors or warnings?
+   Q7: Do we need to add manual status toggle for testing?
+
+Do comprehensive testing NOW and provide detailed answers to all questions!

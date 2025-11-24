@@ -14,27 +14,37 @@ export function usePresence(userId: string | undefined) {
   const { user } = useAuth();
 
   useEffect(() => {
-    if (!userId) return;
+    if (!userId) {
+      console.log("usePresence: No userId provided, skipping listener setup");
+      return;
+    }
+
+    console.log("usePresence: Setting up listener for userId:", userId);
 
     const presenceRef = ref(database, `presence/${userId}`);
     const unsubscribe = onValue(
       presenceRef,
       (snapshot) => {
         const data = snapshot.val();
+        console.log("usePresence: Received presence data for", userId, ":", data);
         if (data) {
           setPresence({
             userId,
             isOnline: data.isOnline || false,
             lastSeen: data.lastSeen || Date.now(),
           });
+          console.log("usePresence: Updated state for", userId, "- isOnline:", data.isOnline);
         }
       },
       (error) => {
-        console.error("Error fetching presence:", error);
+        console.error("usePresence: Error fetching presence:", error);
       }
     );
 
-    return () => off(presenceRef, "value", unsubscribe);
+    return () => {
+      console.log("usePresence: Cleaning up listener for userId:", userId);
+      off(presenceRef, "value", unsubscribe);
+    };
   }, [userId]);
 
   return presence;

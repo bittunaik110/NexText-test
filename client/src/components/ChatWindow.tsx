@@ -61,6 +61,10 @@ export default function ChatWindow({ chatId, contact, onBack, isTyping }: ChatWi
   const { user } = useAuth();
   const contactPresence = usePresence(contact.userId);
 
+  useEffect(() => {
+    console.log("ChatWindow: contactPresence updated:", contactPresence);
+  }, [contactPresence]);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
