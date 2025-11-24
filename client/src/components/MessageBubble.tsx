@@ -43,11 +43,11 @@ export default function MessageBubble({
   );
 
   return (
-    <div className={cn("flex w-full mb-3 animate-message-send group", sent ? "justify-end" : "justify-start")}>
+    <div className={cn("flex w-full mb-2 animate-message-send group", sent ? "justify-end" : "justify-start")}>
       <div className={cn("relative max-w-[85%] sm:max-w-[75%] min-w-[100px]")}>
         <div 
           className={cn(
-            "px-4 py-2.5 rounded-3xl relative transition-all duration-200",
+            "px-4 py-2.5 rounded-2xl relative transition-all duration-200",
             sent 
               ? "bg-primary text-white shadow-md hover:shadow-lg" 
               : "bg-gray-200 text-foreground hover:bg-gray-300"

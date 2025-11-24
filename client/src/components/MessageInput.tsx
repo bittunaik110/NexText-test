@@ -129,15 +129,15 @@ export default function MessageInput({ onSend, onTyping, className }: MessageInp
         />
       )}
 
-      <div className="rounded-2xl glass-effect p-4">
+      <div className="rounded-3xl bg-white border border-gray-200 p-3">
         {selectedFile && (
-          <div className="mb-3 flex items-center gap-2 p-3 bg-white/5 rounded-lg border border-white/10">
+          <div className="mb-3 flex items-center gap-2 p-3 bg-gray-50 rounded-xl border border-gray-200">
             {selectedFile.type.startsWith('image') ? (
               <ImageIcon className="h-4 w-4 text-primary shrink-0" />
             ) : (
               <FileText className="h-4 w-4 text-primary shrink-0" />
             )}
-            <span className="text-sm flex-1 truncate font-medium">{selectedFile.name}</span>
+            <span className="text-sm flex-1 truncate font-medium text-foreground">{selectedFile.name}</span>
             <Button
               size="icon"
               variant="ghost"
@@ -152,11 +152,11 @@ export default function MessageInput({ onSend, onTyping, className }: MessageInp
 
         {selectedGif && (
           <div className="mb-3 relative">
-            <img src={selectedGif} alt="Selected GIF" className="rounded-lg max-h-40 w-auto" />
+            <img src={selectedGif} alt="Selected GIF" className="rounded-2xl max-h-40 w-auto" />
             <Button
               size="icon"
               variant="ghost"
-              className="absolute top-1 right-1 h-6 w-6 bg-background/80 backdrop-blur-sm"
+              className="absolute top-1 right-1 h-6 w-6 bg-white/90 backdrop-blur-sm rounded-full"
               onClick={() => setSelectedGif(null)}
               data-testid="button-remove-gif"
             >
@@ -186,7 +186,7 @@ export default function MessageInput({ onSend, onTyping, className }: MessageInp
           <Button
             size="icon"
             variant="ghost"
-            className="shrink-0 hover:bg-white/10"
+            className="shrink-0 text-primary hover:bg-primary/10 rounded-full"
             onClick={() => fileInputRef.current?.click()}
             data-testid="button-attach"
             title="Attach image or video"
@@ -197,7 +197,7 @@ export default function MessageInput({ onSend, onTyping, className }: MessageInp
           <Button
             size="icon"
             variant="ghost"
-            className="shrink-0 hover:bg-white/10"
+            className="shrink-0 text-primary hover:bg-primary/10 rounded-full"
             onClick={() => docInputRef.current?.click()}
             data-testid="button-document"
             title="Attach document"
@@ -208,7 +208,7 @@ export default function MessageInput({ onSend, onTyping, className }: MessageInp
           <Button
             size="icon"
             variant="ghost"
-            className="shrink-0 hover:bg-white/10"
+            className="shrink-0 text-primary hover:bg-primary/10 rounded-full"
             onClick={() => setShowGifPicker(!showGifPicker)}
             data-testid="button-gif"
             title="Add GIF"
@@ -233,8 +233,8 @@ export default function MessageInput({ onSend, onTyping, className }: MessageInp
               }
             }}
             onKeyDown={handleKeyPress}
-            placeholder="Type a message..."
-            className="resize-none border-0 focus-visible:ring-0 bg-transparent text-base leading-6 font-normal"
+            placeholder="Aa"
+            className="resize-none border-0 focus-visible:ring-0 bg-transparent text-base leading-6 font-normal text-foreground"
             style={{ height: `${textareaHeight}px`, minHeight: '40px', maxHeight: '120px' }}
             data-testid="input-message"
           />
@@ -245,7 +245,7 @@ export default function MessageInput({ onSend, onTyping, className }: MessageInp
             size="icon"
             onClick={handleSend}
             disabled={!message.trim() && !selectedFile && !selectedGif}
-            className="shrink-0 rounded-full bg-gradient-to-r from-primary to-accent hover:opacity-90 disabled:opacity-50"
+            className="shrink-0 rounded-full bg-primary hover:bg-blue-600 disabled:opacity-50 text-white"
             data-testid="button-send"
             title="Send message"
           >

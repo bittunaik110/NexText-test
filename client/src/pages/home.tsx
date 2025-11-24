@@ -9,6 +9,7 @@ import { MessageCircle, Phone, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useChats } from "@/hooks/useChats";
 import { useAuth } from "@/contexts/AuthContext";
+import { cn } from "@/lib/utils";
 
 export default function Home() {
   const [view, setView] = useState<"chats" | "profile">("chats");
@@ -190,37 +191,40 @@ export default function Home() {
       </div>
 
       {/* Persistent Bottom Navigation - Always visible on small screens */}
-      <div className="md:hidden sticky bottom-0 border-t border-border bg-card/60 backdrop-blur-xl z-50">
-        <div className="flex items-center justify-around p-2">
+      <div className="md:hidden sticky bottom-0 border-t border-gray-200 bg-white z-50">
+        <div className="flex items-center justify-around">
           <Button
             variant="ghost"
             size="sm"
-            className="flex-1 flex flex-col items-center gap-1 h-auto py-2"
+            className={cn("flex-1 flex flex-col items-center gap-1 h-auto py-3 rounded-none", !selectedChat ? "text-primary border-b-2 border-primary" : "text-muted-foreground")}
             onClick={() => {
               setSelectedChat(undefined);
               setLocation("/");
             }}
+            data-testid="nav-chats"
           >
             <MessageCircle className="h-5 w-5" />
-            <span className="text-xs">Chats</span>
+            <span className="text-xs font-medium">Chats</span>
           </Button>
           <Button
             variant="ghost"
             size="sm"
-            className="flex-1 flex flex-col items-center gap-1 h-auto py-2"
+            className="flex-1 flex flex-col items-center gap-1 h-auto py-3 rounded-none text-muted-foreground hover:text-foreground"
             onClick={() => setLocation("/status")}
+            data-testid="nav-status"
           >
             <Users className="h-5 w-5" />
-            <span className="text-xs">Status</span>
+            <span className="text-xs font-medium">People</span>
           </Button>
           <Button
             variant="ghost"
             size="sm"
-            className="flex-1 flex flex-col items-center gap-1 h-auto py-2"
+            className="flex-1 flex flex-col items-center gap-1 h-auto py-3 rounded-none text-muted-foreground hover:text-foreground"
             onClick={() => setLocation("/calls")}
+            data-testid="nav-calls"
           >
             <Phone className="h-5 w-5" />
-            <span className="text-xs">Calls</span>
+            <span className="text-xs font-medium">Calls</span>
           </Button>
         </div>
       </div>

@@ -46,9 +46,8 @@ export default function ChatListItem({
     <div
       onClick={onClick}
       className={cn(
-        "flex items-center gap-3 p-4 rounded-2xl cursor-pointer transition-all duration-300 hover-elevate",
-        "hover:bg-white/5 active:bg-white/10",
-        active ? "bg-gradient-to-r from-primary/20 to-accent/10 border border-primary/30" : "border border-transparent"
+        "flex items-center gap-3 p-3 rounded-2xl cursor-pointer transition-all duration-300",
+        active ? "bg-gray-100 border border-gray-200" : "hover:bg-gray-50 border border-transparent"
       )}
       data-testid={`chat-${name.toLowerCase().replace(/\s+/g, '-')}`}
     >

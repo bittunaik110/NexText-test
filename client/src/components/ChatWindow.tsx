@@ -178,72 +178,74 @@ export default function ChatWindow({ chatId, contact, onBack, isTyping }: ChatWi
 
   return (
     <div className="flex flex-col h-screen bg-background">
-      <div className="sticky top-0 z-10 px-4 py-3 border-b border-border bg-card/60 backdrop-blur-xl">
-        <div className="flex items-center gap-3">
-          {onBack && (
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={onBack}
-              className="md:hidden"
-              data-testid="button-back"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          )}
-          
-          <UserAvatar name={contact.name} src={contact.avatar} online={contact.online} />
-          
-          <div className="flex-1 min-w-0">
-            <h2 className="font-semibold text-foreground truncate">{contact.name}</h2>
-            <p className={cn(
-              "text-xs font-medium transition-all duration-200",
-              isTyping ? "text-green-500" : contactPresence?.isOnline ? "text-green-500" : "text-muted-foreground"
-            )}>
-              {isTyping ? (
-                <span className="flex items-center gap-1 text-green-500">
-                  typing
-                  <span className="inline-flex gap-0.5 ml-0.5">
-                    <span className="w-1 h-1 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                    <span className="w-1 h-1 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                    <span className="w-1 h-1 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+      <div className="sticky top-0 z-10 px-4 py-3 border-b border-border bg-white shadow-sm">
+        <div className="flex items-center gap-3 justify-between">
+          <div className="flex items-center gap-3 flex-1">
+            {onBack && (
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={onBack}
+                className="md:hidden text-foreground"
+                data-testid="button-back"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+            )}
+            
+            <UserAvatar name={contact.name} src={contact.avatar} online={contact.online} size="sm" />
+            
+            <div className="flex-1 min-w-0">
+              <h2 className="font-600 text-foreground truncate text-base">{contact.name}</h2>
+              <p className={cn(
+                "text-xs font-medium transition-all duration-200",
+                isTyping ? "text-primary" : contactPresence?.isOnline ? "text-green-500" : "text-muted-foreground"
+              )}>
+                {isTyping ? (
+                  <span className="flex items-center gap-1 text-primary">
+                    typing
+                    <span className="inline-flex gap-0.5 ml-0.5">
+                      <span className="w-1 h-1 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                      <span className="w-1 h-1 bg-primary rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                      <span className="w-1 h-1 bg-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                    </span>
                   </span>
-                </span>
-              ) : contactPresence?.isOnline ? (
-                <span className="flex items-center gap-1">
-                  <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                  online
-                </span>
-              ) : contactPresence?.lastSeen ? (
-                formatLastSeen(contactPresence.lastSeen)
-              ) : (
-                "offline"
-              )}
-            </p>
+                ) : contactPresence?.isOnline ? (
+                  <span className="flex items-center gap-1">
+                    <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                    online
+                  </span>
+                ) : contactPresence?.lastSeen ? (
+                  formatLastSeen(contactPresence.lastSeen)
+                ) : (
+                  "offline"
+                )}
+              </p>
+            </div>
           </div>
 
-          <div className="flex gap-1">
+          <div className="flex gap-2">
             <Button 
               size="icon" 
               variant="ghost"
               onClick={handleVoiceCall}
               data-testid="button-voice-call"
-              className="hover:bg-white/10"
+              className="text-primary hover:bg-primary/10"
             >
-              <Phone className="h-5 w-5 text-primary" />
+              <Phone className="h-5 w-5" />
             </Button>
             <Button 
               size="icon" 
               variant="ghost"
               onClick={handleVideoCall}
               data-testid="button-video-call"
-              className="hover:bg-white/10"
+              className="text-primary hover:bg-primary/10"
             >
-              <Video className="h-5 w-5 text-primary" />
+              <Video className="h-5 w-5" />
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button size="icon" variant="ghost" data-testid="button-options" className="hover:bg-white/10">
+                <Button size="icon" variant="ghost" data-testid="button-options" className="text-foreground hover:bg-gray-100">
                   <MoreVertical className="h-5 w-5" />
                 </Button>
               </DropdownMenuTrigger>
@@ -276,25 +278,32 @@ export default function ChatWindow({ chatId, contact, onBack, isTyping }: ChatWi
         </div>
       </div>
 
-      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-2">
+      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto px-4 py-6 space-y-1">
         {loading ? (
           <div className="flex items-center justify-center h-full">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
         ) : (
-          messages.map((message) => (
-            <div key={message.id} data-message-id={message.id}>
-              <MessageBubble 
-                text={message.text}
-                sent={message.userId === userId}
-                timestamp={new Date(message.timestamp)}
-                status={message.status || "sent"}
-                imageUrl={message.mediaUrl && message.mediaUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? message.mediaUrl : undefined}
-                videoUrl={message.mediaUrl && message.mediaUrl.match(/\.(mp4|webm|mov)$/i) ? message.mediaUrl : undefined}
-                fileUrl={message.mediaUrl && !message.mediaUrl.match(/\.(jpg|jpeg|png|gif|webp|mp4|webm|mov)$/i) ? message.mediaUrl : undefined}
-                reactions={message.reactions}
-                onReact={(emoji) => reactToMessage(message.id, emoji)}
-              />
+          messages.map((message, index) => (
+            <div key={message.id} data-message-id={message.id} className={cn("flex items-end gap-2", message.userId === userId ? "flex-row-reverse" : "flex-row")}>
+              {message.userId !== userId && (
+                <div className="flex-shrink-0 w-8 h-8">
+                  <UserAvatar name={contact.name} src={contact.avatar} online={contact.online} size="sm" />
+                </div>
+              )}
+              <div>
+                <MessageBubble 
+                  text={message.text}
+                  sent={message.userId === userId}
+                  timestamp={new Date(message.timestamp)}
+                  status={message.status || "sent"}
+                  imageUrl={message.mediaUrl && message.mediaUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? message.mediaUrl : undefined}
+                  videoUrl={message.mediaUrl && message.mediaUrl.match(/\.(mp4|webm|mov)$/i) ? message.mediaUrl : undefined}
+                  fileUrl={message.mediaUrl && !message.mediaUrl.match(/\.(jpg|jpeg|png|gif|webp|mp4|webm|mov)$/i) ? message.mediaUrl : undefined}
+                  reactions={message.reactions}
+                  onReact={(emoji) => reactToMessage(message.id, emoji)}
+                />
+              </div>
             </div>
           ))
         )}
