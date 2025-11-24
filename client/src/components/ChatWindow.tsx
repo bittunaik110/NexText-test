@@ -198,10 +198,7 @@ export default function ChatWindow({ chatId, contact, onBack, isTyping }: ChatWi
             
             <div className="flex-1 min-w-0">
               <h2 className="font-600 text-foreground truncate text-base">{contact.name}</h2>
-              <p className={cn(
-                "text-xs font-medium transition-all duration-200",
-                isTyping ? "text-primary" : contactPresence?.isOnline ? "text-green-500" : "text-muted-foreground"
-              )}>
+              <p className="text-xs font-medium transition-all duration-200">
                 {isTyping ? (
                   <span className="flex items-center gap-1 text-primary">
                     typing
@@ -212,14 +209,19 @@ export default function ChatWindow({ chatId, contact, onBack, isTyping }: ChatWi
                     </span>
                   </span>
                 ) : contactPresence?.isOnline ? (
-                  <span className="flex items-center gap-1">
-                    <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                    online
+                  <span className="flex items-center gap-1.5 text-emerald-400">
+                    <span className="status-indicator status-online status-pulse"></span>
+                    <span>online</span>
                   </span>
                 ) : contactPresence?.lastSeen ? (
-                  formatLastSeen(contactPresence.lastSeen)
+                  <span className="text-muted-foreground">
+                    {formatLastSeen(contactPresence.lastSeen)}
+                  </span>
                 ) : (
-                  "offline"
+                  <span className="flex items-center gap-1.5 text-amber-600">
+                    <span className="status-indicator status-offline"></span>
+                    <span>offline</span>
+                  </span>
                 )}
               </p>
             </div>

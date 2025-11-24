@@ -94,6 +94,33 @@
   scroll-behavior: smooth;
 }
 
+/* Online status pulse animation */
+@keyframes statusPulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.status-pulse {
+  animation: statusPulse 1.5s infinite;
+}
+
+/* Online/Offline status indicator */
+.status-indicator {
+  @apply inline-block rounded-full;
+}
+
+.status-online {
+  @apply w-2 h-2 bg-emerald-400;
+}
+
+.status-offline {
+  @apply w-2 h-2 bg-amber-400;
+}
+
 @layer base {
   * {
     @apply border-border;
