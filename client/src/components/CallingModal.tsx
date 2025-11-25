@@ -1,15 +1,21 @@
+
 import { useEffect, useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import UserAvatar from "./UserAvatar";
-import { PhoneOff, Mic, MicOff } from "lucide-react";
-import { CallData } from "@/hooks/useCall";
+import { PhoneOff, Mic, MicOff, Volume2, VolumeX } from "lucide-react";
+import { CallData } from "@/hooks/useCallWithWebRTC";
 
 interface CallingModalProps {
   isOpen: boolean;
   call: CallData | null;
   duration: number;
   onEndCall: () => void;
+  isMuted: boolean;
+  onMuteToggle: () => void;
+  isSpeakerOn: boolean;
+  onSpeakerToggle: () => void;
+  isInitiator?: boolean;
 }
 
 export function CallingModal({
@@ -17,8 +23,25 @@ export function CallingModal({
   call,
   duration,
   onEndCall,
+  isMuted,
+  onMuteToggle,
+  isSpeakerOn,
+  onSpeakerToggle,
+  isInitiator = false,
 }: CallingModalProps) {
-  const [isMuted, setIsMuted] = useState(false);
+  const [status, setStatus] = useState<string>("Contacting...");
+
+  useEffect(() => {
+    if (!call) return;
+
+    if (call.status === "ringing") {
+      setStatus("Ringing...");
+    } else if (call.status === "connected") {
+      setStatus("Connected");
+    } else {
+      setStatus("Contacting...");
+    }
+  }, [call?.status]);
 
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -26,45 +49,78 @@ export function CallingModal({
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-  return (
-    <Dialog open={isOpen}>
-      <DialogContent className="max-w-md border-0 p-0 overflow-hidden">
-        <div className="flex flex-col items-center justify-center py-12 bg-gradient-to-br from-primary/10 to-accent/10">
-          <UserAvatar
-            name={call?.recipientName || "Contact"}
-            size="lg"
-            className="w-24 h-24 mb-6"
-          />
-          
-          <h2 className="text-2xl font-semibold mb-2">{call?.recipientName}</h2>
-          <p className="text-muted-foreground mb-8 font-mono">
-            {formatDuration(duration)}
-          </p>
+  if (!isOpen || !call) return null;
 
-          <div className="flex gap-4 mb-4">
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-12 w-12 rounded-full hover:bg-muted"
-              onClick={() => setIsMuted(!isMuted)}
-              data-testid="button-toggle-mute"
-            >
-              {isMuted ? (
-                <MicOff className="h-5 w-5" />
-              ) : (
-                <Mic className="h-5 w-5" />
-              )}
-            </Button>
+  const contactName = isInitiator ? call.recipientName : call.initiatorName;
+
+  return (
+    <Dialog open={isOpen} modal>
+      <DialogContent className="max-w-full h-screen p-0 border-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+        <div className="flex flex-col items-center justify-between h-full py-16 px-8">
+          {/* Top section - Avatar and name */}
+          <div className="flex flex-col items-center gap-6 flex-1 justify-center">
+            <UserAvatar
+              name={contactName}
+              size="lg"
+              className="w-32 h-32 ring-4 ring-white/20"
+            />
+            
+            <div className="text-center">
+              <h2 className="text-4xl font-semibold text-white mb-2">
+                {contactName}
+              </h2>
+              <p className="text-xl text-gray-300">
+                {call.status === "connected" ? formatDuration(duration) : status}
+              </p>
+            </div>
           </div>
 
-          <Button
-            size="icon"
-            className="h-14 w-14 rounded-full bg-red-500 hover:bg-red-600"
-            onClick={onEndCall}
-            data-testid="button-end-call"
-          >
-            <PhoneOff className="h-6 w-6" />
-          </Button>
+          {/* Bottom section - Controls */}
+          <div className="flex items-center justify-center gap-6 mb-8">
+            {/* Speaker button */}
+            <Button
+              size="icon"
+              className={`h-16 w-16 rounded-full ${
+                isSpeakerOn
+                  ? "bg-gray-700 hover:bg-gray-600"
+                  : "bg-gray-700 hover:bg-gray-600"
+              }`}
+              onClick={onSpeakerToggle}
+            >
+              {isSpeakerOn ? (
+                <Volume2 className="h-7 w-7 text-white" />
+              ) : (
+                <VolumeX className="h-7 w-7 text-white" />
+              )}
+            </Button>
+
+            {/* Mute button */}
+            <Button
+              size="icon"
+              className={`h-16 w-16 rounded-full ${
+                isMuted
+                  ? "bg-gray-700 hover:bg-gray-600"
+                  : "bg-gray-700 hover:bg-gray-600"
+              }`}
+              onClick={onMuteToggle}
+            >
+              {isMuted ? (
+                <MicOff className="h-7 w-7 text-white" />
+              ) : (
+                <Mic className="h-7 w-7 text-white" />
+              )}
+            </Button>
+
+            {/* End call button */}
+            <Button
+              size="icon"
+              className="h-16 w-16 rounded-full bg-red-500 hover:bg-red-600"
+              onClick={onEndCall}
+              data-testid="button-end-call"
+            >
+              <PhoneOff className="h-7 w-7 text-white" />
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

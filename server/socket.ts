@@ -52,6 +52,12 @@ export function setupSocketIO(httpServer: HTTPServer) {
       socket.to(callData.chatId).emit("callInitiated", callData);
     });
 
+    socket.on("callAnswered", (data: any) => {
+      console.log(`Call answered by ${userId}:`, data);
+      // Notify initiator that call was answered
+      socket.to(data.chatId).emit("callAnswered", data);
+    });
+
     socket.on("callEnded", (data: any) => {
       console.log(`Call ended by ${userId}:`, data);
       // Broadcast call ended to other user in the chat room

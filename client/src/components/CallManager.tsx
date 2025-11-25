@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import { useCallWithWebRTC } from "@/hooks/useCallWithWebRTC";
 import { CallNotificationModal } from "./CallNotificationModal";
 import { CallEndedNotificationModal } from "./CallEndedNotificationModal";
-import { FloatingCallWindow } from "./FloatingCallWindow";
+import { CallingModal } from "./CallingModal";
 import { useSocket } from "@/hooks/useSocket";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function CallManager() {
   const {
@@ -11,12 +12,8 @@ export function CallManager() {
     incomingCall,
     setIncomingCall,
     callDuration,
-    callType,
-    switchCallType,
     isMuted,
     setIsMuted,
-    isVideoEnabled,
-    setIsVideoEnabled,
     isSpeakerOn,
     setIsSpeakerOn,
     answerCall,
@@ -24,6 +21,7 @@ export function CallManager() {
     endCall,
   } = useCallWithWebRTC();
   const { socket } = useSocket();
+  const { user } = useAuth();
   const [showCallEndedModal, setShowCallEndedModal] = useState(false);
   const [endedCallerName, setEndedCallerName] = useState("");
 
@@ -43,21 +41,20 @@ export function CallManager() {
     };
   }, [socket, activeCall?.recipientName, incomingCall?.initiatorName]);
 
+  const isInitiator = activeCall?.initiator === user?.uid;
+
   return (
     <>
-      <FloatingCallWindow
+      <CallingModal
         isOpen={!!activeCall}
         call={activeCall}
         duration={callDuration}
         onEndCall={endCall}
-        callType={callType}
-        onSwitchCallType={switchCallType}
         isMuted={isMuted}
         onMuteToggle={() => setIsMuted(!isMuted)}
-        isVideoEnabled={isVideoEnabled}
-        onVideoToggle={() => setIsVideoEnabled(!isVideoEnabled)}
         isSpeakerOn={isSpeakerOn}
         onSpeakerToggle={() => setIsSpeakerOn(!isSpeakerOn)}
+        isInitiator={isInitiator}
       />
       <CallNotificationModal
         isOpen={!!incomingCall}

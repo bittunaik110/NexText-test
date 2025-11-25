@@ -103,7 +103,7 @@ export function useCallWithWebRTC() {
       recipientName: string,
       contactName: string
     ) => {
-      if (!user || !socket) return;
+      if (!user || !socket || !peerRef.current) return;
 
       const callId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       const callData: CallData = {
@@ -121,6 +121,7 @@ export function useCallWithWebRTC() {
       };
 
       try {
+        console.log("Initiating call to:", recipientId);
         const callRef = ref(database, `calls/${chatId}/${callId}`);
         await set(callRef, callData);
         setActiveCall(callData);
@@ -128,9 +129,43 @@ export function useCallWithWebRTC() {
         // Request microphone
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         mediaStreamRef.current = stream;
+        console.log("Got local audio stream for initiator");
 
         // Start recording
         startRecording(stream);
+
+        // Listen for incoming peer call (when recipient answers)
+        peerRef.current.on("call", (incomingPeerCall) => {
+          console.log("Received peer call from recipient");
+          
+          // Answer with our stream
+          incomingPeerCall.answer(stream);
+          callConnectionRef.current = incomingPeerCall;
+
+          // Listen for their stream
+          incomingPeerCall.on("stream", (remoteStream: MediaStream) => {
+            console.log("Received remote audio stream from recipient");
+            
+            // Play remote audio
+            const audioElement = new Audio();
+            audioElement.srcObject = remoteStream;
+            audioElement.autoplay = true;
+            audioElement.play().catch(err => console.error("Audio play error:", err));
+
+            // Update call status to connected
+            update(callRef, { status: "connected" }).then(() => {
+              setActiveCall(prev => prev ? { ...prev, status: "connected" } : null);
+            });
+          });
+
+          incomingPeerCall.on("close", () => {
+            console.log("Peer call closed by recipient");
+          });
+
+          incomingPeerCall.on("error", (err) => {
+            console.error("Peer call error:", err);
+          });
+        });
 
         // Update status to ringing
         await update(callRef, { status: "ringing" });
@@ -138,7 +173,7 @@ export function useCallWithWebRTC() {
         // Notify recipient via Socket.IO
         socket.emit("callInitiated", { ...callData, status: "ringing" });
 
-        console.log("Call initiated:", callId);
+        console.log("Call initiated successfully:", callId);
         return callId;
       } catch (error) {
         console.error("Error initiating call:", error);
@@ -152,29 +187,55 @@ export function useCallWithWebRTC() {
       if (!user || !socket || !peerRef.current) return;
 
       try {
+        console.log("Answering call from:", callData.initiator);
         const callRef = ref(database, `calls/${callData.chatId}/${callData.callId}`);
 
         // Request microphone
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         mediaStreamRef.current = stream;
+        console.log("Got local audio stream");
 
         // Start recording
         startRecording(stream);
 
-        // Answer PeerJS call if exists
-        const call = peerRef.current.call(callData.initiator, stream);
-        call.on("stream", (remoteStream: MediaStream) => {
-          console.log("Received remote stream");
-          // Here you would pipe the audio to an <audio> element
+        // Call the initiator with our stream
+        const peerCall = peerRef.current.call(callData.initiator, stream);
+        callConnectionRef.current = peerCall;
+        
+        console.log("Calling peer:", callData.initiator);
+
+        // Listen for remote stream
+        peerCall.on("stream", (remoteStream: MediaStream) => {
+          console.log("Received remote audio stream");
+          
+          // Play remote audio
+          const audioElement = new Audio();
+          audioElement.srcObject = remoteStream;
+          audioElement.autoplay = true;
+          audioElement.play().catch(err => console.error("Audio play error:", err));
+        });
+
+        peerCall.on("close", () => {
+          console.log("Peer call closed");
+        });
+
+        peerCall.on("error", (err) => {
+          console.error("Peer call error:", err);
         });
 
         // Update status to connected
         await update(callRef, { status: "connected" });
 
+        // Emit call answered event
+        socket.emit("callAnswered", { 
+          callId: callData.callId, 
+          chatId: callData.chatId 
+        });
+
         setIncomingCall(null);
         setActiveCall({ ...callData, status: "connected" });
 
-        console.log("Call answered");
+        console.log("Call answered successfully");
       } catch (error) {
         console.error("Error answering call:", error);
       }
