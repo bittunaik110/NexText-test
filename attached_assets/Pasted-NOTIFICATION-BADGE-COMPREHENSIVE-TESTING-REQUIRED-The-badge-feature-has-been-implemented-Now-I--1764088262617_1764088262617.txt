@@ -1,0 +1,68 @@
+NOTIFICATION BADGE - COMPREHENSIVE TESTING REQUIRED!
+
+The badge feature has been implemented. Now I need MULTIPLE TEST CASES to verify it works correctly:
+
+TEST CASE 1 - New Messages Add to Badge Count:
+1. Open two browser tabs with different users
+2. User A sends 3 messages to User B
+3. User B should see badge showing "3" on contact
+4. Verify badge appears in RED on chat list item
+5. Screenshot the badge count
+
+TEST CASE 2 - Badge Clears When Chat Opened:
+1. User B opens chat with User A
+2. Badge should DISAPPEAR when chat is opened
+3. Verify unread count resets to 0
+4. Verify mark-as-read logic works
+5. Screenshot showing no badge after opening
+
+TEST CASE 3 - Badge Re-appears with New Messages:
+1. User B closes chat (goes back to chat list)
+2. User A sends MORE messages
+3. Badge should RE-APPEAR with new count
+4. Verify count increments correctly
+5. Screenshot showing badge count again
+
+TEST CASE 4 - Badge Over 99 Shows "99+":
+1. Simulate 100+ unread messages
+2. Badge should show "99+" NOT "100"
+3. Verify dynamic content displays correctly
+4. Screenshot showing "99+"
+
+TEST CASE 5 - Multiple Chats Have Different Badge Counts:
+1. User C sends 5 messages to User B
+2. User A still has 3 unread from earlier
+3. Show 2 different contacts with 2 different badge counts
+4. Verify each chat shows correct number
+5. Screenshot showing multiple badges with different counts
+
+TEST CASE 6 - Badge Persists After App Refresh:
+1. User B has 7 unread messages
+2. REFRESH the browser/app
+3. Badge should STILL SHOW "7"
+4. Verify Firebase persistence works
+5. Screenshot showing badge after refresh
+
+TEST CASE 7 - Total Badge on Chats Tab:
+1. Multiple chats with unread messages (3 + 5 + 2 = 10 total)
+2. "Chats" tab should show TOTAL badge "10"
+3. Verify sum of all unread counts
+4. Screenshot showing total badge on Chats tab
+
+TEST CASE 8 - Badge Styling:
+1. Verify RED background color (hover:bg-red-600)
+2. Verify WHITE text color
+3. Verify proper PADDING/SIZE
+4. Verify SHADOW effect
+5. Take screenshot showing styling
+
+PLEASE:
+1. Run ALL 8 test cases
+2. Take SCREENSHOTS for each test
+3. Verify badge count accuracy
+4. Verify styling matches WhatsApp
+5. Double-check Firebase persistence
+6. Test on 2+ browser tabs
+7. Document all test results
+
+Build and test NOW - need complete verification!
