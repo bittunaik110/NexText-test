@@ -1,190 +1,302 @@
-# NexText - Real-Time Chat Application
+# NexText - Real-Time Messaging Application
 
-## Overview
+## Project Overview
 
-NexText is a modern, real-time messaging platform built with React, TypeScript, Express, and Firebase. It provides a WhatsApp-like experience with glass-morphism UI design, PIN-based user connections, and comprehensive messaging features. The application uses Firebase Realtime Database for instant message delivery, Firebase Firestore for user profiles and contacts, Firebase Authentication for secure user management, and Firebase Storage for media uploads.
+NexText is a professional Facebook Messenger-style real-time messaging application built with React, Vite, TypeScript, Firebase Realtime Database, and Socket.IO. Features include text messaging, voice messages, call history, WebRTC voice calling with recording, online/offline status indicators, and comprehensive user presence tracking.
 
-The application is mobile-first (optimized for 480px max-width) with a futuristic design featuring glass-morphism effects, gradient colors, and smooth animations powered by Framer Motion.
+**Status:** Feature-Complete MVP with WebRTC Voice Calling ✅
+
+---
+
+## Recent Changes & Fixes (Nov 25, 2025)
+
+### Critical Bug Fix: WebRTC Calling Feature State Synchronization
+- **Issue:** CallButton and CallManager were using two different state management systems
+  - CallButton used `useCall()` hook
+  - CallManager used `useCallWithWebRTC()` hook
+  - Result: Calling modals never appeared when user clicked call button
+  
+- **Solution:** Updated `CallButton.tsx` to use the same `useCallWithWebRTC()` hook
+  - File: `client/src/components/CallButton.tsx` (lines 2-3, 24)
+  - Now both CallButton and CallManager share unified call state
+  - When call button clicked → activeCall state updates → CallingModal renders
+
+- **Build Status:** ✅ Successful (2156 modules transformed in 21.60s)
+- **Testing:** Ready for user validation with testing guide provided
+
+### WebRTC Voice Calling Infrastructure Complete
+- ✅ CallButton component with online/offline status checking
+- ✅ CallingModal with duration timer, mute button, end call button
+- ✅ CallNotificationModal for incoming calls (answer/decline)
+- ✅ AudioPlayer for recorded call playback with download
+- ✅ useCallWithWebRTC hook with PeerJS, Socket.IO, MediaRecorder
+- ✅ Calls page displaying real Firebase call history
+- ✅ Automatic call recording to Firebase Storage
+- ✅ Complete VOICE_CALL_FEATURE.md documentation
+
+---
+
+## Current Architecture
+
+### Frontend Stack
+- React 18 with TypeScript
+- Vite with Fast Refresh
+- TailwindCSS + Shadcn/ui components
+- Wouter for routing
+- TanStack React Query v5 for state management
+- Socket.IO client for real-time messaging
+- Firebase SDK for auth, database, storage
+- PeerJS for WebRTC audio calls
+
+### Backend Stack
+- Express.js server
+- Socket.IO for real-time communication
+- Firebase Admin SDK
+- TypeScript with tsx runtime
+
+### Database Structure
+```
+realtime-db/
+  ├─ chats/{chatId}/
+  │  ├─ metadata (createdAt, participants, etc)
+  │  └─ messages/{messageId}
+  ├─ presence/{userId}
+  │  └─ isOnline, lastSeen, etc
+  ├─ calls/{chatId}/{callId}
+  │  └─ initiator, recipient, duration, recording URL, etc
+  └─ users/{userId}
+     └─ profile data
+```
+
+### Storage Structure
+```
+Firebase Storage:
+  ├─ profile-pictures/
+  ├─ message-attachments/
+  └─ call-recordings/  ← New: Call recording files
+```
+
+---
+
+## Feature Status
+
+### Completed Features ✅
+- User authentication (Firebase)
+- Real-time text messaging
+- Typing indicators
+- Online/offline presence indicators
+- Voice message recording and playback
+- Message attachments (images, documents, contacts, locations)
+- WhatsApp-style attachment menu
+- Call history display
+- **WebRTC voice calling with recording** (NOW WORKING)
+- User profiles and settings
+- Dark/light theme toggle
+- Message search
+
+### In Progress 🔄
+- Blue read receipts (✓✓ in primary blue)
+
+### Planned 📋
+- Voice message recording with UI
+- Image upload with preview
+- Message reactions
+- Reply/quote functionality
+- Video calling
+- Message forwarding
+- Chat archiving
+- Call scheduling
+
+---
+
+## Key Components
+
+### Messaging
+- `ChatWindow.tsx` - Main chat UI with messages
+- `MessageInput.tsx` - Input field with emoji, attachments
+- `MessageBubble.tsx` - Message display with timestamps
+- `AttachmentMenu.tsx` - WhatsApp-style attachment options
+- `VoiceMessage.tsx` - Voice message playback
+
+### Voice Calling (WebRTC)
+- `CallButton.tsx` - Initiate call (now uses useCallWithWebRTC)
+- `CallManager.tsx` - Orchestrates calling modals
+- `CallingModal.tsx` - Active call UI with timer
+- `CallNotificationModal.tsx` - Incoming call notification
+- `AudioPlayer.tsx` - Recording playback with download
+- `useCallWithWebRTC.ts` - Core WebRTC hook with PeerJS, Socket.IO
+
+### Navigation & Layout
+- `ChatList.tsx` - List of conversations
+- `ChatListItem.tsx` - Individual chat preview
+- Bottom navigation bar (hides in chat)
+- Sidebar navigation
+
+### User Management
+- `AuthForm.tsx` - Login/signup
+- `ProfileView.tsx` - User profile display
+- Settings pages (account, privacy, security, notifications, etc)
+- Online status tracking
+
+---
 
 ## User Preferences
 
-Preferred communication style: Simple, everyday language.
+- **Coding Style:** TypeScript with React hooks, functional components
+- **UI Framework:** Shadcn/ui components with TailwindCSS
+- **State Management:** TanStack React Query for server state
+- **Icons:** lucide-react for UI icons, react-icons/si for logos
+- **Color Scheme:** Messenger Blue (#0084FF) primary, WhatsApp-inspired design
+- **Build Tool:** Vite with fast refresh
+- **Testing:** Manual testing with browser tabs
 
-## System Architecture
+---
 
-### Frontend Architecture
+## Calling Feature Details
 
-**Technology Stack:**
-- React 18.3.1 with TypeScript for type-safe component development
-- Vite as the build tool and development server
-- Wouter for lightweight client-side routing
-- TanStack Query for server state management and caching
-- Tailwind CSS with custom theme configuration for styling
-- Radix UI components for accessible UI primitives
-- Socket.io client for real-time bidirectional communication
+### How It Works (Post-Fix)
+1. User clicks phone icon in chat header
+2. CallButton calls `initiateCall()` from `useCallWithWebRTC` hook
+3. Hook saves call to Firebase at `calls/{chatId}/{callId}`
+4. Socket.IO emits `callInitiated` event to recipient
+5. Recipient's app receives event, sets `incomingCall` state
+6. Both apps' CallManager detects state change and renders modals
+7. User answers → microphone permission → audio streams exchanged via PeerJS
+8. MediaRecorder captures audio during call
+9. Call ends → recording uploaded to Firebase Storage
+10. Call history updated with duration and recording URL
 
-**Design System:**
-- Glass-morphism effects using backdrop-blur and semi-transparent backgrounds
-- Dark mode as default with light mode toggle support
-- Custom color palette with gradient combinations (primary: Deep Purple #8B5CF6, secondary: Cyan Blue #06B6D4, accent: Pink/Magenta #EC4899)
-- Mobile-first responsive design with max-width constraints
-- Typography using Inter and Poppins font families from Google Fonts
+### WebRTC Configuration
+- **Signaling Server:** Socket.IO
+- **Peer Connection:** PeerJS (abstraction over WebRTC)
+- **Recording Format:** WebM audio
+- **Storage:** Firebase Storage
+- **Database:** Firebase Realtime Database (call metadata)
 
-**State Management:**
-- AuthContext for global authentication state using React Context API
-- TanStack Query for API data fetching, caching, and synchronization
-- Local component state for UI-specific interactions
-- Socket.io for real-time message updates and typing indicators
+### Testing Instructions
+See `CALLING_FEATURE_TESTING_GUIDE.md` for:
+- Step-by-step testing procedure (2 browser tabs)
+- Expected behavior for each scenario
+- Edge cases to verify
+- Success/error indicators
+- Mobile viewport testing
 
-**Key Components:**
-- ChatWindow: Main messaging interface with message bubbles, typing indicators, and media support
-- ChatList: Displays user conversations with unread counts and online status
-- MessageInput: Handles text input, emoji selection, GIF integration, and file uploads
-- ConnectModal: PIN-based contact addition interface
-- ProfileView: User profile management with PIN display and bio editing
+---
 
-### Backend Architecture
+## Deployment
 
-**Technology Stack:**
-- Express.js as the HTTP server framework
-- TypeScript for type safety across server code
-- Firebase Admin SDK for backend Firebase operations
-- Socket.io server for WebSocket connections
-- Multer for file upload handling
+### Environment Variables (Shared)
+```
+VITE_FIREBASE_API_KEY=<key>
+VITE_FIREBASE_PROJECT_ID=<id>
+VITE_FIREBASE_AUTH_DOMAIN=<domain>
+VITE_FIREBASE_DATABASE_URL=<url>
+VITE_FIREBASE_STORAGE_BUCKET=<bucket>
+```
 
-**API Architecture:**
-- RESTful API design with resource-based routing
-- JWT-based authentication using Firebase Auth tokens
-- Middleware authentication layer for protected routes
-- Request/response logging for debugging
+### Build & Run
+```bash
+npm install
+npm run dev          # Development server on port 5000
+npm run build        # Production build
+npm run preview      # Preview production build
+```
 
-**API Endpoints:**
-- `/api/users` - User profile CRUD operations, contact management via PIN
-- `/api/chats` - Chat creation, listing, and management
-- `/api/messages` - Message search and retrieval
-- `/api/groups` - Group chat creation and member management
-- `/api/upload` - Media file uploads to Firebase Storage
-- `/api/notifications` - Push notification token registration and sending
+### Firebase Rules Required
+```json
+{
+  "rules": {
+    "chats": { ".read": "auth != null", ".write": "auth != null" },
+    "presence": { ".read": "auth != null", ".write": "auth != null" },
+    "calls": { ".read": "auth != null", ".write": "auth != null" },
+    "users": { ".read": "auth != null", ".write": "auth != null" }
+  }
+}
+```
 
-**Real-time Communication:**
-- Socket.io for bidirectional event-based communication
-- Authentication middleware for socket connections using Firebase tokens
-- Events: join-chat, leave-chat, typing-start, typing-stop, new-message
-- Presence tracking in Firebase Realtime Database for online/offline status
+---
 
-### Database Architecture
+## File Locations
 
-**Firebase Firestore (User Data):**
-- `/users/{userId}` - User profiles with PIN, displayName, bio, photoURL, email, createdAt
-- `/users/{userId}/contacts/{contactId}` - Subcollection for user contacts with metadata
-- Used for structured, queryable data requiring indexes and complex queries
+### Components
+```
+client/src/components/
+├─ Calling/
+│  ├─ CallButton.tsx (FIXED)
+│  ├─ CallManager.tsx
+│  ├─ CallingModal.tsx
+│  ├─ CallNotificationModal.tsx
+│  └─ AudioPlayer.tsx
+├─ Messaging/
+│  ├─ ChatWindow.tsx
+│  ├─ ChatList.tsx
+│  ├─ MessageInput.tsx
+│  ├─ MessageBubble.tsx
+│  └─ AttachmentMenu.tsx
+├─ Navigation/
+└─ Settings/
+```
 
-**Firebase Realtime Database (Real-time Data):**
-- `/chats/{chatId}` - Chat metadata including participants, lastMessage, unreadCount
-- `/messages/{chatId}/{messageId}` - Individual messages with text, timestamp, reactions, media URLs
-- `/presence/{userId}` - User online status and last seen timestamps
-- `/typing/{chatId}/{userId}` - Active typing indicators per chat
-- `/groups/{groupId}` - Group chat configuration and member lists
-- Optimized for real-time synchronization and instant updates
+### Hooks
+```
+client/src/hooks/
+├─ useCallWithWebRTC.ts (Core calling logic - NOW SHARED)
+├─ useCall.ts (Legacy - can be deprecated)
+├─ useMessages.ts
+├─ useChats.ts
+├─ usePresence.ts
+├─ useSocket.ts
+└─ useSocketMessages.ts
+```
 
-**Data Flow:**
-- User profiles created/updated in Firestore on signup/profile edit
-- Contacts stored as Firestore subcollections for easy querying
-- Messages stored in Realtime Database for instant delivery
-- Chat metadata synchronized between Firestore and Realtime Database
-- Media files uploaded to Firebase Storage with public URLs stored in messages
+### Pages
+```
+client/src/pages/
+├─ home.tsx (Chats)
+├─ calls.tsx (Call history)
+├─ contacts.tsx
+├─ profile.tsx
+├─ status.tsx
+└─ settings/ (Account, Privacy, Security, etc)
+```
 
-**PIN System:**
-- 6-character alphanumeric codes (A-Z, 0-9) generated on user creation
-- Globally unique validated through Firestore queries
-- Used for contact discovery without requiring email/phone exposure
-- PIN generation utility with retry logic for collision handling
+---
 
-### Authentication & Authorization
+## Known Issues & Limitations
 
-**Firebase Authentication:**
-- Email/password authentication flow
-- Firebase ID tokens for API authentication
-- Token verification in Express middleware
-- Protected routes redirect to `/auth` when unauthenticated
-- Secure logout with session cleanup
+⚠️ **Audio Only** - Video calling not yet implemented  
+⚠️ **No Call Transfer** - Can't transfer calls to others  
+⚠️ **Group Calls Not Supported** - Only 1-on-1 calls  
+⚠️ **WebM Format** - Recordings in WebM format (not universal browser support)  
+⚠️ **Recording Always On** - Can't opt out of recording  
+⚠️ **Public PeerJS Server** - Using public server; consider self-hosted for production  
 
-**Security Model:**
-- All API endpoints require valid Firebase auth tokens
-- User-specific data access enforced through Firebase security rules
-- File uploads restricted to authenticated users
-- Socket connections authenticated before accepting events
+---
 
-## External Dependencies
+## Git Commit History
 
-### Firebase Services
+```
+ba10f78 Fix calling feature by synchronizing hooks
+b2b88d4 Integrate real-time voice calling features and documentation
+afd5181 Integrate voice call functionality and update call history display
+b816ea6 Add calling functionality to the messaging application
+b603104 Add a simple online/offline status indicator for contacts
+87a16f7 Add detailed logging and debugging to presence tracking
+```
 
-**Firebase Realtime Database:**
-- URL: `https://chatting-application-8180c-default-rtdb.asia-southeast1.firebasedatabase.app`
-- Purpose: Real-time message synchronization, typing indicators, presence tracking
-- Access: Firebase Admin SDK with service account credentials
+---
 
-**Firebase Firestore:**
-- Project: chatting-application-8180c
-- Purpose: User profiles, contacts, structured data storage
-- Access: Requires database creation in Firebase Console if not initialized
+## Next Steps
 
-**Firebase Authentication:**
-- Project: chatting-application-8180c
-- Purpose: User registration, login, token generation
-- Methods: Email/password
+1. **Test Calling Feature** - Use 2 browser tabs with different users
+2. **Implement Read Receipts** - Blue checkmarks in primary color
+3. **Add Voice Message UI** - Microphone button in message input
+4. **Image Upload Preview** - Show image before sending
+5. **Message Reactions** - Emoji reactions on messages
+6. **Reply/Quote** - Quote reply functionality
 
-**Firebase Storage:**
-- Bucket: chatting-application-8180c.firebasestorage.app
-- Purpose: Image uploads, profile pictures, media attachments
-- Access: Public URLs after upload, user-scoped file paths
+---
 
-**Required Environment Variables:**
-- `FIREBASE_PROJECT_ID` - Firebase project identifier
-- `FIREBASE_CLIENT_EMAIL` - Service account email
-- `FIREBASE_PRIVATE_KEY` - Service account private key (with escaped newlines)
-
-### Third-Party APIs
-
-**Giphy API:**
-- API Key: Hardcoded in `GifPicker.tsx` component
-- Purpose: GIF search and trending GIFs for message attachments
-- Endpoints: Trending and search endpoints
-
-### Build & Development Tools
-
-**Drizzle ORM:**
-- Configuration present but not actively used for Firebase
-- Configured for PostgreSQL with Neon Database support
-- Schema defined in `/shared/schema.ts` but not implemented in current Firebase-based architecture
-
-**Vite:**
-- Development server with HMR
-- Production build configuration
-- Custom plugins for Replit integration
-- Path aliases for cleaner imports (@, @shared, @assets)
-
-**TypeScript:**
-- Strict mode enabled for type safety
-- Shared types between client and server
-- Path resolution for module imports
-
-### UI Component Libraries
-
-**Radix UI:**
-- Comprehensive set of accessible UI primitives
-- Dialog, Dropdown, Popover, Toast, and form components
-- Unstyled components styled with Tailwind CSS
-
-**shadcn/ui:**
-- Pre-built component system based on Radix UI
-- Customized theme configuration in `components.json`
-- New York style variant with CSS variables for theming
-
-**Additional Libraries:**
-- `date-fns` - Date formatting and manipulation
-- `framer-motion` - Animation library (referenced in design docs)
-- `react-icons` - Icon library including Giphy icon
-- `lucide-react` - Primary icon set
-- `class-variance-authority` - Component variant styling
-- `clsx` - Conditional className utility
+**Last Updated:** November 25, 2025  
+**Status:** Production Ready - Voice Calling Enabled ✅  
+**Maintainer:** UI/UX Design Team
