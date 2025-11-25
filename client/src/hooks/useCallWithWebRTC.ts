@@ -59,8 +59,8 @@ export function useCallWithWebRTC() {
         console.log("PeerJS connected with ID:", peer.id);
       });
 
-      peer.on("call", (call: any) => {
-        console.log("Incoming call from:", call.peer);
+      peer.on("call", (incomingPeerCall: any) => {
+        console.log("Incoming call from:", incomingPeerCall.peer);
         // Call will be answered through the modal
       });
 

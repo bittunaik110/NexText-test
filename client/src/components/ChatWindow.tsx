@@ -8,6 +8,7 @@ import { ArrowLeft, MoreVertical, Phone, Video, Search, Trash2, VolumeOff, Alert
 import { cn } from "@/lib/utils";
 import { useMessages, Message } from "@/hooks/useMessages";
 import { useSocketMessages } from "@/hooks/useSocketMessages";
+import { useSocket } from "@/hooks/useSocket";
 import { useAuth } from "@/contexts/AuthContext";
 import { database } from "@/lib/firebase";
 import { ref, onValue, off, update } from "firebase/database";
