@@ -30,22 +30,9 @@ export default function MessageInput({ onSend, onTyping, className, replyTo, onC
   const [isTyping, setIsTyping] = useState(false);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Auto-save draft to localStorage
+  // Clear any stale drafts on mount
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (message.trim()) {
-        localStorage.setItem("messageDraft", message);
-      }
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [message]);
-
-  // Load draft on mount
-  useEffect(() => {
-    const draft = localStorage.getItem("messageDraft");
-    if (draft) {
-      setMessage(draft);
-    }
+    localStorage.removeItem("messageDraft");
   }, []);
 
   // Handle typing indicator
@@ -96,7 +83,6 @@ export default function MessageInput({ onSend, onTyping, className, replyTo, onC
       setShowEmojiPicker(false);
       setIsTyping(false);
       onTyping?.(false);
-      localStorage.removeItem("messageDraft");
       onClearReply?.();
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
