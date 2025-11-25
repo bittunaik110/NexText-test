@@ -224,7 +224,7 @@ export default function ChatWindow({ chatId, contact, onBack, isTyping }: ChatWi
     const lastMessage = messages[messages.length - 1];
     
     // Check if last message is from contact and we received it
-    if (lastMessage.userId !== user.uid && !lastMessage.notificationSent) {
+    if (lastMessage.userId !== user.uid) {
       // Only show if browser tab is not focused
       if (document.hidden && "Notification" in window && Notification.permission === "granted") {
         new Notification(`Message from ${contact.name}`, {
