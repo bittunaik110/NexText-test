@@ -82,6 +82,19 @@ export function setupSocketIO(httpServer: HTTPServer) {
 
         await messageRef.set(message);
 
+        // Get other participant ID from chatId (format: userId1_userId2)
+        const participants = chatId.split("_");
+        const otherParticipantId = participants.find(id => id !== userId);
+
+        // Increment unread count for the recipient
+        if (otherParticipantId) {
+          const unreadCountRef = realtimeDb.ref(`chats/${chatId}/unreadCount/${otherParticipantId}`);
+          const snapshot = await unreadCountRef.get();
+          const currentCount = snapshot.val() || 0;
+          await unreadCountRef.set(currentCount + 1);
+          console.log(`Incremented unreadCount for ${otherParticipantId} in chat ${chatId}: ${currentCount + 1}`);
+        }
+
         const chatRef = realtimeDb.ref(`chats/${chatId}`);
         await chatRef.update({
           lastMessage: message.text || (message.gifUrl ? "GIF" : message.mediaUrl ? "Media" : ""),
