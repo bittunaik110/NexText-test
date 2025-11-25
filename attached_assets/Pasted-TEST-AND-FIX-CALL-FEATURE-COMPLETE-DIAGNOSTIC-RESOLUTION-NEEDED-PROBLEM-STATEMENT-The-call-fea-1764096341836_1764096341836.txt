@@ -1,0 +1,69 @@
+TEST AND FIX CALL FEATURE - COMPLETE DIAGNOSTIC & RESOLUTION NEEDED
+
+PROBLEM STATEMENT:
+The call feature is NOT working properly. User reports: "I didn't get any notification or receive any messages regarding calls"
+
+TEST SCENARIO (Execute this EXACTLY):
+1. Open 2 separate browser tabs with different user accounts (testuser2 and testuser3)
+2. Both users connect via PIN code
+3. User 1 (testuser2) initiates a CALL to User 2 (testuser3)
+4. Check: Does User 2 IMMEDIATELY see CallNotificationModal popup?
+5. Expected: Modal shows "testuser2 is calling..." with ACCEPT/REJECT buttons
+6. Check: Does sound play on User 2's device?
+7. User 2 clicks ACCEPT
+8. Expected: Both users see FloatingCallWindow with call timer
+9. Verify: Call timer increments correctly
+10. User 1 clicks HANG UP
+11. Expected: User 2 sees "Call Ended" notification
+
+ISSUES TO DIAGNOSE:
+✓ Socket.IO Event Delivery: Is 'callInitiated' event reaching recipient?
+✓ Notification Display: Is CallNotificationModal rendering on recipient's screen?
+✓ WebRTC Connection: After accept, are both users connected via PeerJS?
+✓ Call Duration: Is timer working and incrementing?
+✓ Call Termination: Is 'callEnded' event properly closing the call?
+✓ Browser Console: Check for JavaScript errors in useCallWithWebRTC.ts
+✓ Socket Connection: Verify both users' Socket.IO connections are active
+✓ Recipient Online Status: Why does recipient show 'offline' even when connected?
+
+CHECKLIST FOR AGENT TO VERIFY:
+☐ server/socket.ts - Verify 'initiate-call' event handler exists and emits 'callInitiated' to recipient
+☐ client/src/hooks/useCallWithWebRTC.ts - Socket listener for 'callInitiated' is properly set up
+☐ client/src/components/CallNotificationModal.tsx - Component renders when incomingCall state is set
+☐ CallButton.tsx - Button is enabled (not disabled) when recipient is available
+☐ FloatingCallWindow.tsx - Opens after user accepts call
+☐ Browser console - Check for any errors during call flow
+☐ Network tab - Verify Socket.IO 'callInitiated' message is being sent
+☐ Call timer - Verify useEffect sets up interval to increment duration
+☐ User online status - Check why users show offline even with active Socket.IO connection
+
+FIX REQUIREMENTS:
+1. If Socket event not being emitted → Add/fix emission in server/socket.ts
+2. If listener not working → Verify Socket.IO connection in useCallWithWebRTC.ts
+3. If modal not showing → Check incomingCall state and render logic
+4. If button disabled → Review conditions that enable/disable call button
+5. If call won't connect → Verify PeerJS initialization and call acceptance flow
+6. If timer not working → Check useEffect cleanup and interval logic
+7. If recipient shows offline → Fix online status update mechanism
+
+TESTING AFTER FIX:
+1. Test with 2 browser instances simultaneously
+2. Test audio call initiation and acceptance
+3. Test video call upgrade during active call
+4. Test call rejection flow
+5. Test call hangup from both sides
+6. Test multiple sequential calls
+7. Verify no console errors
+8. Verify no memory leaks from unclosed connections
+
+SUCCESS CRITERIA:
+The call feature is COMPLETE when:
+✅ User A initiates call → User B sees notification within 1 second
+✅ User B clicks ACCEPT → Both users connect with active call
+✅ Call timer shows and increments correctly
+✅ Both users can end call
+✅ No JavaScript errors in console
+✅ All Socket.IO events are properly logged
+✅ Works on both desktop viewports
+
+Please execute this full test scenario, identify all issues, and provide fixes for each problem found. Do NOT skip any steps.

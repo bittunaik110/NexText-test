@@ -46,6 +46,18 @@ export function setupSocketIO(httpServer: HTTPServer) {
       console.log(`User ${userId} left chat ${chatId}`);
     });
 
+    socket.on("callInitiated", (callData: any) => {
+      console.log(`Call initiated from ${userId}:`, callData);
+      // Broadcast call to recipient in the chat room
+      socket.to(callData.chatId).emit("callInitiated", callData);
+    });
+
+    socket.on("callEnded", (data: any) => {
+      console.log(`Call ended by ${userId}:`, data);
+      // Broadcast call ended to other user in the chat room
+      socket.to(data.chatId || "").emit("callEnded", data);
+    });
+
     socket.on("typing-start", ({ chatId }) => {
       const typingRef = realtimeDb.ref(`typing/${chatId}/${userId}`);
       typingRef.set({
