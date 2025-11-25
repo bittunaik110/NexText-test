@@ -63,10 +63,12 @@ export default function ChatWindow({ chatId, contact, onBack, isTyping }: ChatWi
   const { user } = useAuth();
   const [contactOnline, setContactOnline] = useState(false);
 
-  // Simple direct listener for contact's online status
+  // Real-time listener for contact's online status
   useEffect(() => {
     if (!contact.userId) return;
 
+    console.log(`ChatWindow: Setting up real-time listener for ${contact.name} (${contact.userId})`);
+    
     const presenceRef = ref(database, `presence/${contact.userId}`);
     const unsubscribe = onValue(
       presenceRef,
@@ -74,7 +76,7 @@ export default function ChatWindow({ chatId, contact, onBack, isTyping }: ChatWi
         const data = snapshot.val();
         const isOnline = data?.isOnline === true;
         setContactOnline(isOnline);
-        console.log(`ChatWindow: ${contact.name} status updated - isOnline: ${isOnline}`);
+        console.log(`ChatWindow: ${contact.name} status updated - isOnline: ${isOnline}, data:`, data);
       },
       (error) => {
         console.error("ChatWindow: Error reading presence:", error);
@@ -82,7 +84,10 @@ export default function ChatWindow({ chatId, contact, onBack, isTyping }: ChatWi
       }
     );
 
-    return () => off(presenceRef, "value", unsubscribe);
+    return () => {
+      console.log(`ChatWindow: Cleaning up listener for ${contact.name}`);
+      unsubscribe();
+    };
   }, [contact.userId, contact.name]);
 
   const scrollToBottom = () => {
