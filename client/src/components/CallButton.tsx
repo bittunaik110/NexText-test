@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Phone } from "lucide-react";
-import { useCall } from "@/hooks/useCall";
+import { useCallWithWebRTC } from "@/hooks/useCallWithWebRTC";
 import { useToast } from "@/hooks/use-toast";
 
 interface CallButtonProps {
@@ -18,7 +18,7 @@ export function CallButton({
   currentUserName,
   isOnline,
 }: CallButtonProps) {
-  const { initiateCall } = useCall();
+  const { initiateCall } = useCallWithWebRTC();
   const { toast } = useToast();
 
   const handleCallClick = async () => {
