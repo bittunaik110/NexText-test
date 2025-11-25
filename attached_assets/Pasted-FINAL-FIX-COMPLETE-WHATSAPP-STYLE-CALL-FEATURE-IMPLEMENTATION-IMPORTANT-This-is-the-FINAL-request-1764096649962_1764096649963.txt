@@ -1,0 +1,122 @@
+FINAL FIX: COMPLETE WHATSAPP-STYLE CALL FEATURE IMPLEMENTATION
+
+IMPORTANT: This is the FINAL request. I need the call feature to work EXACTLY like WhatsApp. Read the implementation requirements carefully and execute them completely.
+
+CURRENT STATE:
+- Server-side call event routing was fixed (checkpoint made)
+- Client listeners are configured
+- But workflow NOT yet restarted to test the fix
+
+YOUR IMMEDIATE TASK:
+1. RESTART the workflow NOW to apply server changes
+2. BUILD the app to verify no errors
+3. CONDUCT end-to-end test with 2 browser instances
+4. VERIFY call feature works 100% like WhatsApp
+
+WHATSAPP-STYLE REQUIREMENTS:
+
+CALL INITIATION (User A perspective):
+✓ Call button visible in chat window top-right (green phone icon)
+✓ Click call button
+✓ Call initiates to User B immediately
+✓ Status shows "Calling..." or "Ringing" with animation
+✓ Call timer starts counting UP
+✓ HANG UP button appears (RED, prominent) to end call
+
+INCOMING CALL (User B perspective):
+✓ Full-screen or modal notification appears immediately
+✓ Shows: Contact photo, name, "Incoming Call" text, ring animation
+✓ ACCEPT button (green) and REJECT button (red/gray)
+✓ Sound plays (ringtone)
+✓ Notification stays until ACCEPT or REJECT
+
+CALL CONNECTED (Both users):
+✓ Both see active call window/modal
+✓ Shows contact name and photo
+✓ Call timer displays and increments (HH:MM:SS format)
+✓ MUTE button for audio
+✓ SPEAKER button for audio output
+✓ VIDEO button to switch to video (if supported)
+✓ RED HANG UP button at bottom
+✓ Buttons arranged like WhatsApp (circular icons)
+
+CALL END (Both users):
+✓ Either user clicks HANG UP
+✓ Both see notification "Call Ended"
+✓ Notification auto-closes after 2-3 seconds
+✓ Return to normal chat view
+✓ Previous call visible in chat history as timestamp
+
+UI STYLING (WhatsApp-like):
+✓ Incoming call modal: Full-screen or large centered box
+✓ Contact info at top with large photo
+✓ "Incoming Call" text with rotating dots animation
+✓ ACCEPT button: Green circle (#00A884 or similar)
+✓ REJECT button: Red/gray circle
+✓ Active call window: Floating or fullscreen
+✓ Timer in large, readable font
+✓ Control buttons: Circular icons at bottom
+✓ HANG UP button: Red circle, most prominent
+✓ All text: Clean, sans-serif font (like Segoe UI or similar)
+
+TECHNICAL CHECKLIST:
+☑ server/socket.ts: Call event handler implemented
+☑ useCallWithWebRTC.ts: Socket listeners configured
+☑ CallButton.tsx: Renders in chat window header
+☑ CallNotificationModal.tsx: Full-screen notification
+☑ FloatingCallWindow.tsx: Active call UI
+☑ Call timer: Increments correctly
+☑ WebRTC: PeerJS connection established
+☑ No console errors
+☑ Socket.IO events logged
+☑ Audio/video streams working
+
+TESTING SCENARIO (EXECUTE THIS EXACTLY):
+
+1. START workflow (npm run dev)
+2. OPEN 2 browser tabs
+3. LOGIN as testuser2 in Tab 1
+4. LOGIN as testuser3 in Tab 2
+5. CONNECT both users via PIN code
+6. IN TAB 1: Click call button
+7. CHECK TAB 2: Notification appears within 1 second
+8. VERIFY: Sound plays, animation shows
+9. IN TAB 2: Click ACCEPT
+10. CHECK BOTH: Call window opens
+11. VERIFY: Timer shows and increments
+12. WAIT 5 seconds
+13. IN TAB 1: Click HANG UP
+14. CHECK BOTH: "Call Ended" notification appears
+15. VERIFY: Return to chat window
+
+SUCCESS CRITERIA:
+✅ Call notification appears immediately (within 1 second)
+✅ Notification includes caller name and photo
+✅ ACCEPT/REJECT buttons are clickable
+✅ When accepted, both users connect
+✅ Call timer starts and increments
+✅ Call can be ended by either user
+✅ Both users see "Call Ended" notification
+✅ No errors in browser console
+✅ No errors in server logs
+✅ Feature works identically to WhatsApp
+✅ Styling matches WhatsApp aesthetic
+
+IF TESTING FAILS:
+1. Check browser console for JavaScript errors
+2. Check server logs for Socket.IO errors
+3. Verify Socket.IO connection is active on both clients
+4. Verify call data structure matches expected format
+5. Verify PeerJS initialization completed successfully
+6. Verify call timer interval is set correctly
+7. Check if recipient is showing as "online" status
+
+DO NOT SUBMIT UNTIL:
+✓ Workflow restarted with server changes
+✓ Build completes without errors
+✓ Full end-to-end test completed successfully
+✓ Call feature works 100% like WhatsApp
+✓ All UI elements visible and styled correctly
+✓ No console errors from either end
+
+This is the FINAL turn to make this feature complete. Execute the full test scenario and provide detailed results.
