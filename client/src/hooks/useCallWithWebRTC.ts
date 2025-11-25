@@ -32,6 +32,10 @@ export function useCallWithWebRTC() {
   const [activeCall, setActiveCall] = useState<CallData | null>(null);
   const [incomingCall, setIncomingCall] = useState<CallData | null>(null);
   const [callDuration, setCallDuration] = useState(0);
+  const [callType, setCallType] = useState<"audio" | "video">("audio");
+  const [isMuted, setIsMuted] = useState(false);
+  const [isVideoEnabled, setIsVideoEnabled] = useState(false);
+  const [isSpeakerOn, setIsSpeakerOn] = useState(true);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const peerRef = useRef<Peer.Instance | null>(null);
@@ -301,11 +305,28 @@ export function useCallWithWebRTC() {
     }
   }, [activeCall]);
 
+  const switchCallType = useCallback((newType: "audio" | "video") => {
+    setCallType(newType);
+    if (newType === "video") {
+      setIsVideoEnabled(true);
+    } else {
+      setIsVideoEnabled(false);
+    }
+  }, []);
+
   return {
     activeCall,
     incomingCall,
     setIncomingCall,
     callDuration,
+    callType,
+    switchCallType,
+    isMuted,
+    setIsMuted,
+    isVideoEnabled,
+    setIsVideoEnabled,
+    isSpeakerOn,
+    setIsSpeakerOn,
     initiateCall,
     answerCall,
     declineCall,

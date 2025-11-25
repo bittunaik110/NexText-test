@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useCallWithWebRTC } from "@/hooks/useCallWithWebRTC";
-import { CallingModal } from "./CallingModal";
 import { CallNotificationModal } from "./CallNotificationModal";
 import { CallEndedNotificationModal } from "./CallEndedNotificationModal";
+import { FloatingCallWindow } from "./FloatingCallWindow";
 import { useSocket } from "@/hooks/useSocket";
 
 export function CallManager() {
@@ -11,6 +11,14 @@ export function CallManager() {
     incomingCall,
     setIncomingCall,
     callDuration,
+    callType,
+    switchCallType,
+    isMuted,
+    setIsMuted,
+    isVideoEnabled,
+    setIsVideoEnabled,
+    isSpeakerOn,
+    setIsSpeakerOn,
     answerCall,
     declineCall,
     endCall,
@@ -37,11 +45,19 @@ export function CallManager() {
 
   return (
     <>
-      <CallingModal
+      <FloatingCallWindow
         isOpen={!!activeCall}
         call={activeCall}
         duration={callDuration}
         onEndCall={endCall}
+        callType={callType}
+        onSwitchCallType={switchCallType}
+        isMuted={isMuted}
+        onMuteToggle={() => setIsMuted(!isMuted)}
+        isVideoEnabled={isVideoEnabled}
+        onVideoToggle={() => setIsVideoEnabled(!isVideoEnabled)}
+        isSpeakerOn={isSpeakerOn}
+        onSpeakerToggle={() => setIsSpeakerOn(!isSpeakerOn)}
       />
       <CallNotificationModal
         isOpen={!!incomingCall}
