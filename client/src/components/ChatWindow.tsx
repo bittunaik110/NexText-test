@@ -11,6 +11,7 @@ import { useSocketMessages } from "@/hooks/useSocketMessages";
 import { useAuth } from "@/contexts/AuthContext";
 import { database } from "@/lib/firebase";
 import { ref, onValue, off, update } from "firebase/database";
+import { useToast } from "@/hooks/use-toast";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,7 +29,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useToast } from "@/hooks/use-toast";
 import { CallButton } from "./CallButton";
 
 interface ChatWindowProps {
@@ -216,6 +216,34 @@ export default function ChatWindow({ chatId, contact, onBack, isTyping }: ChatWi
       description: "Thank you for your report. We'll review it shortly.",
     });
   };
+
+  // Browser notification for incoming messages
+  useEffect(() => {
+    if (!messages || messages.length === 0 || !user?.uid) return;
+
+    const lastMessage = messages[messages.length - 1];
+    
+    // Check if last message is from contact and we received it
+    if (lastMessage.userId !== user.uid && !lastMessage.notificationSent) {
+      // Only show if browser tab is not focused
+      if (document.hidden && "Notification" in window && Notification.permission === "granted") {
+        new Notification(`Message from ${contact.name}`, {
+          body: lastMessage.text.substring(0, 100),
+          icon: contact.avatar || "/favicon.png",
+          badge: "/favicon.png",
+          tag: `msg-${lastMessage.id}`,
+          requireInteraction: false,
+        });
+      }
+    }
+  }, [messages, user?.uid, contact.name, contact.avatar]);
+
+  // Request notification permission on component mount
+  useEffect(() => {
+    if ("Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission();
+    }
+  }, []);
 
   useEffect(() => {
     scrollToBottom();
