@@ -1,0 +1,146 @@
+CRITICAL BUG: INCOMING CALL NOTIFICATIONS NOT APPEARING - DIAGNOSTIC & FIX REQUIRED
+
+PROBLEM STATEMENT:
+When User A initiates a call to User B:
+- User A sees the full-screen calling modal ✓
+- Call connects and audio works ✓
+- BUT: User B NEVER sees the incoming call notification ✗
+- User B has no idea they are being called
+- User B cannot accept or reject the call
+
+REQUIRED IMMEDIATE DIAGNOSIS:
+
+1. VERIFY SOCKET.IO EVENT DELIVERY:
+   - When User A clicks call button, is 'callInitiated' event being emitted from client?
+   - Is the event reaching the server?
+   - Is the server forwarding 'callInitiated' to User B's socket?
+   - Is User B's socket receiving the event?
+   - Check server logs for 'callInitiated' event
+   - Check browser console on User B's tab for socket event reception
+
+2. CHECK CALL DATA TRANSMISSION:
+   - Is the callData object being sent correctly?
+   - Does it contain: callId, chatId, initiatorId, recipientId, initiatorName?
+   - Is the recipientId matching User B's actual userId?
+   - Check for any data transformation errors
+
+3. VERIFY REACT STATE UPDATE:
+   - Is CallNotificationModal.tsx receiving the incoming call data?
+   - Is the incomingCall state being set when 'callInitiated' event is received?
+   - Is the modal condition evaluating correctly to show notification?
+   - Check React DevTools to see if incomingCall state is being updated
+
+4. CHECK SOCKET LISTENER REGISTRATION:
+   - In useCallWithWebRTC.ts, verify socket.on('callInitiated', ...) listener is registered
+   - Is the listener function executing when event arrives?
+   - Is setIncomingCall() being called with the correct data?
+   - Add console.log() to confirm listener execution
+
+5. NETWORK & CONNECTION VERIFICATION:
+   - Are both User A and User B connected to the same Socket.IO server?
+   - Do they have the same chatId?
+   - Are their userIds unique and correctly stored?
+   - Check Socket.IO connection status for both users
+   - Verify Socket.IO namespace is correct (if using custom namespace)
+
+6. BROWSER CONSOLE ANALYSIS:
+   - Open User B's browser console while User A calls
+   - Check for any JavaScript errors
+   - Look for Socket.IO connection messages
+   - Check if 'callInitiated' event appears in console logs
+
+TESTING PROCEDURE:
+
+1. Open 2 browser tabs:
+   - Tab 1: User A (testuser2)
+   - Tab 2: User B (testuser3)
+
+2. Have both users open the same chat
+
+3. Open browser console on BOTH tabs (F12)
+
+4. In Tab 1 (User A): Click the call button
+
+5. Observe Tab 2 (User B):
+   - Does CallNotificationModal appear?
+   - Does console show 'callInitiated' event?
+   - Does console show any errors?
+
+6. Check server logs:
+   - Look for 'callInitiated' event being received
+   - Look for event being forwarded to User B
+   - Look for any emit errors
+
+DIAGNOSTIC CHECKLIST:
+
+☐ Socket.IO event is being emitted from User A
+☐ Server receives the 'callInitiated' event
+☐ Server forwards to correct recipientId
+☐ User B's socket receives the event
+☐ React state (incomingCall) is being updated
+☐ CallNotificationModal.tsx condition is evaluating to true
+☐ Modal renders on User B's screen
+☐ No JavaScript errors in console
+☐ No Socket.IO connection errors
+☐ CallData object contains all required fields
+☐ recipientId matches User B's userId exactly
+
+POSSIBLE CAUSES:
+
+1. Socket.IO event not being forwarded from server
+   → Check server/socket.ts for 'callInitiated' handler
+   → Verify socket.to(recipientId).emit() is being called
+   → Check if recipientId is valid
+
+2. React state not updating
+   → Verify socket listener in useCallWithWebRTC.ts
+   → Check if setIncomingCall() is being called
+   → Verify listener is registered in useEffect
+
+3. Modal not rendering despite state update
+   → Check CallNotificationModal.tsx render condition
+   → Verify incomingCall prop is being passed
+   → Check if modal CSS display property is set correctly
+
+4. Socket connection issue
+   → User B's socket.id might not match server's mapping
+   → Users might not be connected to same Socket.IO namespace
+   → Check if chatId is being used for room-based communication
+
+5. UserId mismatch
+   → User A might be sending wrong recipientId
+   → User B's userId might not match what server has stored
+   → Chat might have users with different id formats
+
+FIX PRIORITY:
+
+1. Add console.logs to trace the event flow
+2. Verify recipientId is correct
+3. Ensure server forwards event to correct socket
+4. Verify React state updates correctly
+5. Check modal renders with correct data
+
+ACTION ITEMS:
+
+1. Add detailed logging in server/socket.ts for 'callInitiated' event
+2. Add logging in useCallWithWebRTC.ts socket listener
+3. Add logging in CallNotificationModal.tsx render
+4. Check browser console for errors during test
+5. Check server logs for event processing
+6. Verify Socket.IO room or namespace usage
+7. Test with exact user IDs and chat IDs
+
+PLEASE EXECUTE:
+
+1. Run comprehensive diagnostic with console logs
+2. Identify where the event flow is breaking
+3. Fix the specific issue preventing notification delivery
+4. Test end-to-end again with 2 browser tabs
+5. Verify User B receives notification within 1 second of call initiation
+6. Provide detailed diagnostic report showing:
+   - Event logged at each stage
+   - State updates confirmed
+   - Modal rendering status
+   - Any errors encountered
+
+This is CRITICAL - the notification delivery is the most important part of the calling feature. Without it, callers cannot reach recipients.

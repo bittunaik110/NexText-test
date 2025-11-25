@@ -80,15 +80,21 @@ export function useCallWithWebRTC() {
   useEffect(() => {
     if (!socket || !user?.uid) return;
 
+    console.log(`[CALL DEBUG] Setting up callInitiated listener for user: ${user.uid}`);
+
     socket.on("callInitiated", (callData: CallData) => {
-      console.log("Received call notification:", callData);
+      console.log(`[CALL DEBUG] Received callInitiated event`);
+      console.log(`[CALL DEBUG] callData:`, JSON.stringify(callData));
+      console.log(`[CALL DEBUG] Current user uid: ${user.uid}`);
+      console.log(`[CALL DEBUG] Call recipient: ${callData.recipient}`);
+      console.log(`[CALL DEBUG] Match: ${callData.recipient === user.uid}`);
       
       // Only show incoming call if this user is the recipient
       if (callData.recipient === user.uid) {
-        console.log("This call is for me, showing notification");
+        console.log(`[CALL DEBUG] ✓ Call is for me, showing notification`);
         setIncomingCall(callData);
       } else {
-        console.log("This call is not for me, ignoring");
+        console.log(`[CALL DEBUG] ✗ Call is not for me (${callData.recipient} !== ${user.uid})`);
       }
     });
 
@@ -198,8 +204,11 @@ export function useCallWithWebRTC() {
 
         // Notify recipient via Socket.IO
         const notificationData = { ...callData, status: "ringing" };
-        console.log("Emitting callInitiated event:", notificationData);
+        console.log("[CALL DEBUG] About to emit callInitiated");
+        console.log("[CALL DEBUG] notificationData:", JSON.stringify(notificationData));
+        console.log("[CALL DEBUG] Socket connected:", socket.connected);
         socket.emit("callInitiated", notificationData);
+        console.log("[CALL DEBUG] Emitted callInitiated event");
 
         console.log("Call initiated successfully:", callId);
         return callId;

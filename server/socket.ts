@@ -47,9 +47,12 @@ export function setupSocketIO(httpServer: HTTPServer) {
     });
 
     socket.on("callInitiated", (callData: any) => {
-      console.log(`Call initiated from ${userId}:`, callData);
+      console.log(`[CALL DEBUG] Call initiated from ${userId}`);
+      console.log(`[CALL DEBUG] callData:`, JSON.stringify(callData));
+      console.log(`[CALL DEBUG] Broadcasting to room: ${callData.chatId}`);
       // Broadcast call to recipient in the chat room
       socket.to(callData.chatId).emit("callInitiated", callData);
+      console.log(`[CALL DEBUG] Emitted callInitiated to room ${callData.chatId}`);
     });
 
     socket.on("callAnswered", (data: any) => {
