@@ -1,0 +1,56 @@
+CRITICAL FIX NEEDED - CALLING FEATURE NOT WORKING!
+
+As the UI/UX Designer taking over this project, I'm identifying that the WebRTC calling feature is INCOMPLETE. The issue:
+
+❌ PROBLEM: CallingModal and CallNotificationModal components exist but are NOT integrated into App.tsx. When users click the call button, nothing happens because the modals are never rendered.
+
+✅ SOLUTION - Complete These Steps IMMEDIATELY:
+
+1. INTEGRATE MODALS INTO App.tsx:
+   - Add imports for CallingModal and CallNotificationModal
+   - Add these components to the App JSX return (at the bottom before closing div)
+   - Modals will auto-connect to call state through hooks
+
+2. FIX ANY LSP TYPE ERRORS in useCallWithWebRTC.ts (if they block compilation)
+
+3. BUILD AND VERIFY:
+   - Ensure app compiles without errors
+   - Verify no console errors
+   - Confirm modals render properly
+
+4. COMPREHENSIVE TESTING:
+   - Open 2 browser tabs with app
+   - Login as different users in each tab
+   - Tab A: Open chat with User B, click call button
+   - Verify in Tab B: CallNotificationModal appears with incoming call
+   - Click Answer in Tab B
+   - Verify in both tabs: CallingModal appears with call UI
+   - Verify duration timer starts
+   - Click End Call button
+   - Verify modals close and call ends
+   - Go to Calls tab in both windows
+   - Verify new call appears in history
+
+5. TEST EDGE CASES:
+   - Try calling when contact is offline (button should be disabled)
+   - Try declining incoming call
+   - Try ending call from either side
+   - Verify call history updates correctly
+
+6. AFTER TESTING:
+   - Create VOICE_CALL_FEATURE.md README
+   - Document: Features, how to use, WebRTC setup, troubleshooting
+   - Place in FEATURES_DEATILS_ReadMe folder
+
+TEST THOROUGHLY before reporting back. Answer these follow-up questions after completing:
+
+✓ Did the modals integrate without compilation errors?
+✓ Do calling and incoming notification modals display correctly?
+✓ Does the duration timer work and update properly?
+✓ Can you successfully end calls from both sides?
+✓ Does call history display new calls with correct metadata?
+✓ Are there any console errors during calling?
+✓ Does the feature work on mobile viewport?
+✓ Have you tested all UI edge cases?
+
+Report back with: Build status, testing results, any issues found, and confirmation that README is created.

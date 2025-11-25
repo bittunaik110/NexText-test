@@ -4,7 +4,7 @@ import { ref, set, update, get, query, orderByChild, limitToLast, onValue, off }
 import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSocket } from "./useSocket";
-import Peer from "peerjs";
+import type Peer from "peerjs";
 
 export interface CallData {
   callId: string;
@@ -43,25 +43,32 @@ export function useCallWithWebRTC() {
   useEffect(() => {
     if (!user?.uid) return;
 
-    const peer = new Peer(user.uid, {
-      host: "peerjs-server.com",
-      port: 443,
-      secure: true,
-    });
+    const initPeer = async () => {
+      const PeerModule = await import("peerjs");
+      const peer = new PeerModule.default(user.uid, {
+        host: "peerjs-server.com",
+        port: 443,
+        secure: true,
+      });
 
-    peer.on("open", () => {
-      console.log("PeerJS connected with ID:", peer.id);
-    });
+      peer.on("open", () => {
+        console.log("PeerJS connected with ID:", peer.id);
+      });
 
-    peer.on("call", (call) => {
-      console.log("Incoming call from:", call.peer);
-      // Call will be answered through the modal
-    });
+      peer.on("call", (call) => {
+        console.log("Incoming call from:", call.peer);
+        // Call will be answered through the modal
+      });
 
-    peerRef.current = peer;
+      peerRef.current = peer;
+    };
+
+    initPeer();
 
     return () => {
-      peer.destroy();
+      if (peerRef.current) {
+        peerRef.current.destroy();
+      }
     };
   }, [user?.uid]);
 
@@ -152,7 +159,7 @@ export function useCallWithWebRTC() {
 
         // Answer PeerJS call if exists
         const call = peerRef.current.call(callData.initiator, stream);
-        call.on("stream", (remoteStream) => {
+        call.on("stream", (remoteStream: MediaStream) => {
           console.log("Received remote stream");
           // Here you would pipe the audio to an <audio> element
         });

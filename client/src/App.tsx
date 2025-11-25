@@ -23,6 +23,8 @@ import ContactPage from "@/pages/settings/contact";
 import TermsPage from "@/pages/settings/terms";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { useMyPresence } from "@/hooks/usePresence";
+import { CallManager } from "@/components/CallManager";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 function ProtectedRoute({ component: Component, ...rest }: { component: React.ComponentType; path: string }) {
   const { user, loading } = useAuth();
@@ -90,8 +92,11 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <AppRoutes />
-        <Toaster />
+        <TooltipProvider>
+          <AppRoutes />
+          <CallManager />
+          <Toaster />
+        </TooltipProvider>
       </AuthProvider>
     </QueryClientProvider>
   );
