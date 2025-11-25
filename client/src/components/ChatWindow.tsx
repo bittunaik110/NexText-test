@@ -10,7 +10,7 @@ import { useMessages, Message } from "@/hooks/useMessages";
 import { useSocketMessages } from "@/hooks/useSocketMessages";
 import { useAuth } from "@/contexts/AuthContext";
 import { database } from "@/lib/firebase";
-import { ref, onValue, off } from "firebase/database";
+import { ref, onValue, off, update } from "firebase/database";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -62,6 +62,26 @@ export default function ChatWindow({ chatId, contact, onBack, isTyping }: ChatWi
   const [isMuted, setIsMuted] = useState(false);
   const { user } = useAuth();
   const [contactOnline, setContactOnline] = useState(false);
+
+  // Mark chat as read when opening it
+  useEffect(() => {
+    if (!chatId || !user?.uid) return;
+
+    const markChatAsRead = async () => {
+      try {
+        console.log(`ChatWindow: Marking chat ${chatId} as read for user ${user.uid}`);
+        const chatRef = ref(database, `chats/${chatId}`);
+        await update(chatRef, {
+          [`unreadCount/${user.uid}`]: 0,
+        });
+        console.log(`ChatWindow: Chat marked as read in Firebase`);
+      } catch (error) {
+        console.error("ChatWindow: Error marking chat as read:", error);
+      }
+    };
+
+    markChatAsRead();
+  }, [chatId, user?.uid]);
 
   // Real-time listener for contact's online status
   useEffect(() => {
