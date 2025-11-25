@@ -38,8 +38,8 @@ export function useCallWithWebRTC() {
   const [isSpeakerOn, setIsSpeakerOn] = useState(true);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
-  const peerRef = useRef<Peer.Instance | null>(null);
-  const callConnectionRef = useRef<Peer.DataConnection | null>(null);
+  const peerRef = useRef<any>(null);
+  const callConnectionRef = useRef<any>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordedChunksRef = useRef<Blob[]>([]);
 

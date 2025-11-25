@@ -84,7 +84,7 @@ export function setupSocketIO(httpServer: HTTPServer) {
 
         // Get other participant ID from chatId (format: userId1_userId2)
         const participants = chatId.split("_");
-        const otherParticipantId = participants.find(id => id !== userId);
+        const otherParticipantId = participants.find((id: string) => id !== userId);
 
         // Increment unread count for the recipient
         if (otherParticipantId) {
