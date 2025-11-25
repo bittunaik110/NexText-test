@@ -118,6 +118,9 @@ export default function Home() {
     };
   });
 
+  // Calculate total unread count across all chats
+  const totalUnreadCount = displayChats.reduce((sum, chat) => sum + chat.unreadCount, 0);
+
   // Renders the profile view
   if (view === "profile") {
     return (
@@ -220,7 +223,7 @@ export default function Home() {
           <Button
             variant="ghost"
             size="sm"
-            className={cn("flex-1 flex flex-col items-center gap-1 h-auto py-3 rounded-none", !selectedChat ? "text-primary border-b-2 border-primary" : "text-muted-foreground")}
+            className={cn("flex-1 flex flex-col items-center gap-1 h-auto py-3 rounded-none relative", !selectedChat ? "text-primary border-b-2 border-primary" : "text-muted-foreground")}
             onClick={() => {
               setSelectedChat(undefined);
               setLocation("/");
@@ -229,6 +232,11 @@ export default function Home() {
           >
             <MessageCircle className="h-5 w-5" />
             <span className="text-xs font-medium">Chats</span>
+            {totalUnreadCount > 0 && (
+              <div className="absolute top-0 right-2 w-5 h-5 flex items-center justify-center bg-red-500 text-white text-[10px] font-bold rounded-full">
+                {totalUnreadCount > 99 ? '99+' : totalUnreadCount}
+              </div>
+            )}
           </Button>
           <Button
             variant="ghost"

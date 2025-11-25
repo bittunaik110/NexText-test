@@ -97,8 +97,9 @@ export default function ChatListItem({
 
       {unreadCount > 0 && (
         <div 
-          className="shrink-0 min-w-[24px] h-6 flex items-center justify-center px-1.5 font-bold text-[11px] text-white rounded-full shadow-lg bg-gradient-to-r from-blue-500 to-blue-600 animate-pulse"
+          className="shrink-0 min-w-[24px] h-6 flex items-center justify-center px-1.5 font-bold text-[11px] text-white rounded-full shadow-lg bg-red-500 hover:bg-red-600 transition-colors"
           data-testid={`unread-badge-${name.toLowerCase().replace(/\s+/g, '-')}`}
+          title={`${unreadCount} unread message${unreadCount !== 1 ? 's' : ''}`}
         >
           {unreadCount > 99 ? '99+' : unreadCount}
         </div>
