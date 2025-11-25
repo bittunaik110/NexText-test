@@ -40,17 +40,30 @@ export function CallButton({
     }
 
     try {
-      // Get current user's display name (you may want to get this from user profile)
+      // Get current user's display name
       const initiatorName = user?.displayName || user?.email?.split('@')[0] || "User";
+
+      // Extract recipient ID from contactId or chatId if contactId is empty
+      let recipientId = contactId;
+      if (!recipientId && chatId) {
+        // Chat ID format: userId1_userId2
+        const parts = chatId.split('_');
+        recipientId = parts[0] === user?.uid ? parts[1] : parts[0];
+      }
 
       console.log("CallButton: Initiating call with params:", {
         chatId,
-        recipientId: contactId,
+        recipientId: recipientId,
         recipientName: contactName,
-        initiatorName: initiatorName
+        initiatorName: initiatorName,
+        currentUserId: user?.uid
       });
 
-      await initiateCall(chatId, contactId, contactName, initiatorName);
+      if (!recipientId) {
+        throw new Error("Could not determine recipient ID");
+      }
+
+      await initiateCall(chatId, recipientId, contactName, initiatorName);
       toast({
         title: "Calling",
         description: `Calling ${contactName}...`,

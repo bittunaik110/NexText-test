@@ -135,6 +135,20 @@ export function useCallWithWebRTC() {
       }
 
       const callId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      
+      console.log("[CALL INIT] Parameters received:", {
+        chatId,
+        recipientId,
+        recipientName,
+        initiatorName,
+        currentUserId: user.uid
+      });
+
+      if (!recipientId) {
+        console.error("[CALL INIT] ERROR: recipientId is empty!");
+        throw new Error("Recipient ID is required to initiate a call");
+      }
+
       const callData: CallData = {
         callId,
         chatId,
@@ -150,7 +164,8 @@ export function useCallWithWebRTC() {
       };
 
       try {
-        console.log("Initiating call with data:", callData);
+        console.log("[CALL INIT] Creating call with data:", callData);
+        console.log("[CALL INIT] Recipient field value:", callData.recipient);
         const callRef = ref(database, `calls/${chatId}/${callId}`);
         await set(callRef, callData);
         setActiveCall(callData);
@@ -206,9 +221,17 @@ export function useCallWithWebRTC() {
         const notificationData = { ...callData, status: "ringing" };
         console.log("[CALL DEBUG] About to emit callInitiated");
         console.log("[CALL DEBUG] notificationData:", JSON.stringify(notificationData));
+        console.log("[CALL DEBUG] Recipient in notification:", notificationData.recipient);
         console.log("[CALL DEBUG] Socket connected:", socket.connected);
+        console.log("[CALL DEBUG] Chat room:", chatId);
+        
+        if (!notificationData.recipient) {
+          console.error("[CALL DEBUG] CRITICAL: Recipient is empty in notification data!");
+          throw new Error("Cannot send call notification without recipient ID");
+        }
+        
         socket.emit("callInitiated", notificationData);
-        console.log("[CALL DEBUG] Emitted callInitiated event");
+        console.log("[CALL DEBUG] Emitted callInitiated event to room:", chatId);
 
         console.log("Call initiated successfully:", callId);
         return callId;
