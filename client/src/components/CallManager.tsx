@@ -29,17 +29,24 @@ export function CallManager() {
   useEffect(() => {
     if (!socket) return;
 
-    socket.on("callEnded", () => {
-      console.log("Received call ended notification from other user");
+    const handleCallEnded = () => {
+      console.log("CallManager: Received call ended notification from other user");
       const contactName = activeCall?.recipientName || incomingCall?.initiatorName || "Contact";
       setEndedCallerName(contactName);
       setShowCallEndedModal(true);
-    });
+      
+      // Clean up the ended call
+      if (activeCall) {
+        setIncomingCall(null);
+      }
+    };
+
+    socket.on("callEnded", handleCallEnded);
 
     return () => {
-      socket.off("callEnded");
+      socket.off("callEnded", handleCallEnded);
     };
-  }, [socket, activeCall?.recipientName, incomingCall?.initiatorName]);
+  }, [socket, activeCall, incomingCall]);
 
   const isInitiator = activeCall?.initiator === user?.uid;
 

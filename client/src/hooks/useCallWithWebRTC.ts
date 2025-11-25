@@ -78,11 +78,18 @@ export function useCallWithWebRTC() {
 
   // Listen for incoming calls via Socket.IO
   useEffect(() => {
-    if (!socket) return;
+    if (!socket || !user?.uid) return;
 
     socket.on("callInitiated", (callData: CallData) => {
       console.log("Received call notification:", callData);
-      setIncomingCall(callData);
+      
+      // Only show incoming call if this user is the recipient
+      if (callData.recipient === user.uid) {
+        console.log("This call is for me, showing notification");
+        setIncomingCall(callData);
+      } else {
+        console.log("This call is not for me, ignoring");
+      }
     });
 
     socket.on("callEnded", () => {
@@ -90,20 +97,36 @@ export function useCallWithWebRTC() {
       endCall();
     });
 
+    socket.on("callAnswered", (data: { callId: string; chatId: string }) => {
+      console.log("Call was answered:", data);
+      // Update call status when recipient answers
+      if (activeCall?.callId === data.callId) {
+        setActiveCall(prev => prev ? { ...prev, status: "connected" } : null);
+      }
+    });
+
     return () => {
       socket.off("callInitiated");
       socket.off("callEnded");
+      socket.off("callAnswered");
     };
-  }, [socket]);
+  }, [socket, user?.uid, activeCall?.callId]);
 
   const initiateCall = useCallback(
     async (
       chatId: string,
       recipientId: string,
       recipientName: string,
-      contactName: string
+      initiatorName: string
     ) => {
-      if (!user || !socket || !peerRef.current) return;
+      if (!user || !socket || !peerRef.current) {
+        console.error("Cannot initiate call: missing requirements", {
+          hasUser: !!user,
+          hasSocket: !!socket,
+          hasPeer: !!peerRef.current
+        });
+        return;
+      }
 
       const callId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       const callData: CallData = {
@@ -111,8 +134,8 @@ export function useCallWithWebRTC() {
         chatId,
         initiator: user.uid,
         recipient: recipientId,
-        initiatorName: contactName,
-        recipientName,
+        initiatorName: initiatorName,
+        recipientName: recipientName,
         startTime: Date.now(),
         duration: 0,
         status: "initiated",
@@ -121,7 +144,7 @@ export function useCallWithWebRTC() {
       };
 
       try {
-        console.log("Initiating call to:", recipientId);
+        console.log("Initiating call with data:", callData);
         const callRef = ref(database, `calls/${chatId}/${callId}`);
         await set(callRef, callData);
         setActiveCall(callData);
@@ -170,8 +193,13 @@ export function useCallWithWebRTC() {
         // Update status to ringing
         await update(callRef, { status: "ringing" });
 
+        // Make sure we're in the chat room
+        socket.emit("join-chat", chatId);
+
         // Notify recipient via Socket.IO
-        socket.emit("callInitiated", { ...callData, status: "ringing" });
+        const notificationData = { ...callData, status: "ringing" };
+        console.log("Emitting callInitiated event:", notificationData);
+        socket.emit("callInitiated", notificationData);
 
         console.log("Call initiated successfully:", callId);
         return callId;

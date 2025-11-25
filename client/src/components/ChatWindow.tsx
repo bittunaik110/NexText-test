@@ -47,8 +47,8 @@ export default function ChatWindow({ chatId, contact, onBack, isTyping }: ChatWi
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const { messages, loading, userId } = useMessages(chatId);
-  const { sendMessage, reactToMessage, startTyping, stopTyping } = useSocketMessages(chatId);
-  
+  const { sendMessage, reactToMessage, startTyping, stopTyping, socket } = useSocketMessages(chatId);
+
   const handleTypingChange = useCallback((typing: boolean) => {
     if (typing) {
       startTyping();
@@ -100,7 +100,7 @@ export default function ChatWindow({ chatId, contact, onBack, isTyping }: ChatWi
     }
 
     console.log(`ChatWindow: Setting up real-time listener for ${contact.name} (${contactUserId})`);
-    
+
     const presenceRef = ref(database, `presence/${contactUserId}`);
     const unsubscribe = onValue(
       presenceRef,
@@ -129,7 +129,7 @@ export default function ChatWindow({ chatId, contact, onBack, isTyping }: ChatWi
   // Mark messages as read using Intersection Observer
   const markMessagesAsRead = useCallback((messageIds: string[]) => {
     if (!user?.uid || messageIds.length === 0) return;
-    
+
     messageIds.forEach(messageId => {
       const message = messages.find(m => m.id === messageId);
       if (message && message.userId !== user.uid && message.status !== "read") {
@@ -222,7 +222,7 @@ export default function ChatWindow({ chatId, contact, onBack, isTyping }: ChatWi
     if (!messages || messages.length === 0 || !user?.uid) return;
 
     const lastMessage = messages[messages.length - 1];
-    
+
     // Check if last message is from contact and we received it
     if (lastMessage.userId !== user.uid) {
       // Only show if browser tab is not focused
@@ -261,10 +261,23 @@ export default function ChatWindow({ chatId, contact, onBack, isTyping }: ChatWi
     if (hours < 24) return `last seen ${hours} hour${hours > 1 ? 's' : ''} ago`;
     if (days === 1) return "last seen yesterday";
     if (days < 7) return `last seen ${days} days ago`;
-    
+
     const date = new Date(lastSeenTime);
     return `last seen ${date.toLocaleDateString()}`;
   };
+
+  // Join socket room for this chat
+  useEffect(() => {
+    if (socket && chatId) {
+      console.log("ChatWindow: Joining socket room for chat", chatId);
+      socket.emit("join-chat", chatId);
+
+      return () => {
+        console.log("ChatWindow: Leaving socket room for chat", chatId);
+        socket.emit("leave-chat", chatId);
+      };
+    }
+  }, [socket, chatId]);
 
   return (
     <div className="flex flex-col h-screen bg-background">
@@ -282,9 +295,9 @@ export default function ChatWindow({ chatId, contact, onBack, isTyping }: ChatWi
                 <ArrowLeft className="h-5 w-5" />
               </Button>
             )}
-            
+
             <UserAvatar name={contact.name} src={contact.avatar} online={contact.online} size="sm" />
-            
+
             <div className="flex-1 min-w-0">
               <h2 className="font-600 text-foreground truncate text-base">{contact.name}</h2>
               <p className="text-xs font-medium transition-all duration-200">
