@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useCallWithWebRTC } from "@/hooks/useCallWithWebRTC";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 interface CallButtonProps {
   contactId: string;

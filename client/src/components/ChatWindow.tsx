@@ -47,7 +47,8 @@ export default function ChatWindow({ chatId, contact, onBack, isTyping }: ChatWi
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const { messages, loading, userId } = useMessages(chatId);
-  const { sendMessage, reactToMessage, startTyping, stopTyping, socket } = useSocketMessages(chatId);
+  const { sendMessage, reactToMessage, startTyping, stopTyping } = useSocketMessages(chatId);
+  const { socket } = useSocket();
 
   const handleTypingChange = useCallback((typing: boolean) => {
     if (typing) {

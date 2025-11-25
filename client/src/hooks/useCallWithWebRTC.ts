@@ -59,7 +59,7 @@ export function useCallWithWebRTC() {
         console.log("PeerJS connected with ID:", peer.id);
       });
 
-      peer.on("call", (call) => {
+      peer.on("call", (call: any) => {
         console.log("Incoming call from:", call.peer);
         // Call will be answered through the modal
       });
@@ -185,7 +185,7 @@ export function useCallWithWebRTC() {
             console.log("Peer call closed by recipient");
           });
 
-          incomingPeerCall.on("error", (err) => {
+          incomingPeerCall.on("error", (err: any) => {
             console.error("Peer call error:", err);
           });
         });
@@ -247,7 +247,7 @@ export function useCallWithWebRTC() {
           console.log("Peer call closed");
         });
 
-        peerCall.on("error", (err) => {
+        peerCall.on("error", (err: any) => {
           console.error("Peer call error:", err);
         });
 
