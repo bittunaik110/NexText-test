@@ -65,18 +65,30 @@ export default function ChatWindow({ chatId, contact, onBack, isTyping }: ChatWi
 
   // Real-time listener for contact's online status
   useEffect(() => {
-    if (!contact.userId) return;
+    // Extract contact user ID from chatId if not provided
+    let contactUserId = contact.userId;
+    if (!contactUserId && chatId) {
+      // Chat ID format: userId1_userId2
+      const parts = chatId.split('_');
+      contactUserId = parts[0] === user?.uid ? parts[1] : parts[0];
+    }
 
-    console.log(`ChatWindow: Setting up real-time listener for ${contact.name} (${contact.userId})`);
+    if (!contactUserId) {
+      console.log(`ChatWindow: No contactUserId found for ${contact.name}`);
+      setContactOnline(false);
+      return;
+    }
+
+    console.log(`ChatWindow: Setting up real-time listener for ${contact.name} (${contactUserId})`);
     
-    const presenceRef = ref(database, `presence/${contact.userId}`);
+    const presenceRef = ref(database, `presence/${contactUserId}`);
     const unsubscribe = onValue(
       presenceRef,
       (snapshot) => {
         const data = snapshot.val();
         const isOnline = data?.isOnline === true;
         setContactOnline(isOnline);
-        console.log(`ChatWindow: ${contact.name} status updated - isOnline: ${isOnline}, data:`, data);
+        console.log(`ChatWindow: ${contact.name} status updated - isOnline: ${isOnline}, fullData:`, data);
       },
       (error) => {
         console.error("ChatWindow: Error reading presence:", error);
@@ -88,7 +100,7 @@ export default function ChatWindow({ chatId, contact, onBack, isTyping }: ChatWi
       console.log(`ChatWindow: Cleaning up listener for ${contact.name}`);
       unsubscribe();
     };
-  }, [contact.userId, contact.name]);
+  }, [contact.userId, contact.name, chatId, user?.uid]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
