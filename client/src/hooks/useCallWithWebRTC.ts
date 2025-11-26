@@ -78,12 +78,16 @@ export function useCallWithWebRTC() {
 
   // Listen for incoming calls via Socket.IO
   useEffect(() => {
-    if (!socket || !user?.uid) return;
+    if (!socket || !user?.uid) {
+      console.log(`[CALL DEBUG] Cannot set up listener - socket: ${!!socket}, uid: ${user?.uid}`);
+      return;
+    }
 
-    console.log(`[CALL DEBUG] Setting up callInitiated listener for user: ${user.uid}`);
+    console.log(`[CALL DEBUG] ✓ Setting up callInitiated listener for user: ${user.uid}`);
+    console.log(`[CALL DEBUG] Socket ID: ${socket.id}, Connected: ${socket.connected}`);
 
-    socket.on("callInitiated", (callData: CallData) => {
-      console.log(`[CALL DEBUG] Received callInitiated event`);
+    const handleCallInitiated = (callData: CallData) => {
+      console.log(`[CALL DEBUG] ✓✓ RECEIVED callInitiated event!`);
       console.log(`[CALL DEBUG] callData:`, JSON.stringify(callData));
       console.log(`[CALL DEBUG] Current user uid: ${user.uid}`);
       console.log(`[CALL DEBUG] Call recipient: ${callData.recipient}`);
@@ -91,30 +95,36 @@ export function useCallWithWebRTC() {
       
       // Only show incoming call if this user is the recipient
       if (callData.recipient === user.uid) {
-        console.log(`[CALL DEBUG] ✓ Call is for me, showing notification`);
+        console.log(`[CALL DEBUG] ✓✓✓ Call is for me! Showing notification with data:`, callData);
         setIncomingCall(callData);
       } else {
         console.log(`[CALL DEBUG] ✗ Call is not for me (${callData.recipient} !== ${user.uid})`);
       }
-    });
+    };
 
-    socket.on("callEnded", () => {
+    const handleCallEnded = () => {
       console.log("Call ended by other user");
       endCall();
-    });
+    };
 
-    socket.on("callAnswered", (data: { callId: string; chatId: string }) => {
+    const handleCallAnswered = (data: { callId: string; chatId: string }) => {
       console.log("Call was answered:", data);
       // Update call status when recipient answers
       if (activeCall?.callId === data.callId) {
         setActiveCall(prev => prev ? { ...prev, status: "connected" } : null);
       }
-    });
+    };
+
+    socket.on("callInitiated", handleCallInitiated);
+    socket.on("callEnded", handleCallEnded);
+    socket.on("callAnswered", handleCallAnswered);
+
+    console.log(`[CALL DEBUG] Listeners registered. Waiting for incoming calls...`);
 
     return () => {
-      socket.off("callInitiated");
-      socket.off("callEnded");
-      socket.off("callAnswered");
+      socket.off("callInitiated", handleCallInitiated);
+      socket.off("callEnded", handleCallEnded);
+      socket.off("callAnswered", handleCallAnswered);
     };
   }, [socket, user?.uid]);
 
