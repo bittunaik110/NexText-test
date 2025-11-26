@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Phone } from "lucide-react";
+import { Phone, Video } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -29,7 +29,15 @@ export function CallButton({
   const { user } = useAuth();
   const { toast } = useToast();
 
-  const handleCallClick = async () => {
+  const handleVoiceCall = async () => {
+    await initiateCallHandler("audio");
+  };
+
+  const handleVideoCall = async () => {
+    await initiateCallHandler("video");
+  };
+
+  const initiateCallHandler = async (callType: "audio" | "video") => {
     if (!isOnline) {
       toast({
         title: "User Offline",
@@ -56,6 +64,7 @@ export function CallButton({
         recipientId: recipientId,
         recipientName: contactName,
         initiatorName: initiatorName,
+        callType: callType,
         currentUserId: user?.uid
       });
 
@@ -63,10 +72,10 @@ export function CallButton({
         throw new Error("Could not determine recipient ID");
       }
 
-      await initiateCall(chatId, recipientId, contactName, initiatorName);
+      await initiateCall(chatId, recipientId, contactName, initiatorName, callType);
       toast({
-        title: "Calling",
-        description: `Calling ${contactName}...`,
+        title: callType === "video" ? "Video Calling" : "Calling",
+        description: `${callType === "video" ? "Starting video call with" : "Calling"} ${contactName}...`,
       });
     } catch (error) {
       console.error("Error initiating call:", error);
@@ -79,24 +88,46 @@ export function CallButton({
   };
 
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            size="icon"
-            variant="ghost"
-            onClick={handleCallClick}
-            disabled={!isOnline}
-            title={isOnline ? "Call" : "User is offline"}
-            data-testid="button-call-contact"
-          >
-            <Phone className="h-5 w-5" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side="bottom">
-          {isOnline ? "Call" : "User is offline"}
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <div className="flex gap-1">
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={handleVoiceCall}
+              disabled={!isOnline}
+              title={isOnline ? "Voice Call" : "User is offline"}
+              data-testid="button-voice-call"
+            >
+              <Phone className="h-5 w-5" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">
+            {isOnline ? "Voice Call" : "User is offline"}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={handleVideoCall}
+              disabled={!isOnline}
+              title={isOnline ? "Video Call" : "User is offline"}
+              data-testid="button-video-call"
+            >
+              <Video className="h-5 w-5" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">
+            {isOnline ? "Video Call" : "User is offline"}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    </div>
   );
 }

@@ -1,10 +1,10 @@
-import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import UserAvatar from "./UserAvatar";
-import { PhoneOff, Mic, Volume2, Phone } from "lucide-react";
+import { PhoneOff, Mic, Volume2, Phone, Video } from "lucide-react";
 import { CallData } from "@/hooks/useCallWithWebRTC";
 import { useState } from "react";
 import { format } from "date-fns";
+import { createPortal } from "react-dom";
 
 interface CallNotificationModalProps {
   isOpen: boolean;
@@ -24,8 +24,8 @@ export function CallNotificationModal({
 
   if (!isOpen || !call) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95">
+  const modalContent = (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/95">
       {/* Dark gradient background with blur effect */}
       <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-slate-800 to-slate-900 overflow-hidden">
         {/* Background blur overlay */}
@@ -51,10 +51,25 @@ export function CallNotificationModal({
             className="w-36 h-36 mb-4 ring-4 ring-white/30 shadow-2xl"
           />
 
+          {/* Call Type Badge */}
+          <div className="flex items-center gap-2 bg-slate-700/60 px-4 py-2 rounded-full">
+            {call.callType === "video" ? (
+              <>
+                <Video className="h-4 w-4 text-blue-400" />
+                <span className="text-sm text-white font-medium">Video Call</span>
+              </>
+            ) : (
+              <>
+                <Phone className="h-4 w-4 text-green-400" />
+                <span className="text-sm text-white font-medium">Voice Call</span>
+              </>
+            )}
+          </div>
+
           {/* Caller info */}
           <div className="text-center">
             <h2 className="text-5xl font-bold text-white mb-2">{call?.initiatorName}</h2>
-            <p className="text-xl text-gray-300">Contacting...</p>
+            <p className="text-xl text-gray-300">Incoming call...</p>
           </div>
         </div>
 
@@ -83,6 +98,32 @@ export function CallNotificationModal({
           >
             <PhoneOff className="h-9 w-9" />
           </Button>
+
+          {/* Accept/Answer Button - GREEN */}
+          <Button
+            size="icon"
+            className="h-20 w-20 rounded-full bg-green-500 hover:bg-green-600 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center"
+            onClick={onAnswer}
+            data-testid="button-accept-call"
+          >
+            {call.callType === "video" ? (
+              <Video className="h-9 w-9" />
+            ) : (
+              <Phone className="h-9 w-9" />
+            )}
+          </Button>
+        </div>
+
+        {/* iPhone Home Indicator */}
+        <div className="absolute bottom-3 left-0 right-0 flex justify-center">
+          <div className="w-32 h-1.5 bg-white/60 rounded-full" />
+        </div>
+      </div>
+    </div>
+  );
+
+  return createPortal(modalContent, document.body);
+}
 
           {/* Answer/Accept Button - GREEN */}
           <Button

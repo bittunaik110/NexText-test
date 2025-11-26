@@ -133,7 +133,8 @@ export function useCallWithWebRTC() {
       chatId: string,
       recipientId: string,
       recipientName: string,
-      initiatorName: string
+      initiatorName: string,
+      callType: "audio" | "video" = "audio"
     ) => {
       if (!user || !socket || !peerRef.current) {
         console.error("Cannot initiate call: missing requirements", {
@@ -151,6 +152,7 @@ export function useCallWithWebRTC() {
         recipientId,
         recipientName,
         initiatorName,
+        callType,
         currentUserId: user.uid
       });
 
@@ -169,7 +171,7 @@ export function useCallWithWebRTC() {
         startTime: Date.now(),
         duration: 0,
         status: "initiated",
-        callType: "audio",
+        callType: callType,
         createdAt: Date.now(),
       };
 

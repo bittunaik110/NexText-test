@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
 import UserAvatar from "./UserAvatar";
-import { PhoneOff, Mic, MicOff, Volume2, VolumeX } from "lucide-react";
+import { PhoneOff, Mic, MicOff, Volume2, VolumeX, Video } from "lucide-react";
 import { CallData } from "@/hooks/useCallWithWebRTC";
 import { format } from "date-fns";
 
@@ -84,6 +84,21 @@ export function CallingModal({
             size="xl"
             className="w-36 h-36 mb-4 ring-4 ring-white/30 shadow-2xl"
           />
+
+          {/* Call Type Badge */}
+          <div className="flex items-center gap-2 bg-slate-700/60 px-4 py-2 rounded-full">
+            {call.callType === "video" ? (
+              <>
+                <Video className="h-4 w-4 text-blue-400" />
+                <span className="text-sm text-white font-medium">Video Call</span>
+              </>
+            ) : (
+              <>
+                <Volume2 className="h-4 w-4 text-green-400" />
+                <span className="text-sm text-white font-medium">Voice Call</span>
+              </>
+            )}
+          </div>
 
           {/* Caller info */}
           <div className="text-center">
