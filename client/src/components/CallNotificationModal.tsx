@@ -124,23 +124,3 @@ export function CallNotificationModal({
 
   return createPortal(modalContent, document.body);
 }
-
-          {/* Answer/Accept Button - GREEN */}
-          <Button
-            size="icon"
-            className="h-20 w-20 rounded-full bg-green-500 hover:bg-green-600 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center"
-            onClick={onAnswer}
-            data-testid="button-answer-call"
-          >
-            <Phone className="h-9 w-9" />
-          </Button>
-        </div>
-
-        {/* iPhone Home Indicator */}
-        <div className="absolute bottom-3 left-0 right-0 flex justify-center">
-          <div className="w-32 h-1.5 bg-white/60 rounded-full" />
-        </div>
-      </div>
-    </div>
-  );
-}
