@@ -49,12 +49,16 @@ export function CallingModal({
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-  if (!isOpen || !call) return null;
+  if (!isOpen || !call) {
+    console.log("[CallingModal] Not rendering: isOpen=", isOpen, "call=", call);
+    return null;
+  }
 
+  console.log("[CallingModal] RENDERING FULL SCREEN for call:", call?.recipientName);
   const contactName = isInitiator ? call.recipientName : call.initiatorName;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95">
+    <div className="fixed inset-0 top-0 left-0 right-0 bottom-0 w-screen h-screen z-50 flex items-center justify-center bg-black/95">
       {/* Dark gradient background with blur effect */}
       <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-slate-800 to-slate-900 overflow-hidden">
         {/* Background blur overlay */}
