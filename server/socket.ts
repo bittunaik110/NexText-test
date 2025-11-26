@@ -73,6 +73,12 @@ export function setupSocketIO(httpServer: HTTPServer) {
       socket.to(data.chatId).emit("callAnswered", data);
     });
 
+    socket.on("callRejected", (data: any) => {
+      console.log(`Call rejected by ${userId}:`, data);
+      // Broadcast call rejected to other user in the chat room
+      socket.to(data.chatId).emit("callRejected", data);
+    });
+
     socket.on("callEnded", (data: any) => {
       console.log(`Call ended by ${userId}:`, data);
       // Broadcast call ended to other user in the chat room

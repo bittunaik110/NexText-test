@@ -64,6 +64,12 @@ export default function ChatWindow({ chatId, contact, onBack, isTyping }: ChatWi
   const [isMuted, setIsMuted] = useState(false);
   const { user } = useAuth();
   const [contactOnline, setContactOnline] = useState(false);
+  const [incomingCallBanner, setIncomingCallBanner] = useState<{
+    callId: string;
+    callerId: string;
+    callerName: string;
+    callerAvatar?: string;
+  } | null>(null);
 
   // Mark chat as read when opening it
   useEffect(() => {
@@ -219,6 +225,46 @@ export default function ChatWindow({ chatId, contact, onBack, isTyping }: ChatWi
     });
   };
 
+  const handleAcceptCall = () => {
+    if (!incomingCallBanner || !socket) return;
+    
+    console.log("ChatWindow: Accepting call from banner");
+    
+    // Emit call answered event
+    socket.emit("callAnswered", { 
+      callId: incomingCallBanner.callId, 
+      chatId 
+    });
+    
+    // Hide the banner - the global CallManager will handle showing the call UI
+    setIncomingCallBanner(null);
+    
+    toast({
+      title: "Call Accepted",
+      description: "Connecting...",
+    });
+  };
+
+  const handleRejectCall = () => {
+    if (!incomingCallBanner || !socket) return;
+    
+    console.log("ChatWindow: Rejecting call from banner");
+    
+    // Emit call rejected event
+    socket.emit("callRejected", { 
+      callId: incomingCallBanner.callId, 
+      chatId 
+    });
+    
+    // Hide the banner
+    setIncomingCallBanner(null);
+    
+    toast({
+      title: "Call Declined",
+      description: "You declined the call.",
+    });
+  };
+
   // Browser notification for incoming messages
   useEffect(() => {
     if (!messages || messages.length === 0 || !user?.uid) return;
@@ -268,6 +314,41 @@ export default function ChatWindow({ chatId, contact, onBack, isTyping }: ChatWi
     return `last seen ${date.toLocaleDateString()}`;
   };
 
+  // Listen for incoming calls in this specific chat
+  useEffect(() => {
+    if (!socket || !user?.uid) return;
+
+    const handleIncomingCall = (callData: any) => {
+      console.log("ChatWindow: Received incoming call:", callData);
+      
+      // Only show banner if this is the chat where the call is happening
+      // and the current user is the recipient
+      if (callData.chatId === chatId && callData.recipient === user.uid) {
+        setIncomingCallBanner({
+          callId: callData.callId,
+          callerId: callData.initiator,
+          callerName: callData.initiatorName,
+          callerAvatar: contact.avatar,
+        });
+      }
+    };
+
+    const handleCallEnded = () => {
+      console.log("ChatWindow: Call ended, hiding banner");
+      setIncomingCallBanner(null);
+    };
+
+    socket.on("callInitiated", handleIncomingCall);
+    socket.on("callEnded", handleCallEnded);
+    socket.on("callRejected", handleCallEnded);
+
+    return () => {
+      socket.off("callInitiated", handleIncomingCall);
+      socket.off("callEnded", handleCallEnded);
+      socket.off("callRejected", handleCallEnded);
+    };
+  }, [socket, user?.uid, chatId, contact.avatar]);
+
   // Join socket room for this chat
   useEffect(() => {
     if (socket && chatId) {
@@ -283,6 +364,64 @@ export default function ChatWindow({ chatId, contact, onBack, isTyping }: ChatWi
 
   return (
     <div className="flex flex-col h-screen bg-background">
+      {/* Incoming Call Banner */}
+      {incomingCallBanner && (
+        <div className="sticky top-0 z-20 bg-gradient-to-r from-primary to-blue-600 text-white px-4 py-4 border-b border-primary-border shadow-lg animate-in slide-in-from-top">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              {/* Ringing Animation */}
+              <div className="relative">
+                <UserAvatar 
+                  name={incomingCallBanner.callerName} 
+                  src={incomingCallBanner.callerAvatar}
+                  size="md" 
+                  className="ring-2 ring-white ring-offset-2"
+                />
+                <span className="absolute -top-1 -right-1 flex h-4 w-4">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-4 w-4 bg-white">
+                    <PhoneCall className="h-3 w-3 text-primary m-auto animate-pulse" />
+                  </span>
+                </span>
+              </div>
+              
+              {/* Caller Info */}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-white truncate">
+                  Incoming call from {incomingCallBanner.callerName}
+                </p>
+                <p className="text-xs text-white/80 flex items-center gap-1">
+                  <PhoneCall className="h-3 w-3 animate-pulse" />
+                  Ringing...
+                </p>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center gap-2 shrink-0">
+              <Button
+                size="sm"
+                onClick={handleAcceptCall}
+                className="bg-green-500 hover:bg-green-600 text-white border-0 shadow-md h-9 px-4"
+                data-testid="button-accept-call-banner"
+              >
+                <Phone className="h-4 w-4 mr-1" />
+                Accept
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleRejectCall}
+                className="bg-red-500 hover:bg-red-600 text-white border-0 shadow-md h-9 px-4"
+                data-testid="button-reject-call-banner"
+              >
+                <PhoneOff className="h-4 w-4 mr-1" />
+                Decline
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="sticky top-0 z-10 px-4 py-3 border-b border-border bg-white shadow-sm">
         <div className="flex items-center gap-3 justify-between">
           <div className="flex items-center gap-3 flex-1">
