@@ -2,7 +2,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import UserAvatar from "./UserAvatar";
 import { PhoneOff, Mic, Volume2, Signal, Wifi, Battery } from "lucide-react";
-import { CallData } from "@/hooks/useCall";
+import { CallData } from "@/hooks/useCallWithWebRTC";
 import { useState } from "react";
 import { format } from "date-fns";
 
