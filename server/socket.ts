@@ -49,10 +49,22 @@ export function setupSocketIO(httpServer: HTTPServer) {
     socket.on("callInitiated", (callData: any) => {
       console.log(`[CALL DEBUG] Call initiated from ${userId}`);
       console.log(`[CALL DEBUG] callData:`, JSON.stringify(callData));
-      console.log(`[CALL DEBUG] Broadcasting to room: ${callData.chatId}`);
-      // Broadcast call to recipient in the chat room
+      console.log(`[CALL DEBUG] Recipient ID: ${callData.recipient}`);
+      
+      // Find the recipient's socket and emit directly to them
+      const recipientSocketId = Array.from(io.sockets.sockets.values())
+        .find(s => s.data.userId === callData.recipient)?.id;
+      
+      if (recipientSocketId) {
+        console.log(`[CALL DEBUG] Found recipient socket: ${recipientSocketId}`);
+        io.to(recipientSocketId).emit("callInitiated", callData);
+        console.log(`[CALL DEBUG] Emitted callInitiated directly to recipient`);
+      } else {
+        console.log(`[CALL DEBUG] WARNING: Recipient socket not found for userId: ${callData.recipient}`);
+      }
+      
+      // Also broadcast to chat room as backup (in case both users have the chat open)
       socket.to(callData.chatId).emit("callInitiated", callData);
-      console.log(`[CALL DEBUG] Emitted callInitiated to room ${callData.chatId}`);
     });
 
     socket.on("callAnswered", (data: any) => {
