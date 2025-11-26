@@ -314,41 +314,6 @@ export default function ChatWindow({ chatId, contact, onBack, isTyping }: ChatWi
     return `last seen ${date.toLocaleDateString()}`;
   };
 
-  // Listen for incoming calls in this specific chat
-  useEffect(() => {
-    if (!socket || !user?.uid) return;
-
-    const handleIncomingCall = (callData: any) => {
-      console.log("ChatWindow: Received incoming call:", callData);
-      
-      // Only show banner if this is the chat where the call is happening
-      // and the current user is the recipient
-      if (callData.chatId === chatId && callData.recipient === user.uid) {
-        setIncomingCallBanner({
-          callId: callData.callId,
-          callerId: callData.initiator,
-          callerName: callData.initiatorName,
-          callerAvatar: contact.avatar,
-        });
-      }
-    };
-
-    const handleCallEnded = () => {
-      console.log("ChatWindow: Call ended, hiding banner");
-      setIncomingCallBanner(null);
-    };
-
-    socket.on("callInitiated", handleIncomingCall);
-    socket.on("callEnded", handleCallEnded);
-    socket.on("callRejected", handleCallEnded);
-
-    return () => {
-      socket.off("callInitiated", handleIncomingCall);
-      socket.off("callEnded", handleCallEnded);
-      socket.off("callRejected", handleCallEnded);
-    };
-  }, [socket, user?.uid, chatId, contact.avatar]);
-
   // Join socket room for this chat
   useEffect(() => {
     if (socket && chatId) {
