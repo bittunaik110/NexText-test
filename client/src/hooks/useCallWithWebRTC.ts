@@ -4,7 +4,9 @@ import { ref, set, update, get, query, orderByChild, limitToLast, onValue, off }
 import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSocket } from "./useSocket";
+import { saveCall, updateCallStatus } from "@/lib/firebaseCallOps";
 import type Peer from "peerjs";
+import type { CallData as FirebaseCallData } from "@/lib/firebaseCallOps";
 
 export interface CallData {
   callId: string;
@@ -112,6 +114,10 @@ export function useCallWithWebRTC() {
       // Update call status when recipient answers
       if (activeCall?.callId === data.callId) {
         setActiveCall(prev => prev ? { ...prev, status: "connected" } : null);
+        // Persist to Firebase
+        updateCallStatus(data.callId, "ongoing", { startTime: Date.now() }).catch(err => 
+          console.error("Error updating call status to ongoing:", err)
+        );
       }
     };
 
@@ -228,6 +234,30 @@ export function useCallWithWebRTC() {
         await update(callRef, { status: "ringing" });
         console.log("[CALL INIT] Updated status to ringing, updating local state");
         setActiveCall(prev => prev ? { ...prev, status: "ringing" } : callData);
+        
+        // Persist call to Firebase using new utility
+        try {
+          const firebaseCallData: FirebaseCallData = {
+            callId,
+            callType,
+            chatId,
+            initiator: {
+              odId: user.uid,
+              username: initiatorName,
+              avatar: user.photoURL || undefined,
+            },
+            recipient: {
+              odId: recipientId,
+              username: recipientName,
+              avatar: undefined,
+            },
+            status: "initiating",
+            createdAt: Date.now(),
+          };
+          await saveCall(firebaseCallData);
+        } catch (error) {
+          console.error("Error saving call to Firebase:", error);
+        }
 
         // Make sure we're in the chat room
         socket.emit("join-chat", chatId);
@@ -301,6 +331,13 @@ export function useCallWithWebRTC() {
         // Update status to connected
         await update(callRef, { status: "connected" });
 
+        // Persist to Firebase - update to ongoing status
+        try {
+          await updateCallStatus(callData.callId, "ongoing", { startTime: Date.now() });
+        } catch (error) {
+          console.error("Error updating call status to ongoing:", error);
+        }
+
         // Emit call answered event
         socket.emit("callAnswered", { 
           callId: callData.callId, 
@@ -324,6 +361,14 @@ export function useCallWithWebRTC() {
         const callRef = ref(database, `calls/${callData.chatId}/${callData.callId}`);
         await update(callRef, { status: "declined", endTime: Date.now() });
         setIncomingCall(null);
+        
+        // Persist to Firebase
+        try {
+          await updateCallStatus(callData.callId, "declined");
+        } catch (error) {
+          console.error("Error updating declined call status to Firebase:", error);
+        }
+        
         console.log("Call declined");
       } catch (error) {
         console.error("Error declining call:", error);
@@ -412,6 +457,17 @@ export function useCallWithWebRTC() {
         }
 
         await update(callRef, updateData);
+
+        // Persist to Firebase
+        try {
+          const endData: any = { endTime: Date.now(), duration };
+          if (recordingData) {
+            endData.callRecordURL = recordingData.url;
+          }
+          await updateCallStatus(activeCall.callId, "ended", endData);
+        } catch (error) {
+          console.error("Error updating end call status to Firebase:", error);
+        }
 
         // Notify other user
         socket.emit("callEnded", { callId: activeCall.callId });
