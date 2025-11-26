@@ -178,6 +178,7 @@ export function useCallWithWebRTC() {
         console.log("[CALL INIT] Recipient field value:", callData.recipient);
         const callRef = ref(database, `calls/${chatId}/${callId}`);
         await set(callRef, callData);
+        console.log("[CALL INIT] Setting activeCall state:", callData);
         setActiveCall(callData);
 
         // Request microphone
@@ -223,6 +224,8 @@ export function useCallWithWebRTC() {
 
         // Update status to ringing
         await update(callRef, { status: "ringing" });
+        console.log("[CALL INIT] Updated status to ringing, updating local state");
+        setActiveCall(prev => prev ? { ...prev, status: "ringing" } : callData);
 
         // Make sure we're in the chat room
         socket.emit("join-chat", chatId);

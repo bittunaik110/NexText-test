@@ -25,6 +25,15 @@ export function CallManager() {
   const [showCallEndedModal, setShowCallEndedModal] = useState(false);
   const [endedCallerName, setEndedCallerName] = useState("");
 
+  // Debug: Log activeCall state changes
+  useEffect(() => {
+    console.log("[CallManager] activeCall state changed:", {
+      isOpen: !!activeCall,
+      call: activeCall,
+      shouldShowModal: !!activeCall,
+    });
+  }, [activeCall]);
+
   // Listen for call ended event from other user
   useEffect(() => {
     if (!socket) return;
