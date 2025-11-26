@@ -116,7 +116,7 @@ export function useCallWithWebRTC() {
       socket.off("callEnded");
       socket.off("callAnswered");
     };
-  }, [socket, user?.uid, activeCall?.callId]);
+  }, [socket, user?.uid]);
 
   const initiateCall = useCallback(
     async (
