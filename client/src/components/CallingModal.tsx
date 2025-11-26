@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
 import UserAvatar from "./UserAvatar";
 import { PhoneOff, Mic, MicOff, Volume2, VolumeX } from "lucide-react";
@@ -54,11 +55,11 @@ export function CallingModal({
     return null;
   }
 
-  console.log("[CallingModal] RENDERING FULL SCREEN for call:", call?.recipientName);
+  console.log("[CallingModal] RENDERING FULL SCREEN PORTAL for call:", call?.recipientName);
   const contactName = isInitiator ? call.recipientName : call.initiatorName;
 
-  return (
-    <div className="fixed inset-0 top-0 left-0 right-0 bottom-0 w-screen h-screen z-50 flex items-center justify-center bg-black/95">
+  const modalContent = (
+    <div className="fixed inset-0 top-0 left-0 right-0 bottom-0 w-screen h-screen z-[9999] flex items-center justify-center bg-black/95">
       {/* Dark gradient background with blur effect */}
       <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-slate-800 to-slate-900 overflow-hidden">
         {/* Background blur overlay */}
@@ -141,4 +142,6 @@ export function CallingModal({
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 }
