@@ -1,0 +1,46 @@
+To redesign the CallNotificationModal UI in your Replit project, your goal is to match a "contacting" call popup, similar to real-world calling apps. The requirements are:
+
+- Show the time "9:41" at the top.
+- Display the name (e.g., "Martha Craig") and status "Contacting…".
+- Have three buttons: Mute, Hand Up (hang up), and a Green button to Lift (accept) the call.
+- Make the interface modern, clear, and visually realistic.
+
+Here’s the prompt you should provide to the Replit agent to analyze, redesign, and test the UI code for client/src/components/CallNotificationModal.tsx:
+
+***
+
+**Prompt for Replit agent:**
+
+You are an expert UI/UX designer and developer. This is your project—your job is to redesign, implement, and test all features.
+
+1. Analyze and update client/src/components/CallNotificationModal.tsx UI to match the following requirements:
+   - At the top-center of the modal, display the time "9:41" in a style similar to smartphone lock screens.
+   - Below, show:
+     - The contact's avatar (circular image or placeholder).
+     - The contact’s name, e.g., "Martha Craig", as a large, bold text.
+     - The status text "Contacting…" in a lighter font, centered below the name.
+   - At the bottom, include three large, round, clearly differentiated buttons, equally spaced:
+     - A mute button (microphone icon).
+     - A red "Hand Up" button (end call/hang up icon).
+     - A green "Lift Call" button (phone/accept-call icon).
+   - Make the component visually realistic, professional, and clean—similar to UI from WhatsApp/FaceTime.
+2. Ensure the UI is responsive and works for different screen sizes.
+3. Test all Replit-generated features and code for interactivity:
+   - Do Mute, End, and Accept buttons visually update state and trigger respective handler functions?
+   - Does the UI show correct status when the call is connecting/connected?
+4. Inspect/test the output, identify any issues with style, alignment, icon placement, responsiveness, or functionality, and ask follow-up questions to get Replit agent to fix them.
+
+**Do not modify code directly—only use prompts.** For each test or issue found, prompt the agent to revise accordingly until the design, look, and function perfectly match a modern, realistic calling modal.
+
+Finally, explain any remaining gaps or usability concerns and continually verify output as if it were your own project.
+
+***
+
+Use this prompt in Replit's agent. After each code generation:
+- Test the updated component visually and functionally.
+- Document any issues or differences from the requirements.
+- Repeat by prompting the agent for further revision until the modal matches your vision perfectly.
+
+Let me know if you want step-by-step test directions or a sample follow-up prompt for a specific bug or visual issue!
+
+[1](https://replit.com/@selenetapia1999/NexText-test#client/src/components/CallNotificationModal.tsx)

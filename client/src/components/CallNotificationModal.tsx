@@ -57,7 +57,7 @@ export function CallNotificationModal({
               <Button
                 size="icon"
                 variant="ghost"
-                className="h-16 w-16 rounded-full bg-gray-600/60 hover:bg-gray-700/60 text-white transition-all"
+                className="h-16 w-16 rounded-full bg-gray-600/60 hover:bg-gray-700/70 text-white transition-all duration-200"
                 onClick={() => setIsMuted(!isMuted)}
                 data-testid="button-mute-call"
               >
@@ -68,11 +68,11 @@ export function CallNotificationModal({
                 )}
               </Button>
 
-              {/* Hand up / Decline button */}
+              {/* Hand up / Decline button - RED */}
               <Button
                 size="icon"
                 variant="ghost"
-                className="h-16 w-16 rounded-full bg-gray-600/60 hover:bg-gray-700/60 text-white transition-all"
+                className="h-16 w-16 rounded-full bg-red-500 hover:bg-red-600 text-white shadow-lg hover:shadow-xl transition-all duration-200"
                 onClick={onDecline}
                 data-testid="button-handup-call"
               >
@@ -82,7 +82,7 @@ export function CallNotificationModal({
               {/* Answer button - Green */}
               <Button
                 size="icon"
-                className="h-16 w-16 rounded-full bg-green-500 hover:bg-green-600 text-white shadow-lg hover:shadow-xl transition-all"
+                className="h-16 w-16 rounded-full bg-green-500 hover:bg-green-600 text-white shadow-lg hover:shadow-xl transition-all duration-200"
                 onClick={onAnswer}
                 data-testid="button-answer-call"
               >
