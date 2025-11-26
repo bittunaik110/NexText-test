@@ -82,7 +82,7 @@ export default function ChatWindow({ chatId, contact, onBack, isTyping }: ChatWi
         await update(chatRef, {
           [`unreadCount/${user.uid}`]: 0,
         });
-        console.log(`ChatWindow: Chat marked as read in Firebase`);
+        console.log(`ChatWindow: ✅ Chat unreadCount set to 0 in Firebase - real-time listener should pick this up`);
       } catch (error) {
         console.error("ChatWindow: Error marking chat as read:", error);
       }

@@ -41,7 +41,7 @@ export function useChats() {
       (snapshot) => {
         try {
           const data = snapshot.val();
-          console.log("useChats: Raw data from Realtime DB:", data);
+          console.log("useChats: Real-time update received from Firebase:", data);
           
           if (data) {
             const chatList = Object.entries(data)
@@ -52,7 +52,8 @@ export function useChats() {
               .filter((chat: Chat) => {
                 const isParticipant = chat.participants && chat.participants.includes(user.uid);
                 const isNotDeleted = !chat.deleted;
-                console.log(`useChats: Chat ${chat.id} - isParticipant: ${isParticipant}, isNotDeleted: ${isNotDeleted}`);
+                const unreadCount = chat.unreadCount?.[user.uid] || 0;
+                console.log(`useChats: Chat ${chat.id} - isParticipant: ${isParticipant}, isNotDeleted: ${isNotDeleted}, unreadCount: ${unreadCount}`);
                 return isParticipant && isNotDeleted;
               }) as Chat[];
             
@@ -60,7 +61,7 @@ export function useChats() {
               new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime()
             );
             
-            console.log("useChats: Filtered chat list:", chatList);
+            console.log("useChats: Updated chat list with real-time data:", chatList);
             setChats(chatList);
           } else {
             console.log("useChats: No data in Realtime DB");
@@ -90,7 +91,7 @@ export function useChats() {
       }
     );
 
-    return () => off(chatsRef, 'value', unsubscribe);
+    return () => unsubscribe();
   }, [user, toast]);
 
   return { chats, loading, error };
