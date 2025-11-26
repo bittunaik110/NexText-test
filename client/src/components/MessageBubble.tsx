@@ -136,7 +136,7 @@ export default function MessageBubble({
             </div>
           )}
           {text && (
-            <p className="text-[15px] break-words leading-6 font-normal whitespace-pre-wrap pr-16 pb-1">
+            <p className="text-[15px] leading-6 font-normal whitespace-pre-wrap pr-16 pb-1 inline-block min-w-fit">
               {text}
             </p>
           )}
