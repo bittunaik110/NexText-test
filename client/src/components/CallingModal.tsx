@@ -1,10 +1,9 @@
-
 import { useEffect, useState } from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import UserAvatar from "./UserAvatar";
 import { PhoneOff, Mic, MicOff, Volume2, VolumeX } from "lucide-react";
 import { CallData } from "@/hooks/useCallWithWebRTC";
+import { format } from "date-fns";
 
 interface CallingModalProps {
   isOpen: boolean;
@@ -30,6 +29,7 @@ export function CallingModal({
   isInitiator = false,
 }: CallingModalProps) {
   const [status, setStatus] = useState<string>("Contacting...");
+  const currentTime = format(new Date(), "HH:mm");
 
   useEffect(() => {
     if (!call) return;
@@ -54,75 +54,87 @@ export function CallingModal({
   const contactName = isInitiator ? call.recipientName : call.initiatorName;
 
   return (
-    <Dialog open={isOpen} modal>
-      <DialogContent className="max-w-full h-screen p-0 border-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-        <div className="flex flex-col items-center justify-between h-full py-16 px-8">
-          {/* Top section - Avatar and name */}
-          <div className="flex flex-col items-center gap-6 flex-1 justify-center">
-            <UserAvatar
-              name={contactName}
-              size="lg"
-              className="w-32 h-32 ring-4 ring-white/20"
-            />
-            
-            <div className="text-center">
-              <h2 className="text-4xl font-semibold text-white mb-2">
-                {contactName}
-              </h2>
-              <p className="text-xl text-gray-300">
-                {call.status === "connected" ? formatDuration(duration) : status}
-              </p>
-            </div>
-          </div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95">
+      {/* Dark gradient background with blur effect */}
+      <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-slate-800 to-slate-900 overflow-hidden">
+        {/* Background blur overlay */}
+        <div className="absolute inset-0 opacity-40">
+          <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/30 via-slate-700/20 to-orange-500/30 blur-3xl" />
+        </div>
+      </div>
 
-          {/* Bottom section - Controls */}
-          <div className="flex items-center justify-center gap-6 mb-8">
-            {/* Speaker button */}
-            <Button
-              size="icon"
-              className={`h-16 w-16 rounded-full ${
-                isSpeakerOn
-                  ? "bg-gray-700 hover:bg-gray-600"
-                  : "bg-gray-700 hover:bg-gray-600"
-              }`}
-              onClick={onSpeakerToggle}
-            >
-              {isSpeakerOn ? (
-                <Volume2 className="h-7 w-7 text-white" />
-              ) : (
-                <VolumeX className="h-7 w-7 text-white" />
-              )}
-            </Button>
+      {/* Content - Full Screen */}
+      <div className="relative z-10 flex flex-col items-center justify-center w-full h-full px-6">
+        {/* Top - Time Display */}
+        <div className="absolute top-8 left-0 right-0 flex justify-center">
+          <span className="text-white text-lg font-semibold">{currentTime}</span>
+        </div>
 
-            {/* Mute button */}
-            <Button
-              size="icon"
-              className={`h-16 w-16 rounded-full ${
-                isMuted
-                  ? "bg-gray-700 hover:bg-gray-600"
-                  : "bg-gray-700 hover:bg-gray-600"
-              }`}
-              onClick={onMuteToggle}
-            >
-              {isMuted ? (
-                <MicOff className="h-7 w-7 text-white" />
-              ) : (
-                <Mic className="h-7 w-7 text-white" />
-              )}
-            </Button>
+        {/* Center - Avatar & Caller Info */}
+        <div className="flex flex-col items-center justify-center flex-1 gap-6">
+          {/* Avatar */}
+          <UserAvatar
+            name={contactName}
+            src=""
+            size="xl"
+            className="w-36 h-36 mb-4 ring-4 ring-white/30 shadow-2xl"
+          />
 
-            {/* End call button */}
-            <Button
-              size="icon"
-              className="h-16 w-16 rounded-full bg-red-500 hover:bg-red-600"
-              onClick={onEndCall}
-              data-testid="button-end-call"
-            >
-              <PhoneOff className="h-7 w-7 text-white" />
-            </Button>
+          {/* Caller info */}
+          <div className="text-center">
+            <h2 className="text-5xl font-bold text-white mb-2">{contactName}</h2>
+            <p className="text-xl text-gray-300">
+              {call.status === "connected" ? formatDuration(duration) : status}
+            </p>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+
+        {/* Bottom - Action Buttons */}
+        <div className="absolute bottom-20 left-0 right-0 flex gap-8 items-center justify-center">
+          {/* Speaker button */}
+          <Button
+            size="icon"
+            className="h-20 w-20 rounded-full bg-gray-700/80 hover:bg-gray-600/80 text-white transition-all duration-200 shadow-lg flex items-center justify-center"
+            onClick={onSpeakerToggle}
+            data-testid="button-speaker-call"
+          >
+            {isSpeakerOn ? (
+              <Volume2 className="h-9 w-9" />
+            ) : (
+              <VolumeX className="h-9 w-9" />
+            )}
+          </Button>
+
+          {/* Mute button */}
+          <Button
+            size="icon"
+            className="h-20 w-20 rounded-full bg-gray-700/80 hover:bg-gray-600/80 text-white transition-all duration-200 shadow-lg flex items-center justify-center"
+            onClick={onMuteToggle}
+            data-testid="button-mute-call"
+          >
+            {isMuted ? (
+              <MicOff className="h-9 w-9" />
+            ) : (
+              <Mic className="h-9 w-9" />
+            )}
+          </Button>
+
+          {/* End call button - RED */}
+          <Button
+            size="icon"
+            className="h-20 w-20 rounded-full bg-red-500 hover:bg-red-600 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center"
+            onClick={onEndCall}
+            data-testid="button-end-call"
+          >
+            <PhoneOff className="h-9 w-9" />
+          </Button>
+        </div>
+
+        {/* iPhone Home Indicator */}
+        <div className="absolute bottom-3 left-0 right-0 flex justify-center">
+          <div className="w-32 h-1.5 bg-white/60 rounded-full" />
+        </div>
+      </div>
+    </div>
   );
 }
