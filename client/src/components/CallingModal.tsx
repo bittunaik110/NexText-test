@@ -50,12 +50,14 @@ export function CallingModal({
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
+  console.log("[CallingModal] 🎬 Checking render conditions:", { isOpen, callExists: !!call, callData: call?.callId });
+  
   if (!isOpen || !call) {
-    console.log("[CallingModal] Not rendering: isOpen=", isOpen, "call=", call);
+    console.log("[CallingModal] ❌ NOT RENDERING: isOpen=", isOpen, "call exists=", !!call);
     return null;
   }
 
-  console.log("[CallingModal] RENDERING FULL SCREEN PORTAL for call:", call?.recipientName);
+  console.log("[CallingModal] ✅ RENDERING FULL SCREEN PORTAL for call:", call?.recipientName);
   const contactName = isInitiator ? call.recipientName : call.initiatorName;
 
   const modalContent = (

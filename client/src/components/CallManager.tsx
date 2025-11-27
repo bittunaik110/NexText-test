@@ -7,6 +7,8 @@ import { useSocket } from "@/hooks/useSocket";
 import { useAuth } from "@/contexts/AuthContext";
 
 export function CallManager() {
+  console.log("[CallManager] 🔧 COMPONENT MOUNTED/RENDERED");
+  
   const {
     activeCall,
     incomingCall,
@@ -27,9 +29,12 @@ export function CallManager() {
 
   // Debug: Log activeCall state changes
   useEffect(() => {
-    console.log("[CallManager] activeCall state changed:", {
+    console.log("[CallManager] 📞 activeCall state changed:", {
       isOpen: !!activeCall,
-      call: activeCall,
+      callId: activeCall?.callId,
+      status: activeCall?.status,
+      initiator: activeCall?.initiator,
+      recipient: activeCall?.recipient,
       shouldShowModal: !!activeCall,
     });
   }, [activeCall]);
