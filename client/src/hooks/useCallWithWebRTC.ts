@@ -308,40 +308,58 @@ export function useCallWithWebRTC() {
 
   const answerCall = useCallback(
     async (callData: CallData) => {
-      if (!user || !socket || !peerRef.current) return;
+      console.log("[answerCall] 🎬 START - Recipient answering call", { callData, user: user?.uid, socket: !!socket, peer: !!peerRef.current });
+      
+      if (!user) {
+        console.error("[answerCall] ✗ No user found");
+        return;
+      }
+      if (!socket) {
+        console.error("[answerCall] ✗ No socket connection");
+        return;
+      }
+      if (!peerRef.current) {
+        console.error("[answerCall] ✗ Peer not initialized");
+        return;
+      }
 
       try {
-        console.log("✓ Recipient answering call from:", callData.initiator);
+        console.log("[answerCall] ✓ All prerequisites met - Starting answer process");
         const callRef = ref(database, `calls/${callData.chatId}/${callData.callId}`);
 
-        // Request microphone
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        mediaStreamRef.current = stream;
-        console.log("✓ Recipient: Got local audio stream");
-
-        // Start recording
-        startRecording(stream);
-
-        // ✅ FIX #1: Update UI state IMMEDIATELY so CallingModal shows
+        // ✅ FIX #1: Update UI state IMMEDIATELY so CallingModal shows (BEFORE media request)
+        console.log("[answerCall] 📱 Setting activeCall state immediately");
         setIncomingCall(null);
         setActiveCall({ ...callData, status: "ringing" });
-        console.log("✓ Recipient: Set activeCall state to show CallingModal");
 
-        // Update status to connected
+        // Request microphone (this can fail silently, so log carefully)
+        console.log("[answerCall] 🎤 Requesting microphone access...");
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaStreamRef.current = stream;
+        console.log("[answerCall] ✓ Got local audio stream:", stream.getTracks().length, "tracks");
+
+        // Start recording
+        console.log("[answerCall] 🎙️ Starting recording...");
+        startRecording(stream);
+        console.log("[answerCall] ✓ Recording started");
+
+        // Update Firebase status to connected
+        console.log("[answerCall] 🔥 Updating Firebase call status to connected");
         await update(callRef, { status: "connected" });
 
-        // CRITICAL FIX: Recipient should NOT call initiator back!
-        // Instead, set up listener for INCOMING call from initiator
+        // Set up PeerJS listener for INCOMING peer call from initiator
+        console.log("[answerCall] 👂 Setting up peer call listener");
         peerRef.current.on("call", (incomingPeerCall: any) => {
-          console.log("✓ Recipient: Received peer call from initiator");
+          console.log("[answerCall] 📞 RECEIVED incoming peer call from:", incomingPeerCall.peer);
           
           // Answer with our stream
+          console.log("[answerCall] 🎙️ Answering peer call with local stream");
           incomingPeerCall.answer(stream);
           callConnectionRef.current = incomingPeerCall;
 
           // Listen for their stream
           incomingPeerCall.on("stream", (remoteStream: MediaStream) => {
-            console.log("✓ Recipient: Received remote audio stream from initiator");
+            console.log("[answerCall] 📡 RECEIVED remote stream from initiator!");
             
             // Update to connected state when we get the remote stream
             setActiveCall(prev => prev ? { ...prev, status: "connected" } : null);
@@ -350,34 +368,45 @@ export function useCallWithWebRTC() {
             const audioElement = new Audio();
             audioElement.srcObject = remoteStream;
             audioElement.autoplay = true;
-            audioElement.play().catch(err => console.error("Audio play error:", err));
+            audioElement.play().catch(err => console.error("[answerCall] Audio play error:", err));
+            console.log("[answerCall] ✓ Remote audio playing");
           });
 
           incomingPeerCall.on("close", () => {
-            console.log("✓ Recipient: Peer call closed by initiator");
+            console.log("[answerCall] 🔌 Peer call closed by initiator");
           });
 
           incomingPeerCall.on("error", (err: any) => {
-            console.error("✗ Recipient: Peer call error:", err);
+            console.error("[answerCall] ✗ Peer call error:", err);
           });
         });
 
         // Persist to Firebase - update to ongoing status
+        console.log("[answerCall] 💾 Updating Firebase call status to ongoing");
         try {
           await updateCallStatus(callData.callId, "ongoing", { startTime: Date.now() });
+          console.log("[answerCall] ✓ Firebase call status updated to ongoing");
         } catch (error) {
-          console.error("Error updating call status to ongoing:", error);
+          console.error("[answerCall] ✗ Error updating call status:", error);
         }
 
-        // Emit call answered event - THIS tells initiator to now send peer call
+        // Emit socket event to tell initiator that we answered
+        console.log("[answerCall] 📡 Emitting callAnswered event to initiator");
         socket.emit("callAnswered", { 
           callId: callData.callId, 
           chatId: callData.chatId 
         });
-
-        console.log("✓ Recipient: Call answered successfully - waiting for initiator's peer call");
+        console.log("[answerCall] ✅ Call answered successfully! Waiting for initiator's peer call...");
       } catch (error) {
-        console.error("✗ Recipient: Error answering call:", error);
+        console.error("[answerCall] ✗✗✗ CRITICAL ERROR answering call:", error);
+        console.error("[answerCall] Error details:", {
+          name: (error as Error).name,
+          message: (error as Error).message,
+          stack: (error as Error).stack
+        });
+        // Still keep the activeCall visible even if there's an error
+        setIncomingCall(null);
+        setActiveCall(callData);
       }
     },
     [user, socket]

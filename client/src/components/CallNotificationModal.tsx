@@ -103,7 +103,11 @@ export function CallNotificationModal({
           <Button
             size="icon"
             className="h-20 w-20 rounded-full bg-green-500 hover:bg-green-600 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center"
-            onClick={onAnswer}
+            onClick={() => {
+              console.log("[CallNotificationModal] ✅ Accept button clicked!");
+              console.log("[CallNotificationModal] Calling onAnswer with call:", call);
+              onAnswer();
+            }}
             data-testid="button-accept-call"
           >
             {call.callType === "video" ? (
