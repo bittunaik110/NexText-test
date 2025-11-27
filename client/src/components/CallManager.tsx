@@ -7,8 +7,6 @@ import { useSocket } from "@/hooks/useSocket";
 import { useAuth } from "@/contexts/AuthContext";
 
 export function CallManager() {
-  console.log("[CallManager] 🔧 COMPONENT MOUNTED/RENDERED");
-  
   const {
     activeCall,
     incomingCall,
@@ -27,17 +25,21 @@ export function CallManager() {
   const [showCallEndedModal, setShowCallEndedModal] = useState(false);
   const [endedCallerName, setEndedCallerName] = useState("");
 
-  // Debug: Log activeCall state changes
+  // Debug: Log state changes
   useEffect(() => {
-    console.log("[CallManager] 📞 activeCall state changed:", {
-      isOpen: !!activeCall,
+    console.log("[CallManager] activeCall changed:", {
+      hasCall: !!activeCall,
       callId: activeCall?.callId,
       status: activeCall?.status,
-      initiator: activeCall?.initiator,
-      recipient: activeCall?.recipient,
-      shouldShowModal: !!activeCall,
     });
   }, [activeCall]);
+
+  useEffect(() => {
+    console.log("[CallManager] incomingCall changed:", {
+      hasCall: !!incomingCall,
+      callId: incomingCall?.callId,
+    });
+  }, [incomingCall]);
 
   // Listen for call ended event from other user
   useEffect(() => {
