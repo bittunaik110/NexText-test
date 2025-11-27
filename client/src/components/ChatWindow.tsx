@@ -439,15 +439,6 @@ export default function ChatWindow({ chatId, contact, onBack, isTyping }: ChatWi
               currentUserName={user?.displayName || "User"}
               isOnline={contactOnline}
             />
-            <Button 
-              size="icon" 
-              variant="ghost"
-              onClick={handleVideoCall}
-              data-testid="button-video-call"
-              className="text-primary hover:bg-primary/10"
-            >
-              <Video className="h-5 w-5" />
-            </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button size="icon" variant="ghost" data-testid="button-options" className="text-foreground hover:bg-gray-100">
