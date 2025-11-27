@@ -99,6 +99,9 @@ export function useCallWithWebRTC() {
       if (callData.recipient === user.uid) {
         console.log(`[CALL DEBUG] ✓✓✓ Call is for me! Showing notification with data:`, callData);
         setIncomingCall(callData);
+        // 🎬 ALSO SET ACTIVE CALL SO RECIPIENT SEES CALLING MODAL IMMEDIATELY (LIKE INSTAGRAM)
+        setActiveCall(callData);
+        console.log(`[CALL DEBUG] ✓✓✓ Set activeCall for recipient - CallingModal should appear now`);
       } else {
         console.log(`[CALL DEBUG] ✗ Call is not for me (${callData.recipient} !== ${user.uid})`);
       }
