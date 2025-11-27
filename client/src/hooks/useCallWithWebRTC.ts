@@ -231,10 +231,14 @@ export function useCallWithWebRTC() {
       try {
         console.log("[CALL INIT] Creating call with data:", callData);
         console.log("[CALL INIT] Recipient field value:", callData.recipient);
+        
+        // ✅ SET ACTIVE CALL IMMEDIATELY BEFORE ANY ASYNC OPERATIONS
+        console.log("[CALL INIT] 🎬 SETTING activeCall state IMMEDIATELY:", callData);
+        setActiveCall(callData);
+        
         const callRef = ref(database, `calls/${chatId}/${callId}`);
         await set(callRef, callData);
-        console.log("[CALL INIT] Setting activeCall state:", callData);
-        setActiveCall(callData);
+        console.log("[CALL INIT] Firebase call saved successfully");
 
         // Request microphone
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -279,8 +283,9 @@ export function useCallWithWebRTC() {
 
         // Update status to ringing
         await update(callRef, { status: "ringing" });
-        console.log("[CALL INIT] Updated status to ringing, updating local state");
+        console.log("[CALL INIT] Updated status to ringing");
         setActiveCall(prev => prev ? { ...prev, status: "ringing" } : callData);
+        console.log("[CALL INIT] ✅ activeCall state updated to ringing");
         
         // Persist call to Firebase using new utility
         try {
