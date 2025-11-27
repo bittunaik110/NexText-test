@@ -118,7 +118,7 @@ export function useCallWithWebRTC() {
         // CRITICAL: NOW the initiator should call the recipient's PeerJS
         if (peerRef.current && mediaStreamRef.current && activeCall) {
           console.log("✓ Initiator: Sending peer call to recipient now");
-          const peerCall = peerRef.current.call(data.callId?.split('-')[0] === activeCall.recipient ? activeCall.recipient : activeCall.recipient, mediaStreamRef.current);
+          const peerCall = peerRef.current.call(activeCall.recipient, mediaStreamRef.current);
           
           peerCall.on("stream", (remoteStream: MediaStream) => {
             console.log("✓ Initiator: Received remote stream from recipient");
@@ -217,7 +217,7 @@ export function useCallWithWebRTC() {
         startRecording(stream);
 
         // Listen for incoming peer call (when recipient answers)
-        peerRef.current.on("call", (incomingPeerCall) => {
+        peerRef.current.on("call", (incomingPeerCall: any) => {
           console.log("Received peer call from recipient");
           
           // Answer with our stream
@@ -327,7 +327,7 @@ export function useCallWithWebRTC() {
 
         // CRITICAL FIX: Recipient should NOT call initiator back!
         // Instead, set up listener for INCOMING call from initiator
-        peerRef.current.on("call", (incomingPeerCall) => {
+        peerRef.current.on("call", (incomingPeerCall: any) => {
           console.log("✓ Recipient: Received peer call from initiator");
           
           // Answer with our stream

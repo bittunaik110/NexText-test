@@ -1,0 +1,86 @@
+Perfect! Now let's ensure the calling feature is fully polished and production-ready like Instagram/WhatsApp calls. I need you to:
+
+📝 PART 1: CREATE COMPREHENSIVE README DOCUMENTATION
+
+Create a new file: WEBRTC_CALLING_FEATURE_README.md with the following sections:
+
+1. **Overview**
+   - What the calling feature does
+   - Technologies used (WebRTC, PeerJS, Firebase, Socket.IO)
+   - Voice call vs Video call support
+
+2. **Architecture & Flow**
+   - Complete call flow diagram (text-based)
+   - Initiator flow: setup → media → socket notification → wait for answer → peer call
+   - Recipient flow: receive notification → get media → setup listener → emit answer → receive peer call
+   - Include all components involved and their responsibilities
+
+3. **Files & Components**
+   - useCallWithWebRTC.ts - Core hook with all functions
+   - CallNotificationModal.tsx - Incoming call UI
+   - CallingModal.tsx - Outgoing call UI  
+   - FloatingCallWindow.tsx - Active call interface
+   - CallManager.tsx - Orchestrates everything
+   - firebaseCallOps.ts - Firebase persistence
+
+4. **Key Functions**
+   - initiateCall(recipientId, callType)
+   - answerCall()
+   - declineCall()
+   - endCall()
+   - handleCallAnswered()
+   - How each function works
+
+5. **Firebase Schema**
+   - Call document structure
+   - Status lifecycle: initiating → ringing → ongoing → ended/missed/declined
+   - Real-time listeners
+
+6. **WebRTC Implementation**
+   - PeerJS configuration
+   - Media stream handling
+   - ICE candidate exchange
+   - Error handling
+
+7. **UI/UX Features**
+   - Full-screen modal like Instagram/WhatsApp
+   - Ringtone/sound effects
+   - Accept/Decline/End buttons
+   - Mute/Unmute functionality
+   - Call duration timer
+   - Avatar and user info display
+
+8. **Testing Guide**
+   - How to test with 2 users
+   - Expected behavior at each step
+   - Common issues and solutions
+
+9. **Troubleshooting**
+   - Common errors and fixes
+   - Browser compatibility
+   - Permissions handling
+
+✅ PART 2: VERIFY THE FIX
+
+Make sure these are working:
+1. Call notification appears for recipient ✓
+2. Recipient can click Accept button ✓
+3. Accept button triggers answerCall() properly ✓
+4. WebRTC peer connection is established ✓
+5. Audio streams are connected
+6. Both users see active call UI
+7. Call duration timer starts
+8. End call button works for both parties
+9. Call data is saved to Firebase
+
+🔧 PART 3: ENHANCEMENTS
+
+Add these features if not present:
+1. Ringtone/calling sound when call is initiated
+2. Vibration effect (if on mobile)
+3. Auto-decline after 30 seconds if no answer
+4. Call history in Calls tab
+5. Show "Calling..." and "Ringing..." status properly
+6. Proper error messages if camera/mic permissions denied
+
+Create the README file now with all details!
