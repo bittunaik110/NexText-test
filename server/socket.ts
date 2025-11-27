@@ -226,6 +226,28 @@ export function setupSocketIO(httpServer: HTTPServer) {
             await messageRef.update({ status: "read", readBy });
             io.to(chatId).emit("message-status-update", { messageId, status: "read" });
             console.log(`Message ${messageId} marked as read by ${userId}`);
+            
+            // ✅ FIX #2: DECREMENT unreadCount for this user in the chat
+            try {
+              const unreadCountRef = realtimeDb.ref(`chats/${chatId}/unreadCount/${userId}`);
+              const countSnapshot = await unreadCountRef.get();
+              const currentCount = countSnapshot.val() || 0;
+              
+              if (currentCount > 0) {
+                const newCount = currentCount - 1;
+                await unreadCountRef.set(newCount);
+                console.log(`✅ Decremented unreadCount for ${userId} in chat ${chatId}: ${currentCount} → ${newCount}`);
+                
+                // Emit update to ALL clients so unread badge disappears on all devices
+                io.to(chatId).emit("unread-count-updated", { 
+                  chatId, 
+                  userId, 
+                  newCount 
+                });
+              }
+            } catch (error) {
+              console.error(`Error decrementing unreadCount: ${error}`);
+            }
           }
         }
       } catch (error) {

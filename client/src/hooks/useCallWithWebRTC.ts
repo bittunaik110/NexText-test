@@ -322,6 +322,11 @@ export function useCallWithWebRTC() {
         // Start recording
         startRecording(stream);
 
+        // ✅ FIX #1: Update UI state IMMEDIATELY so CallingModal shows
+        setIncomingCall(null);
+        setActiveCall({ ...callData, status: "ringing" });
+        console.log("✓ Recipient: Set activeCall state to show CallingModal");
+
         // Update status to connected
         await update(callRef, { status: "connected" });
 
@@ -337,6 +342,9 @@ export function useCallWithWebRTC() {
           // Listen for their stream
           incomingPeerCall.on("stream", (remoteStream: MediaStream) => {
             console.log("✓ Recipient: Received remote audio stream from initiator");
+            
+            // Update to connected state when we get the remote stream
+            setActiveCall(prev => prev ? { ...prev, status: "connected" } : null);
             
             // Play remote audio
             const audioElement = new Audio();
@@ -366,9 +374,6 @@ export function useCallWithWebRTC() {
           callId: callData.callId, 
           chatId: callData.chatId 
         });
-
-        setIncomingCall(null);
-        setActiveCall({ ...callData, status: "connected" });
 
         console.log("✓ Recipient: Call answered successfully - waiting for initiator's peer call");
       } catch (error) {
