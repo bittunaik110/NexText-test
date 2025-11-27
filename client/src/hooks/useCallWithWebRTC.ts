@@ -110,10 +110,29 @@ export function useCallWithWebRTC() {
     };
 
     const handleCallAnswered = (data: { callId: string; chatId: string }) => {
-      console.log("Call was answered:", data);
+      console.log("✓ Initiator: Received callAnswered event from recipient");
       // Update call status when recipient answers
       if (activeCall?.callId === data.callId) {
         setActiveCall(prev => prev ? { ...prev, status: "connected" } : null);
+        
+        // CRITICAL: NOW the initiator should call the recipient's PeerJS
+        if (peerRef.current && mediaStreamRef.current && activeCall) {
+          console.log("✓ Initiator: Sending peer call to recipient now");
+          const peerCall = peerRef.current.call(data.callId?.split('-')[0] === activeCall.recipient ? activeCall.recipient : activeCall.recipient, mediaStreamRef.current);
+          
+          peerCall.on("stream", (remoteStream: MediaStream) => {
+            console.log("✓ Initiator: Received remote stream from recipient");
+            const audioElement = new Audio();
+            audioElement.srcObject = remoteStream;
+            audioElement.autoplay = true;
+            audioElement.play().catch(err => console.error("Audio play error:", err));
+          });
+          
+          peerCall.on("error", (err: any) => {
+            console.error("✗ Initiator: Peer call error:", err);
+          });
+        }
+        
         // Persist to Firebase
         updateCallStatus(data.callId, "ongoing", { startTime: Date.now() }).catch(err => 
           console.error("Error updating call status to ongoing:", err)
@@ -292,44 +311,48 @@ export function useCallWithWebRTC() {
       if (!user || !socket || !peerRef.current) return;
 
       try {
-        console.log("Answering call from:", callData.initiator);
+        console.log("✓ Recipient answering call from:", callData.initiator);
         const callRef = ref(database, `calls/${callData.chatId}/${callData.callId}`);
 
         // Request microphone
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         mediaStreamRef.current = stream;
-        console.log("Got local audio stream");
+        console.log("✓ Recipient: Got local audio stream");
 
         // Start recording
         startRecording(stream);
 
-        // Call the initiator with our stream
-        const peerCall = peerRef.current.call(callData.initiator, stream);
-        callConnectionRef.current = peerCall;
-        
-        console.log("Calling peer:", callData.initiator);
-
-        // Listen for remote stream
-        peerCall.on("stream", (remoteStream: MediaStream) => {
-          console.log("Received remote audio stream");
-          
-          // Play remote audio
-          const audioElement = new Audio();
-          audioElement.srcObject = remoteStream;
-          audioElement.autoplay = true;
-          audioElement.play().catch(err => console.error("Audio play error:", err));
-        });
-
-        peerCall.on("close", () => {
-          console.log("Peer call closed");
-        });
-
-        peerCall.on("error", (err: any) => {
-          console.error("Peer call error:", err);
-        });
-
         // Update status to connected
         await update(callRef, { status: "connected" });
+
+        // CRITICAL FIX: Recipient should NOT call initiator back!
+        // Instead, set up listener for INCOMING call from initiator
+        peerRef.current.on("call", (incomingPeerCall) => {
+          console.log("✓ Recipient: Received peer call from initiator");
+          
+          // Answer with our stream
+          incomingPeerCall.answer(stream);
+          callConnectionRef.current = incomingPeerCall;
+
+          // Listen for their stream
+          incomingPeerCall.on("stream", (remoteStream: MediaStream) => {
+            console.log("✓ Recipient: Received remote audio stream from initiator");
+            
+            // Play remote audio
+            const audioElement = new Audio();
+            audioElement.srcObject = remoteStream;
+            audioElement.autoplay = true;
+            audioElement.play().catch(err => console.error("Audio play error:", err));
+          });
+
+          incomingPeerCall.on("close", () => {
+            console.log("✓ Recipient: Peer call closed by initiator");
+          });
+
+          incomingPeerCall.on("error", (err: any) => {
+            console.error("✗ Recipient: Peer call error:", err);
+          });
+        });
 
         // Persist to Firebase - update to ongoing status
         try {
@@ -338,7 +361,7 @@ export function useCallWithWebRTC() {
           console.error("Error updating call status to ongoing:", error);
         }
 
-        // Emit call answered event
+        // Emit call answered event - THIS tells initiator to now send peer call
         socket.emit("callAnswered", { 
           callId: callData.callId, 
           chatId: callData.chatId 
@@ -347,9 +370,9 @@ export function useCallWithWebRTC() {
         setIncomingCall(null);
         setActiveCall({ ...callData, status: "connected" });
 
-        console.log("Call answered successfully");
+        console.log("✓ Recipient: Call answered successfully - waiting for initiator's peer call");
       } catch (error) {
-        console.error("Error answering call:", error);
+        console.error("✗ Recipient: Error answering call:", error);
       }
     },
     [user, socket]
