@@ -72,11 +72,8 @@ export function CallButton({
         throw new Error("Could not determine recipient ID");
       }
 
+      // Initiate call - CallingModal will appear automatically via CallManager
       await initiateCall(chatId, recipientId, contactName, initiatorName, callType);
-      toast({
-        title: callType === "video" ? "Video Calling" : "Calling",
-        description: `${callType === "video" ? "Starting video call with" : "Calling"} ${contactName}...`,
-      });
     } catch (error) {
       console.error("Error initiating call:", error);
       toast({

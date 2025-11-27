@@ -14,13 +14,13 @@ interface AttachmentMenuProps {
 }
 
 const attachmentOptions = [
-  { id: "camera", icon: Camera, label: "Camera", color: "text-red-500" },
-  { id: "gallery", icon: ImageIcon, label: "Gallery", color: "text-purple-500" },
-  { id: "document", icon: FileText, label: "Document", color: "text-blue-500" },
-  { id: "contact", icon: User, label: "Contact", color: "text-green-500" },
-  { id: "location", icon: MapPin, label: "Location", color: "text-orange-500" },
-  { id: "audio", icon: Music, label: "Audio", color: "text-yellow-500" },
-  { id: "voice", icon: Mic, label: "Voice", color: "text-pink-500" },
+  { id: "camera", icon: Camera, label: "Camera", bgColor: "bg-red-500" },
+  { id: "gallery", icon: ImageIcon, label: "Gallery", bgColor: "bg-purple-500" },
+  { id: "document", icon: FileText, label: "Document", bgColor: "bg-blue-500" },
+  { id: "contact", icon: User, label: "Contact", bgColor: "bg-green-500" },
+  { id: "location", icon: MapPin, label: "Location", bgColor: "bg-orange-500" },
+  { id: "audio", icon: Music, label: "Audio", bgColor: "bg-yellow-500" },
+  { id: "voice", icon: Mic, label: "Voice", bgColor: "bg-pink-500" },
 ];
 
 export default function AttachmentMenu({
@@ -106,7 +106,7 @@ export default function AttachmentMenu({
                   className="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-gray-50 transition-colors"
                   data-testid={`attachment-${option.id}`}
                 >
-                  <div className={cn("h-10 w-10 rounded-full flex items-center justify-center bg-gray-100", option.color)}>
+                  <div className={cn("h-10 w-10 rounded-full flex items-center justify-center", option.bgColor)}>
                     <Icon className="h-5 w-5 text-white" />
                   </div>
                   <span className="text-xs font-medium text-foreground text-center">{option.label}</span>
