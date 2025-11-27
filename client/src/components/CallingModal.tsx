@@ -29,7 +29,7 @@ export function CallingModal({
   onSpeakerToggle,
   isInitiator = false,
 }: CallingModalProps) {
-  console.log("[CallingModal RENDER] START:", { isOpen, hasCall: !!call, callId: call?.callId });
+  console.log("[CallingModal] 🎬 RENDERING", { isOpen, hasCall: !!call, callId: call?.callId });
   
   const [status, setStatus] = useState<string>("Contacting...");
   const currentTime = format(new Date(), "HH:mm");
@@ -53,11 +53,11 @@ export function CallingModal({
   };
 
   if (!isOpen || !call) {
-    console.log("[CallingModal] NOT showing - isOpen:", isOpen, "call:", call);
+    console.log("[CallingModal] ❌ NOT SHOWING:", { isOpen, call });
     return null;
   }
 
-  console.log("[CallingModal] ✅ SHOWING FULL SCREEN MODAL");
+  console.log("[CallingModal] ✅ RENDERING MODAL FOR:", call?.recipientName);
   const contactName = isInitiator ? call.recipientName : call.initiatorName;
 
   const modalContent = (

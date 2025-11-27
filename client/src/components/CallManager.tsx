@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useCallWithWebRTC } from "@/hooks/useCallWithWebRTC";
 import { CallNotificationModal } from "./CallNotificationModal";
 import { CallEndedNotificationModal } from "./CallEndedNotificationModal";
@@ -8,7 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 
 export function CallManager() {
   const {
-    activeCall,
+    activeCall: hookActiveCall,
     incomingCall,
     setIncomingCall,
     callDuration,
@@ -20,26 +20,25 @@ export function CallManager() {
     declineCall,
     endCall,
   } = useCallWithWebRTC();
+  
+  // Force local state to ensure component re-renders
+  const [activeCall, setActiveCall] = useState(hookActiveCall);
   const { socket } = useSocket();
   const { user } = useAuth();
   const [showCallEndedModal, setShowCallEndedModal] = useState(false);
   const [endedCallerName, setEndedCallerName] = useState("");
+  const updateCounterRef = useRef(0);
 
-  // Debug: Log state changes
+  // Sync hook state to local state and force re-render
   useEffect(() => {
-    console.log("[CallManager] activeCall changed:", {
-      hasCall: !!activeCall,
-      callId: activeCall?.callId,
-      status: activeCall?.status,
+    console.log("[CallManager] 🔄 Hook activeCall updated, syncing to local state:", {
+      hasCall: !!hookActiveCall,
+      callId: hookActiveCall?.callId,
+      status: hookActiveCall?.status,
+      updateCount: ++updateCounterRef.current,
     });
-  }, [activeCall]);
-
-  useEffect(() => {
-    console.log("[CallManager] incomingCall changed:", {
-      hasCall: !!incomingCall,
-      callId: incomingCall?.callId,
-    });
-  }, [incomingCall]);
+    setActiveCall(hookActiveCall);
+  }, [hookActiveCall]);
 
   // Listen for call ended event from other user
   useEffect(() => {
